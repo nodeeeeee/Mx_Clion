@@ -57,7 +57,6 @@ break : BREAK;
 expr : '(' expr? ')'                                                    #parenExpr
      | expr '[' expr? ']'                                               #indexExpr
      | arrayConst                                                       #arrayExpr
-     | THIS '.' expr                                                    #dotExpr
      | funcCall                                                         #funcCallExpr
      | expr '.' expr                                                    #dotExpr
      | expr (PLUS_PLUS | MINUS_MINUS)                                   #unaryExpr
@@ -156,6 +155,8 @@ LEFT_PARENTHESIS : '(';
 RIGHT_PARENTHESIS : ')';
 LEFT_CURLY_BRACKET : '{';
 RIGHT_CURLY_BRACKET : '}';
+LEFT_SQUARE_BRACKET : '[';
+RIGHT_SQUARE_BRACKET : ']';
 
 PLUS_PLUS : '++';
 MINUS_MINUS : '--';

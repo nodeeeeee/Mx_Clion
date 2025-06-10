@@ -2,7 +2,10 @@
 // Created by zhang-kai on 6/10/25.
 //
 
-#ifndef LITERAL_NODE_H
-#define LITERAL_NODE_H
+#pragma once
+#include "terminal_node.h"
 
-#endif //LITERAL_NODE_H
+class LiteralNode : public TerminalNode {
+    std::string literal_type;
+
+};

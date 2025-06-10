@@ -27,6 +27,9 @@ add_executable(Mx_Clion src/parser/antlr4/main.cpp
         src/include/frontend/ast/stat_node/regular_stat_node/expr_node/array_expr_node.h
         src/include/frontend/ast/terminal_node/terminal_node.h
         src/include/frontend/ast/terminal_node/literal_node.h
+        src/include/frontend/ast/stat_node/regular_stat_node/expr_node/dot_expr_node.h
+        src/include/frontend/ast/stat_node/regular_stat_node/expr_node/init_array_expr_node.h
+        src/include/frontend/ast/stat_node/regular_stat_node/expr_node/index_expr_node.h
         #        src/frontend/ast_builder.cpp
 )
 

@@ -31,7 +31,7 @@ class ASTBuilder : public MxBaseVisitor
     std::any visitLiteralExpr(MxParser::LiteralExprContext* ctx) override;
     std::any visitInitArrayExpr(MxParser::InitArrayExprContext* ctx) override;
     std::any visitFormatStringExpr(MxParser::FormatStringExprContext* ctx) override;
-    std::any visitIdExpr(MxParser::IdExprContext* ctx) override;
+    std::any visitIndexExpr(MxParser::IndexExprContext* ctx) override;
     std::any visitParenExpr(MxParser::ParenExprContext* ctx) override;
     std::any visitThisExpr(MxParser::ThisExprContext* ctx) override;
     std::any visitFormatString(MxParser::FormatStringContext *ctx) override;
@@ -41,4 +41,5 @@ class ASTBuilder : public MxBaseVisitor
     std::any visitInitArray(MxParser::IfStatContext *ctx) override;
     std::any visitInitObject(MxParser::StatContext *ctx) override;
     std::any visitTypeContext(MxParser::TypeContext *ctx) override;
+    std::any visitLiteral(antlr4::tree::TerminalNode *literal_node) override;
 };

@@ -12,17 +12,18 @@
 class  MxParser : public antlr4::Parser {
 public:
   enum {
-    T__0 = 1, T__1 = 2, LITERAL = 3, SL_COMMENT = 4, ML_COMMENT = 5, DOCS_COMMENT = 6, 
-    FORMAT_STRING_ELEMENT = 7, STRING = 8, FORMAT_STRING_STARTER = 9, QUOTATION = 10, 
-    CLASS = 11, FOR = 12, WHILE = 13, IF = 14, ELSE = 15, INT = 16, BOOLEAN = 17, 
-    STR = 18, VOID = 19, MAIN = 20, RETURN = 21, CONTINUE = 22, BREAK = 23, 
-    NEW = 24, NULL_ = 25, BOOL = 26, THIS = 27, WS = 28, ID = 29, DOLLAR = 30, 
-    INTEGER = 31, LETTER = 32, NUMBER = 33, EQUAL = 34, ADD = 35, SUB = 36, 
-    MUL = 37, DIV = 38, LEFT_PARENTHESIS = 39, RIGHT_PARENTHESIS = 40, LEFT_CURLY_BRACKET = 41, 
-    RIGHT_CURLY_BRACKET = 42, PLUS_PLUS = 43, MINUS_MINUS = 44, MOD = 45, 
-    SRL = 46, SLL = 47, BT = 48, LT = 49, BEQ = 50, LEQ = 51, ET = 52, NET = 53, 
-    AND = 54, XOR = 55, OR = 56, AND_AND = 57, OR_OR = 58, QUESTION = 59, 
-    SEMI_COLON = 60, COLON = 61, DOT = 62, COMMA = 63, WAVE = 64, EXCLAIMER = 65
+    LITERAL = 1, SL_COMMENT = 2, ML_COMMENT = 3, DOCS_COMMENT = 4, FORMAT_STRING_ELEMENT = 5, 
+    STRING = 6, FORMAT_STRING_STARTER = 7, QUOTATION = 8, CLASS = 9, FOR = 10, 
+    WHILE = 11, IF = 12, ELSE = 13, INT = 14, BOOLEAN = 15, STR = 16, VOID = 17, 
+    MAIN = 18, RETURN = 19, CONTINUE = 20, BREAK = 21, NEW = 22, NULL_ = 23, 
+    BOOL = 24, THIS = 25, WS = 26, ID = 27, DOLLAR = 28, INTEGER = 29, LETTER = 30, 
+    NUMBER = 31, EQUAL = 32, ADD = 33, SUB = 34, MUL = 35, DIV = 36, LEFT_PARENTHESIS = 37, 
+    RIGHT_PARENTHESIS = 38, LEFT_CURLY_BRACKET = 39, RIGHT_CURLY_BRACKET = 40, 
+    LEFT_SQUARE_BRACKET = 41, RIGHT_SQUARE_BRACKET = 42, PLUS_PLUS = 43, 
+    MINUS_MINUS = 44, MOD = 45, SRL = 46, SLL = 47, BT = 48, LT = 49, BEQ = 50, 
+    LEQ = 51, ET = 52, NET = 53, AND = 54, XOR = 55, OR = 56, AND_AND = 57, 
+    OR_OR = 58, QUESTION = 59, SEMI_COLON = 60, COLON = 61, DOT = 62, COMMA = 63, 
+    WAVE = 64, EXCLAIMER = 65
   };
 
   enum {
@@ -459,10 +460,9 @@ public:
   public:
     DotExprContext(ExprContext *ctx);
 
-    antlr4::tree::TerminalNode *THIS();
-    antlr4::tree::TerminalNode *DOT();
     std::vector<ExprContext *> expr();
     ExprContext* expr(size_t i);
+    antlr4::tree::TerminalNode *DOT();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
 
@@ -540,6 +540,8 @@ public:
 
     std::vector<ExprContext *> expr();
     ExprContext* expr(size_t i);
+    antlr4::tree::TerminalNode *LEFT_SQUARE_BRACKET();
+    antlr4::tree::TerminalNode *RIGHT_SQUARE_BRACKET();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
 
@@ -702,6 +704,10 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *NEW();
     TypeContext *type();
+    std::vector<antlr4::tree::TerminalNode *> LEFT_SQUARE_BRACKET();
+    antlr4::tree::TerminalNode* LEFT_SQUARE_BRACKET(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> RIGHT_SQUARE_BRACKET();
+    antlr4::tree::TerminalNode* RIGHT_SQUARE_BRACKET(size_t i);
     std::vector<ExprContext *> expr();
     ExprContext* expr(size_t i);
 
@@ -742,6 +748,8 @@ public:
     antlr4::tree::TerminalNode *VOID();
     antlr4::tree::TerminalNode *ID();
     TypeContext *type();
+    antlr4::tree::TerminalNode *LEFT_SQUARE_BRACKET();
+    antlr4::tree::TerminalNode *RIGHT_SQUARE_BRACKET();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
