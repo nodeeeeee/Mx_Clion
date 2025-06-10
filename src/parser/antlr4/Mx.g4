@@ -1,11 +1,11 @@
 grammar Mx;
 @lexer::members {
-    public static boolean isID = true;
-    public static boolean start = true;
+    bool isID = true;
+    bool start = true;
 }
 prog : (classDef ';' | varDef ';' | funcDef)* mainFunc (classDef ';' | varDef ';' | funcDef)* EOF;
 
-mainFunc : INT MAIN '(' ')' '{' stat* '}';
+mainFunc : INT MAIN '(' ')' block;
 
 stat :  regularStat
      | specialStat;
@@ -23,7 +23,8 @@ regularStat : expr ';'      // expr:
             | whileStat
             | returnStat ';'
             | continue ';'
-            | break ';';
+            | break ';'
+            | ';';
 
 varDef : type ID (EQUAL expr)? (',' ID (EQUAL expr)?)*;
 
@@ -35,7 +36,7 @@ classFuncDef : ID '('')' block;   //must split, or it will take '()' as a whole 
 
 classDef : CLASS ID '{' (varDef ';' | funcDef | classFuncDef | classDef ';')* '}';
 
-ifStat : IF '(' ifExpr = expr ')' regularStat (ELSE regularStat)?;
+ifStat : IF '(' (ifExpr = expr)? ')' regularStat (ELSE regularStat)?;
 
 assignStat : expr EQUAL expr;
 
@@ -43,57 +44,57 @@ assignStat : expr EQUAL expr;
 
 block : '{' stat*? '}';
 
-forStat : FOR '(' (varDef | assignStat)? ';' (forCondExpr = expr) ';' (forUpdateExpr = update)? ')' regularStat;
+forStat : FOR '(' (varDef | assignStat | expr)? ';' (forCondExpr = expr)? ';' (forUpdateExpr = update)? ')' regularStat;
 
 whileStat : WHILE '(' whileCondExpr = expr ')';
 
-returnStat : RETURN (expr | funcCall);
+returnStat : RETURN (expr | funcCall)?;
 
 continue : CONTINUE;
 
 break : BREAK;
 
-expr : '(' expr ')'   //without additional operations, used only for calculation
-     | expr '[' expr ']'
-     | arrayConst
-     | expr arrayConst
-     | THIS '.' expr
-     | funcCall
-     | expr '.' expr
-     | expr (PLUS_PLUS | MINUS_MINUS)
-     | (PLUS_PLUS | MINUS_MINUS) expr
-     | (WAVE | EXCLAIMER) expr
-     | expr ('*' | '/' | '%') expr
-     | ('+' | '-') expr
-     | expr ('+' | '-') expr
-     | expr (SRL | SLL) expr
-     | expr (BT | LT | BEQ | LEQ) expr
-     | expr (ET | NET) expr
-     | expr AND expr
-     | expr XOR expr
-     | expr OR expr
-     | expr AND_AND expr
-     | expr OR_OR expr
-     | expr '?' expr ':' expr
-     | initArray
-     | initObject
-     | formatString
-     | THIS
-     | ID
-     | LITERAL
-     | ;
+expr : '(' expr? ')'                                                    #parenExpr
+     | expr '[' expr? ']'                                               #indexExpr
+     | arrayConst                                                       #arrayExpr
+     | THIS '.' expr                                                    #dotExpr
+     | funcCall                                                         #funcCallExpr
+     | expr '.' expr                                                    #dotExpr
+     | expr (PLUS_PLUS | MINUS_MINUS)                                   #unaryExpr
+     | (PLUS_PLUS | MINUS_MINUS) expr                                   #unaryExpr
+     | (WAVE | EXCLAIMER) expr                                          #unaryExpr
+     | expr ('*' | '/' | '%') expr                                      #binaryExpr
+     | ('+' | '-') expr                                                 #unaryExpr
+     | expr ('+' | '-') expr                                            #binaryExpr
+     | expr (SRL | SLL) expr                                            #binaryExpr
+     | expr (BT | LT | BEQ | LEQ) expr                                  #binaryExpr
+     | expr (ET | NET) expr                                             #binaryExpr
+     | expr AND expr                                                    #binaryExpr
+     | expr XOR expr                                                    #binaryExpr
+     | expr OR expr                                                     #binaryExpr
+     | expr AND_AND expr                                                #binaryExpr
+     | expr OR_OR expr                                                  #binaryExpr
+     | expr '?' expr ':' expr                                           #ternaryExpr
+     | initArray                                                        #initArrayExpr
+     | initObject                                                       #initObjectExpr
+     | formatString                                                     #formatStringExpr
+     | THIS                                                             #thisExpr
+     | LITERAL                                                          #literalExpr
+     ;
+
 formatString : FORMAT_STRING_STARTER (FORMAT_STRING_ELEMENT | (DOLLAR expr DOLLAR))* QUOTATION;
 
 update : ('++' | '--') ID
        | ID ('++' | '--')
-       | assignStat;
+       | assignStat
+       | expr;
 
-funcCall : ID '(' (expr (',' expr)*) ')';
+funcCall : ID '(' (expr (',' expr)*)? ')';
 
 arrayConst : '{' (LITERAL (',' LITERAL)*)? '}'
-           | '{' arrayConst '}';
+           | '{' arrayConst (',' arrayConst)* '}';
 
-initArray : NEW type ('['expr']')+;
+initArray : NEW type ('['expr?']')+;
 
 initObject : NEW type ('('')')?;
 
@@ -111,7 +112,7 @@ LITERAL : INTEGER
         | NULL;
 
 
-SL_COMMENT : '//' .*? '\n' -> skip;
+SL_COMMENT : '//' .*? ('\n'|EOF) -> skip;
 ML_COMMENT : '/*' .*? '*/' -> skip;
 DOCS_COMMENT : '/**' .*? '*/' -> skip;
 //FORMAL_STRING : 'f' STRING;  //I need to guarantee that the inner $$ are executed as well.

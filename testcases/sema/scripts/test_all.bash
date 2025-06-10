@@ -3,7 +3,7 @@
 # Usage: scripts/test_all.bash <compiler> <sema_dir>
 # Example:
 #     scripts/test_all.bash '../../mxc -fsyntax-only' testcases/sema
-
+#     under /src/parser/antlr4 : ../../../testcases/sema/scripts/test_all.bash '../../../cmake-build-debug/Mx_Clion -fsyntax-only' ../../../testcases/sema
 if [ $# -ne 2 ]; then
     echo "Usage: $0 <compiler> <sema_dir>" >&2
     echo "       If you need to pass arguments to the compiler, please use" >&2
