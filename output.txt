@@ -1,0 +1,41 @@
+"testcases/sema/basic-package/basic-50.mx"
+open file: "testcases/sema/basic-package/basic-50.mx"
+(prog (classDef class A { (varDef (type int) a) ; }) ; (classDef class B { (varDef (type A) b) ; }) ; (classDef class C { (varDef (type B) c) ; }) ; (classDef class D { (varDef (type C) d) ; }) ; (classDef class E { (varDef (type D) e) ; }) ; (classDef class F { (varDef (type E) f) ; }) ; (classDef class G { (varDef (type F) g) ; }) ; (varDef (type G) world = (expr (initObject new (type G)))) ; (funcDef (type void) hello ( (type int) world ) (block { })) (mainFunc int main ( ) { (stat (regularStat (expr (funcCall hello ( (expr (expr (expr (expr (expr (expr (expr (expr (expr world) . (expr g)) . (expr f)) . (expr e)) . (expr d)) . (expr c)) . (expr b)) . (expr a)) . (expr A)) ))) ;)) (stat (regularStat (returnStat return (expr 0)) ;)) }) <EOF>)
+
+解析完成
+"testcases/sema/basic-package/basic-45.mx"
+open file: "testcases/sema/basic-package/basic-45.mx"
+(prog (mainFunc int main ( ) { (stat (regularStat (expr (initObject new (type void))) ;)) }) <EOF>)
+
+解析完成
+"testcases/sema/basic-package/basic-66.mx"
+open file: "testcases/sema/basic-package/basic-66.mx"
+(prog (classDef class A { (varDef (type int) b) ; (varDef (type B) foo) ; (funcDef (type A) f ( ) (block { (stat (regularStat (returnStat return (expr (expr (expr foo) . (expr (funcCall g ( expr )))) . (expr foo))) ;)) })) }) ; (mainFunc int main ( ) { (stat (regularStat (varDef (type B) foo) ;)) (stat (regularStat (assignStat (expr foo) = (expr (expr (expr (expr (expr (expr ( (expr (expr (expr foo) . (expr foo)) . (expr foo)) )) . (expr foo)) . (expr foo)) . (expr foo)) . (expr foo)) . (expr (funcCall g ( expr ))))) ;)) (stat (regularStat (expr (expr (expr (expr (expr (expr (expr (expr foo) . (expr foo)) . (expr (funcCall f ( expr )))) . (expr foo)) . (expr (funcCall g ( expr )))) . (expr foo)) . (expr foo)) . (expr (funcCall g ( expr )))) ;)) (stat (regularStat (assignStat (expr (expr (expr (expr (expr (expr (expr (expr (expr (expr foo) . (expr foo)) . (expr foo)) . (expr foo)) . (expr foo)) . (expr foo)) . (expr foo)) . (expr (funcCall g ( expr )))) . (expr foo)) . (expr b)) = (expr (expr (funcCall getString ( expr ))) . (expr (funcCall length ( expr ))))) ;)) (stat (regularStat (returnStat return (expr 0)) ;)) }) (classDef class B { (varDef (type int) a) ; (varDef (type A) foo) ; (funcDef (type B) g ( ) (block { (stat (regularStat (expr (expr ( (expr ++ (expr ( (expr ++ (expr a)) ))) )) ++) ;)) (stat (regularStat (returnStat return (expr (expr (expr foo) . (expr (funcCall f ( expr )))) . (expr foo))) ;)) })) }) ; <EOF>)
+
+解析完成
+"testcases/sema/basic-package/basic-26.mx"
+open file: "testcases/sema/basic-package/basic-26.mx"
+(prog (classDef class AI { (varDef (type int) a) ; }) ; (funcDef (type int) f ( (type int) a , (type int) b ) (block { })) (mainFunc int main ( ) { (stat (regularStat (varDef (type int) b) ;)) (stat (regularStat (varDef (type AI) sa = (expr (initObject new (type AI)))) ;)) (stat (regularStat (expr (funcCall f ( (expr b) , (expr sa) ))) ;)) }) <EOF>)
+
+解析完成
+"testcases/sema/basic-package/basic-46.mx"
+open file: "testcases/sema/basic-package/basic-46.mx"
+(prog (mainFunc int main ( ) { (stat (regularStat (varDef (type int) a) ;)) (stat (regularStat (varDef (type int) b) ;)) (stat (regularStat (assignStat (expr a) = (expr (expr a) + (expr b))) ;)) (stat (regularStat (expr (funcCall foo ( expr ))) ;)) (stat (regularStat (returnStat return (expr 0)) ;)) }) (funcDef (type void) foo ( ) (block { (stat (regularStat (varDef (type void) s = (expr (funcCall foo ( expr )))) ;)) (stat (regularStat (returnStat return (expr s)) ;)) })) <EOF>)
+
+解析完成
+"testcases/sema/basic-package/basic-61.mx"
+open file: "testcases/sema/basic-package/basic-61.mx"
+[@0,178:180='int',<16>,10:0]
+[@1,182:185='main',<20>,10:4]
+[@2,186:186='(',<39>,10:8]
+[@3,187:187=')',<40>,10:9]
+[@4,189:189='{',<41>,10:11]
+[@5,195:198='null',<3>,11:4]
+[@6,200:200='=',<34>,11:9]
+[@7,202:205='2016',<3>,11:11]
+[@8,206:206=';',<60>,11:15]
+[@9,208:208='}',<42>,12:0]
+[@10,210:209='<EOF>',<-1>,13:0]
+(prog (mainFunc int main ( ) { (stat (regularStat (assignStat (expr null) = (expr 2016)) ;)) }) <EOF>)
+
+解析完成
