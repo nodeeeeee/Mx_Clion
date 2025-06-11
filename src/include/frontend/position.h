@@ -13,14 +13,15 @@ class Position {
      * It is mainly used when errors occur
      */
 private:
-    std::size_t start_token_index;
-
+    size_t start_token_index = -1;
     antlr4::Token* start_token;
+    size_t row;
+    size_t col;
 public:
     Position() = delete;
-    Position(antlr4::ParserRuleContext *ctx) : start_token_index(ctx->getSourceInterval().a), start_token(ctx->getStart()) {
-
+    Position(antlr4::ParserRuleContext *ctx) : start_token_index(ctx->getSourceInterval().a), start_token(ctx->getStart()), row(ctx->getStart()->getLine()), col(ctx->getStart()->getCharPositionInLine()) {
     }
+    Position(antlr4::Token* token) : start_token(token), row(token->getLine()), col(token->getCharPositionInLine()) {}
     ~Position() = default;
     [[nodiscard]] std::size_t get_start_token_index() const {return start_token_index;}
     [[nodiscard]] std::string get_start_token() const {return start_token->getText();}

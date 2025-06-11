@@ -44,9 +44,9 @@ assignStat : expr EQUAL expr;
 
 block : '{' stat*? '}';
 
-forStat : FOR '(' (varDef | assignStat | expr)? ';' (forCondExpr = expr)? ';' (forUpdateExpr = update)? ')' regularStat;
+forStat : FOR '(' (initialVarDef = varDef | initialAssignStat = assignStat | initialExpr = expr)? ';' (forCondExpr = expr)? ';' (updateAssignStat = assignStat | updateExpr = expr)? ')' regularStat;
 
-whileStat : WHILE '(' whileCondExpr = expr ')';
+whileStat : WHILE '(' whileCondExpr = expr ')' regularStat;
 
 returnStat : RETURN (expr | funcCall)?;
 
@@ -79,14 +79,11 @@ expr : '(' expr? ')'                                                    #parenEx
      | formatString                                                     #formatStringExpr
      | THIS                                                             #thisExpr
      | LITERAL                                                          #literalExpr
+     | ID                                                               #idExpr
      ;
 
 formatString : FORMAT_STRING_STARTER (FORMAT_STRING_ELEMENT | (DOLLAR expr DOLLAR))* QUOTATION;
 
-update : ('++' | '--') ID
-       | ID ('++' | '--')
-       | assignStat
-       | expr;
 
 funcCall : ID '(' (expr (',' expr)*)? ')';
 

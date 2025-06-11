@@ -5,7 +5,7 @@
 
 
 #include "antlr4-runtime.h"
-#include "MxParser.h"
+#include "../../parser/antlr4/MxParser.h"
 
 
 /**
@@ -104,11 +104,11 @@ public:
   virtual void enterFormatStringExpr(MxParser::FormatStringExprContext *ctx) = 0;
   virtual void exitFormatStringExpr(MxParser::FormatStringExprContext *ctx) = 0;
 
+  virtual void enterIdExpr(MxParser::IdExprContext *ctx) = 0;
+  virtual void exitIdExpr(MxParser::IdExprContext *ctx) = 0;
+
   virtual void enterFormatString(MxParser::FormatStringContext *ctx) = 0;
   virtual void exitFormatString(MxParser::FormatStringContext *ctx) = 0;
-
-  virtual void enterUpdate(MxParser::UpdateContext *ctx) = 0;
-  virtual void exitUpdate(MxParser::UpdateContext *ctx) = 0;
 
   virtual void enterFuncCall(MxParser::FuncCallContext *ctx) = 0;
   virtual void exitFuncCall(MxParser::FuncCallContext *ctx) = 0;

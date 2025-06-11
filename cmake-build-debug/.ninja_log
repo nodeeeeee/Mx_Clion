@@ -1,9 +1,10 @@
 # ninja log v6
-1056	1112	1749131320742498156	Mx_Clion	681415342c8daf2c
+1621	1687	1749643079160327624	Mx_Clion	c8a1ad6d775e2254
 1	764	1749117610834281926	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxBaseListener.cpp.o	5efe079c3848826c
-2	724	1749117610834281926	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxListener.cpp.o	8069e0d7f25e9d22
-1	1056	1749131319686862960	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/main.cpp.o	db9bebf8698b564d
-1	22	1749566777171762311	build.ninja	3d9ca3eea21a82d0
-2	973	1749117610834281926	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxLexer.cpp.o	bddf0c2cff1d390b
-2	1450	1749117610834281926	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxParser.cpp.o	33bb3133d4a2138c
+1	815	1749643077540319796	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxListener.cpp.o	8069e0d7f25e9d22
+1	1186	1749642167718656631	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/main.cpp.o	db9bebf8698b564d
+1	17	1749643450190770166	build.ninja	3d9ca3eea21a82d0
+2	1014	1749643077541319801	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxLexer.cpp.o	bddf0c2cff1d390b
+1	1621	1749643077540319796	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxParser.cpp.o	33bb3133d4a2138c
 1	800	1749086581028248840	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/test.cpp.o	46fbb9a59b9544b9
+1	758	1749643077540319796	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxBaseVisitor.cpp.o	75b27c469ef9fe69

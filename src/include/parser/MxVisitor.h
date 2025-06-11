@@ -5,7 +5,7 @@
 
 
 #include "antlr4-runtime.h"
-#include "../../parser/antlr4/MxParser.h"
+#include "MxParser.h"
 
 
 
@@ -79,9 +79,9 @@ public:
 
     virtual std::any visitFormatStringExpr(MxParser::FormatStringExprContext *context) = 0;
 
-    virtual std::any visitFormatString(MxParser::FormatStringContext *context) = 0;
+    virtual std::any visitIdExpr(MxParser::IdExprContext *context) = 0;
 
-    virtual std::any visitUpdate(MxParser::UpdateContext *context) = 0;
+    virtual std::any visitFormatString(MxParser::FormatStringContext *context) = 0;
 
     virtual std::any visitFuncCall(MxParser::FuncCallContext *context) = 0;
 

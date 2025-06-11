@@ -2,7 +2,7 @@
 // Generated from Mx.g4 by ANTLR 4.13.1
 
 
-#include "MxLexer.h"
+#include "../../include/parser/MxLexer.h"
 
 
 using namespace antlr4;
