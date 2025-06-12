@@ -11,6 +11,12 @@ add_executable(Mx_Clion src/parser/antlr4/main.cpp
         src/parser/antlr4/MxBaseVisitor.cpp
         src/parser/antlr4/MxLexer.cpp
         src/include/frontend/ast/stat_node/regular_stat_node/while_stat_node.h
+        src/include/frontend/ast/stat_node/regular_stat_node/return_stat_node.h
+        src/include/frontend/ast/stat_node/regular_stat_node/format_string_node.h
+        src/include/frontend/ast/stat_node/regular_stat_node/expr_node/func_call_node.h
+        src/include/frontend/ast/stat_node/regular_stat_node/expr_node/init_object_node.h
+        src/include/frontend/ast/terminal_node/id_node.h
+        src/include/frontend/ast/stat_node/regular_stat_node/expr_node/type_node.h
         #        src/include/frontend/ast/stat_node/regular_stat_node/for_stat_node.h
         #        src/include/frontend/ast/ast.h
 #        src/include/frontend/ast/ASTNode.h

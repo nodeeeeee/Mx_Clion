@@ -5,7 +5,10 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <Token.h>
 #include <utility>
+#include <misc/Interval.h>
+
 #include "ParserRuleContext.h"
 
 class Position {

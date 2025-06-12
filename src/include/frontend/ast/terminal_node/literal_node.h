@@ -3,7 +3,10 @@
 //
 
 #pragma once
+#include <optional>
+
 #include "terminal_node.h"
+#include "parser/MxParser.h"
 
 class LiteralNode : public TerminalNode {
 private:

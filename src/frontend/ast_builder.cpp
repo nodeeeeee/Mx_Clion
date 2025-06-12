@@ -2,27 +2,36 @@
 // Created by zhang-kai on 6/5/25.
 // I will not trace the parent node in the construction phase due to heavy workload. I will traverse the tree once to record them later.
 #include "frontend/ast_builder.h"
+
+#include <format>
+
 #include "frontend/ast/root_node.h"
 #include <variant>
 #include <ranges>
 
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/binary_expr_node.h"
-#include "frontend/ast/main_func_node.h"
+#include "../include/frontend/ast/def_node/main_func_node.h"
 #include "frontend/ast/def_node/func_def_node.h"
 #include "frontend/ast/def_node/var_def_node.h"
 #include "frontend/ast/def_node/class_def_node.h"
 #include "frontend/ast/def_node/class_func_def_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/assign_stat_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/block_node.h"
+#include "../include/frontend/ast/stat_node/regular_stat_node/expr_node/format_string_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/for_stat_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/unary_expr_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/if_stat_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/return_stat_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/while_stat_node.h"
-#include "frontend/ast/stat_node/regular_stat_node/expr_node/array_expr_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/array_const_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/dot_expr_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/func_call_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/index_expr_node.h"
-#include "frontend/ast/stat_node/regular_stat_node/expr_node/init_array_expr_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/init_array_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/init_object_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/null_expr_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/type_node.h"
+#include "frontend/ast/terminal_node/id_node.h"
 #include "frontend/ast/terminal_node/literal_node.h"
 
 
@@ -42,7 +51,7 @@ std::any ASTBuilder::visitProg(MxParser::ProgContext* ctx) {
         auto ret = std::any_cast<std::shared_ptr<DefNode>>(class_def_context->accept(&ast_builder));
         def_nodes.push_back(ret);
     }
-    std::shared_ptr<MainDefNode> main_node = std::any_cast<std::make_shared<MainDefNode>>(
+    std::shared_ptr<MainFuncNode> main_node = std::any_cast<std::shared_ptr<MainFuncNode>>(
         ctx->mainFunc()->accept(&ast_builder));
     //MainDefNode \in FuncDefNode \in DefNode
     def_nodes.push_back(main_node);
@@ -52,7 +61,7 @@ std::any ASTBuilder::visitProg(MxParser::ProgContext* ctx) {
 std::any ASTBuilder::visitVarDef(MxParser::VarDefContext* ctx) {
     /* since one vardef can be split into multiple, we will return back vector<VarDefNode>
      */
-    auto type_name = std::any_cast<std::string>(ctx->type()->accept(&ast_builder));
+    auto type_node = std::any_cast<std::shared_ptr<TypeNode>>(ctx->type()->accept(&ast_builder));
     //pruning type node, we don't need it.
     std::vector<std::shared_ptr<VarDefNode>> var_defs;
     std::vector<std::shared_ptr<MxParser::ExprContext>> exprs = std::any_cast<std::vector<std::shared_ptr<
@@ -62,11 +71,11 @@ std::any ASTBuilder::visitVarDef(MxParser::VarDefContext* ctx) {
     for (const auto& varId : ctx->ID()) {
         if (varId->getSourceInterval().b + 2 == exprs.at(expr_cnt)->getSourceInterval().a) {
             auto ret = std::any_cast<std::shared_ptr<ExprNode>>(exprs[expr_cnt]->accept(&ast_builder));
-            var_defs.push_back(std::make_shared<VarDefNode>(std::move(type_name),
+            var_defs.push_back(std::make_shared<VarDefNode>(std::move(type_node),
                                                             std::move(varId->getSymbol()->getText()), Position(ctx),
                                                             std::move(ret)));
         } else {
-            var_defs.push_back(std::make_shared<VarDefNode>(std::move(type_name),
+            var_defs.push_back(std::make_shared<VarDefNode>(std::move(type_node),
                                                             std::move(varId->getSymbol()->getText()), Position(ctx)));
         }
     }
@@ -78,19 +87,20 @@ std::any ASTBuilder::visitFuncDef(MxParser::FuncDefContext* ctx) {
      * multiple var_def
      * block
      */
-    std::vector<std::shared_ptr<VarDefNode*>> var_defs;
-    auto type_names = std::any_cast<std::vector<MxParser::TypeContext*>>(ctx->type());
+    std::vector<std::shared_ptr<VarDefNode>> var_defs;
+    auto type_names = ctx->type();
     auto varIds = std::any_cast<std::vector<std::shared_ptr<antlr4::tree::TerminalNode>>>(ctx->ID());
     auto return_type = std::any_cast<std::string>(type_names.front()->accept(&ast_builder));
     //when visitType, we return string
     int varId_cnt = 1;
     for (const auto& type_name : type_names | std::views::drop(1)) {
-        var_defs.push_back(std::make_shared<VarDefNode*>(std::move(type_name->accept(&ast_builder)),
+        auto type_node = std::any_cast<std::shared_ptr<TypeNode>>(type_name->accept(&ast_builder));
+        var_defs.push_back(std::make_shared<VarDefNode>(std::move(type_node),
                                                          std::move(varIds.at(varId_cnt++)->getSymbol()->getText()),
                                                          Position(ctx)));
     }
     std::string ID = varIds.at(0)->getSymbol()->getText();
-    auto func_block = std::any_cast<std::make_shared<BlockNode>>(ctx->block()->accept(&ast_builder));
+    auto func_block = std::any_cast<std::shared_ptr<BlockNode>>(ctx->block()->accept(&ast_builder));
     return std::make_shared<FuncDefNode>(std::move(return_type), std::move(ID), std::move(var_defs),
                                          std::move(func_block), Position(ctx));
 }
@@ -120,7 +130,7 @@ std::any ASTBuilder::visitClassDef(MxParser::ClassDefContext* ctx) {
 }
 
 std::any ASTBuilder::visitMainFunc(MxParser::MainFuncContext* ctx) {
-    std::shared_ptr<BlockNode> block_node = ctx->block()->accept(&ast_builder);
+    auto block_node = std::any_cast<std::shared_ptr<BlockNode>>(ctx->block()->accept(&ast_builder));
     return std::make_shared<MainFuncNode>(block_node, Position(ctx));
 }
 
@@ -211,22 +221,22 @@ std::any ASTBuilder::visitTernaryExpr(MxParser::TernaryExprContext* ctx) {
                                         Position(ctx));
 }
 
-std::any ASTBuilder::visitArrayExpr(MxParser::ArrayExprContext* ctx) {
-    if (ctx->arrayConst()->LITERAL(0)) {
-        std::vector<std::shared_ptr<antlr4::tree::TerminalNode>> elements = ctx->arrayConst()->LITERAL();
+std::any ASTBuilder::visitArrayConst(MxParser::ArrayConstContext* ctx) {
+    if (ctx->LITERAL(0)) {
+        auto elements = ctx->LITERAL();
         std::vector<std::shared_ptr<LiteralNode>> literals;
         for (const auto& element : elements) {
             literals.push_back(std::any_cast<std::shared_ptr<LiteralNode>>(visitLiteral(element->getSymbol())));
         }
-        return std::make_shared<ArrayExprNode>(std::move(literals), Position(ctx));
-    } else if (ctx->arrayConst()->arrayConst(0)) {
-        std::vector<std::shared_ptr<ArrayExprNode>> elements;
-        for (const auto& element : ctx->arrayConst()->arrayConst()) {
-            elements.push_back(std::any_cast<std::shared_ptr<ArrayExprNode>>(element->accept(&ast_builder)));
+        return std::make_shared<ArrayConstNode>(std::move(literals), Position(ctx));
+    } else if (ctx->arrayConst(0)) {
+        std::vector<std::shared_ptr<ArrayConstNode>> elements;
+        for (const auto& element : ctx->arrayConst()) {
+            elements.push_back(std::any_cast<std::shared_ptr<ArrayConstNode>>(element->accept(&ast_builder)));
         }
-        return std::make_shared<ArrayExprNode>(std::move(elements), Position(ctx));
+        return std::make_shared<ArrayConstNode>(std::move(elements), Position(ctx));
     } else {
-        return std::make_shared<ArrayExprNode>(Position(ctx));
+        return std::make_shared<ArrayConstNode>(Position(ctx));
     }
 }
 
@@ -240,13 +250,13 @@ std::any ASTBuilder::visitLiteralExpr(MxParser::LiteralExprContext* ctx) {
     return visitLiteral(ctx->LITERAL()->getSymbol());
 }
 
-std::any ASTBuilder::visitInitArrayExpr(MxParser::InitArrayExprContext* ctx) {
+std::any ASTBuilder::visitInitArray(MxParser::InitArrayContext* ctx) {
     std::shared_ptr<TypeNode> type_node = std::any_cast<std::shared_ptr<TypeNode>>(
-        ctx->initArray()->type()->accept(&ast_builder));
+        ctx->type()->accept(&ast_builder));
     std::vector<std::shared_ptr<ExprNode>> ranges;
-    std::vector<std::shared_ptr<MxParser::ExprContext>> exprs = ctx->initArray()->expr();
+    auto exprs = ctx->expr();
     size_t range_cnt = 0;
-    for (const auto& square_bracket : ctx->initArray()->LEFT_SQUARE_BRACKET()) {
+    for (const auto& square_bracket : ctx->LEFT_SQUARE_BRACKET()) {
         if (square_bracket->getSourceInterval().a + 1 == exprs.at(range_cnt)->getSourceInterval().a) {
             range_cnt++;
             ranges.push_back(std::any_cast<std::shared_ptr<ExprNode>>(exprs.at(range_cnt)->accept(&ast_builder)));
@@ -254,7 +264,7 @@ std::any ASTBuilder::visitInitArrayExpr(MxParser::InitArrayExprContext* ctx) {
             ranges.push_back(nullptr);
         }
     }
-    return std::make_shared<InitArrayExprNode>(type_node, ranges, Position(ctx));
+    return std::make_shared<InitArrayNode>(type_node, ranges, Position(ctx));
 }
 
 std::any ASTBuilder::visitIndexExpr(MxParser::IndexExprContext* ctx) {
@@ -281,7 +291,7 @@ std::any ASTBuilder::visitParenExpr(MxParser::ParenExprContext* ctx) {
 
 std::any ASTBuilder::visitClassFuncDef(MxParser::ClassFuncDefContext* ctx) {
     std::string ID = ctx->ID()->getSymbol()->getText();
-    auto func_block = std::any_cast<std::make_shared<BlockNode>>(ctx->block()->accept(&ast_builder));
+    auto func_block = std::any_cast<std::shared_ptr<BlockNode>>(ctx->block()->accept(&ast_builder));
     return std::make_shared<ClassFuncDefNode>(std::move(ID), std::move(func_block), Position(ctx));
 }
 
@@ -301,11 +311,11 @@ std::any ASTBuilder::visitBlock(MxParser::BlockContext* ctx) {
 }
 
 std::any ASTBuilder::visitForStat(MxParser::ForStatContext* ctx) {
-    auto initial_var_def = ctx->initialVarDef;
-    auto initial_assign_stat = ctx->initialAssignStat;
-    auto initial_expr = ctx->initialExpr;
-    auto update_assign_stat = ctx->updateAssignStat;
-    auto update_expr = ctx->updateExpr;
+    const auto initial_var_def = ctx->initialVarDef;
+    const auto initial_assign_stat = ctx->initialAssignStat;
+    const auto initial_expr = ctx->initialExpr;
+    const auto update_assign_stat = ctx->updateAssignStat;
+    const auto update_expr = ctx->updateExpr;
 
     auto for_cond_expr_node = std::any_cast<std::shared_ptr<ExprNode>>(ctx->forCondExpr->accept(&ast_builder));
     auto initial_var_def_node = initial_var_def == nullptr ? nullptr : std::any_cast<std::shared_ptr<VarDefNode>>(ctx->varDef()->accept(&ast_builder));
@@ -325,4 +335,79 @@ std::any ASTBuilder::visitWhileStat(MxParser::WhileStatContext* ctx) {
     auto while_cond_expr_node = std::any_cast<std::shared_ptr<ExprNode>>(ctx->whileCondExpr()->accept(&ast_builder));
     auto while_body_node = std::any_cast<std::shared_ptr<RegularStatNode>>(ctx->regularStat()->accept(&ast_builder));
     return std::make_shared<WhileStatNode>(std::move(while_cond_expr_node), std::move(while_body_node), Position(ctx));
+}
+
+std::any ASTBuilder::visitReturnStat(MxParser::ReturnStatContext* ctx) {
+    if (const auto return_expr = ctx->expr()) {
+        auto return_expr_node = std::any_cast<std::shared_ptr<ExprNode>>(return_expr->accept(&ast_builder));
+        return std::make_shared<ReturnStatNode>(std::move(return_expr_node), Position(ctx));
+    } else if (const auto return_func_call = ctx->funcCall()) {
+        auto return_func_call_node = std::any_cast<std::shared_ptr<FuncCallNode>>(return_func_call->accept(&ast_builder));
+        return std::make_shared<ReturnStatNode>(std::move(return_func_call_node), Position(ctx));
+    } else {
+        return std::make_shared<RegularStatNode>(Position(ctx));
+    }
+
+}
+
+std::any ASTBuilder::visitContinue(MxParser::ContinueContext* ctx) {
+    return std::make_shared<TerminalNode>("continue", Position(ctx));
+}
+
+std::any ASTBuilder::visitBreak(MxParser::BreakContext* ctx) {
+    return std::make_shared<TerminalNode>("break", Position(ctx));
+}
+
+std::any ASTBuilder::visitFormatString(MxParser::FormatStringContext* ctx) {
+    std::vector<std::shared_ptr<LiteralNode>> strings;
+    std::vector<std::shared_ptr<ExprNode>> exprs;
+    auto format_string_elements = ctx->FORMAT_STRING_ELEMENT();
+    for (const auto& element : format_string_elements) {
+        strings.push_back(std::any_cast<std::shared_ptr<LiteralNode>>(visitLiteral(element->getSymbol())));
+    }
+    auto expr_elements = ctx->expr();
+    for (const auto& element : expr_elements) {
+        exprs.push_back(std::any_cast<std::shared_ptr<ExprNode>>(element->accept(&ast_builder)));
+    }
+    if (format_string_elements.at(0)->getSourceInterval().a < expr_elements.at(0)->getSourceInterval().a) {
+        return std::make_shared<FormatStringNode> (std::move(strings), std::move(exprs), true, Position(ctx));
+    } else {
+        return std::make_shared<FormatStringNode> (std::move(strings), std::move(exprs), false, Position(ctx));
+    }
+}
+
+std::any ASTBuilder::visitThisExpr(MxParser::ThisExprContext* ctx) {
+    return std::make_shared<TerminalNode>("this", Position(ctx));
+}
+
+std::any ASTBuilder::visitFuncCall(MxParser::FuncCallContext* ctx) {
+    std::string func_name = ctx->ID()->getSymbol()->getText();
+    return std::make_shared<FuncCallNode>(std::move(func_name), Position(ctx));
+}
+
+std::any ASTBuilder::visitInitObject(MxParser::InitObjectContext* ctx) {
+    auto type_node = std::any_cast<std::shared_ptr<TypeNode>>(ctx->type()->accept(&ast_builder));
+    return std::make_shared<InitObjectNode>(std::move(type_node), Position(ctx));
+}
+
+std::any ASTBuilder::visitType(MxParser::TypeContext* ctx) {
+    if (ctx->INT()) {
+        return std::make_shared<TypeNode>("int", Position(ctx));
+    } else if (ctx->BOOLEAN()) {
+        return std::make_shared<TypeNode>("bool", Position(ctx));
+    } else if (ctx->STR()) {
+        return std::make_shared<TypeNode>("string", Position(ctx));
+    } else if (ctx->VOID()) {
+        return std::make_shared<TypeNode>("void", Position(ctx));
+    } else if (auto id_type = ctx->ID()) {
+        return std::make_shared<TypeNode>(std::any_cast<std::shared_ptr<IdNode>>(ASTBuilder::visitID(id_type->getSymbol())), Position(ctx));
+    } else {
+        auto type_node = std::any_cast<std::shared_ptr<TypeNode>>(type_type->accept(&ast_builder));
+        return std::make_shared<TypeNode>(std::move(type_node), Position(ctx));
+    }
+}
+
+std::any ASTBuilder::visitID(antlr4::Token* id) {
+    auto id_node = id->getText();
+    return std::make_shared<IdNode>(std::move(id_node), Position(id));
 }
