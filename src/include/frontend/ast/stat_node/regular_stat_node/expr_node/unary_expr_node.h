@@ -6,10 +6,14 @@
 #include "expr_node.h"
 
 class UnaryExprNode : public ExprNode {
-private:
-    std::string op;
-    std::shared_ptr<ExprNode> expr;
 public:
+    enum class UnaryOp : int {
+        kPLUS_PLUS, kMINUS_MINUS, kWAVE, kEXCLAIMER, kADD, kSUB
+    };
     UnaryExprNode() = delete;
-    UnaryExprNode(std::string op, std::shared_ptr<ExprNode> expr, Position position) : op(std::move(op)), expr(std::move(expr)), ExprNode(position) {}
+    UnaryExprNode(UnaryOp op, std::shared_ptr<ExprNode> expr, Position position) : op(std::move(op)), expr(std::move(expr)), ExprNode(position) {}
+
+private:
+
+    std::shared_ptr<ExprNode> expr;
 };

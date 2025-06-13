@@ -9,8 +9,8 @@ class TypeNode;
 
 class InitObjectNode : public ExprNode {
 private:
-    std::shared_ptr<TypeNode> type_node;
+    std::shared_ptr<TypeType> type;
 public:
     InitObjectNode() = delete;
-    InitObjectNode(std::shared_ptr<TypeNode> type_node, Position position) : type_node(std::move(type_node)), ExprNode(position) {}
+    InitObjectNode(std::shared_ptr<TypeType> type, Position position) : type(std::move(type)), ExprNode(position) {}
 };

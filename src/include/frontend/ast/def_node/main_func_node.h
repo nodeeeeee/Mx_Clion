@@ -4,6 +4,7 @@
 
 #pragma once
 #include "../ASTNode.h"
+#include "frontend/ast/type/type_type.h"
 
 class BlockNode;
 
@@ -12,5 +13,5 @@ private:
     std::shared_ptr<BlockNode> body;
 public:
     MainFuncNode() = delete;
-    MainFuncNode(std::shared_ptr<BlockNode> body, Position position) : body(std::move(body)), DefNode("main", position) {}
+    MainFuncNode(std::shared_ptr<BlockNode> body, Position position) : body(std::move(body)), DefNode(std::make_shared<IdNode>(std::make_shared<TypeType>(0), "main", position), position) {}
 };

@@ -4,8 +4,8 @@
 
 #pragma once
 #include "regular_stat_node.h"
-#include "frontend/ast/stat_node/stat_node.h"
 
+class FuncCallNode;
 class ExprNode;
 
 class ReturnStatNode : public RegularStatNode {

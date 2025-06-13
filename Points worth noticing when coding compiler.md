@@ -121,4 +121,19 @@
    DefNode(std::string name) : name(std::move(name)) {}
    ```
 
-   
+
+9. **difference between returning the original variable and returning alias**
+
+   Returning the original variable: requires copy, but exists after the original object is destructed. 
+
+   Returning alias: doesn't require copy, but we need to guarantee that the original object is still available when visiting it through alias.
+
+10. Do not do the following because even though we wrote `#pragma once`, the IDE and compiler will still find the definition of some classes missing, reporting unexpected warnings.
+
+    ```cpp
+    // B is a subclass of A, but we will need to use B in A.
+    #define "b.h"   //in a.h
+    #define "a.h"   //in b.h
+    ```
+
+    A better practice is to move the definition to `a.cpp` and `b.cpp`, only do declaration in `a.h` and `b.h`. And use forward declaration `Class B;` 

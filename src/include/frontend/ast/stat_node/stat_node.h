@@ -5,7 +5,7 @@
 #pragma once
 #include "frontend/ast/ASTNode.h"
 
-class StatNode : public Node {
+class StatNode : public ASTNode {
 public:
     StatNode() = delete;
     explicit StatNode(Position position) : ASTNode(position) {}

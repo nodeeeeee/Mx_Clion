@@ -11,13 +11,12 @@
 
 class VarDefNode : public DefNode {
 private:
-    std::shared_ptr<TypeNode> type_name;
     std::shared_ptr<ExprNode> expr_node;
 
 public:
     VarDefNode() = delete;
-    VarDefNode(std::shared_ptr<TypeNode> type_name, std::string ID, const Position& position, std::shared_ptr<ExprNode> expr_node) : DefNode(std::move(ID), position),type_name(std::move(type_name)), expr_node(std::move(expr_node)){
+    VarDefNode(std::shared_ptr<IdNode> ID, const Position& position, std::shared_ptr<ExprNode> expr_node) : DefNode(std::move(ID), position), expr_node(std::move(expr_node)){
     }
-    VarDefNode(std::shared_ptr<TypeNode> type_name, std::string ID, const Position& position) : DefNode(std::move(ID), position), type_name(std::move(type_name)){
+    VarDefNode(std::shared_ptr<IdNode> ID, const Position& position) : DefNode(std::move(ID), position){
     }
 };

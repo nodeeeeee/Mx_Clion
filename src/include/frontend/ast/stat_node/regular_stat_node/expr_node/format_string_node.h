@@ -2,7 +2,6 @@
 // Created by zhang-kai on 6/12/25.
 //
 #pragma once
-#include "frontend/ast/stat_node/stat_node.h"
 
 class ExprNode;
 class LiteralNode;

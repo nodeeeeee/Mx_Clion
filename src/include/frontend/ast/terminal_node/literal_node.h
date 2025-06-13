@@ -9,15 +9,9 @@
 #include "parser/MxParser.h"
 
 class LiteralNode : public TerminalNode {
-private:
-    std::string literal_type;
-    bool is_null;
-    std::optional<std::string> string_value;
-    std::optional<size_t> int_value;
-    std::optional<bool> bool_value;
 public:
     LiteralNode() = delete;
-    explicit LiteralNode(antlr4::Token* token) : TerminalNode("literal", Position(token)) {
+    explicit LiteralNode(antlr4::Token* token) : TerminalNode(TerminalType::kLITERAL, Position(token)) {
         if (token->getType() == MxParser::INTEGER) {
             literal_type = "int";
             int_value = std::stoi(token->getText());
@@ -31,4 +25,11 @@ public:
             is_null = true;
         }
     }
+
+private:
+    std::string literal_type;
+    bool is_null;
+    std::optional<std::string> string_value;
+    std::optional<size_t> int_value;
+    std::optional<bool> bool_value;
 };

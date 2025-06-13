@@ -6,11 +6,19 @@
 #include "expr_node.h"
 
 class BinaryExprNode : public ExprNode {
+
+public:
+    enum class BinaryOp : int {
+        kMUL, kDIV, kMOD, kADD, kSUB,kSRL, kSLL, kBT, kLT, kBEQ, kLEQ, kET, kNET, kAND, kXOR, kOR, kAND_AND, kOR_OR
+};
+    BinaryExprNode() = delete;
+    BinaryExprNode(BinaryOp op, std::shared_ptr<ExprNode> lhs, std::shared_ptr<ExprNode> rhs, Position position) : op(op), lhs(std::move(lhs)), rhs(std::move(rhs)), ExprNode(position) {}
+    // const ... = Div();
+
 private:
-    std::string op;
+    BinaryOp op;
     std::shared_ptr<ExprNode> lhs;
     std::shared_ptr<ExprNode> rhs;
-public:
-    BinaryExprNode() = delete;
-    BinaryExprNode(std::string op, std::shared_ptr<ExprNode> lhs, std::shared_ptr<ExprNode> rhs, Position position) : op(std::move(op)), lhs(std::move(lhs)), rhs(std::move(rhs)), ExprNode(position) {}
 };
+
+//开enum

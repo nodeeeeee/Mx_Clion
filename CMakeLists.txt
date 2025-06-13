@@ -17,6 +17,12 @@ add_executable(Mx_Clion src/parser/antlr4/main.cpp
         src/include/frontend/ast/stat_node/regular_stat_node/expr_node/init_object_node.h
         src/include/frontend/ast/terminal_node/id_node.h
         src/include/frontend/ast/stat_node/regular_stat_node/expr_node/type_node.h
+        src/include/frontend/ast/type/type_type.h
+        src/include/frontend/ast/type/bool_type.h
+        src/include/frontend/ast/type/int_type.h
+        src/include/frontend/ast/type/string_type.h
+        src/include/frontend/ast/type/void_type.h
+        src/include/frontend/ast/type/type_type.cpp
         #        src/include/frontend/ast/stat_node/regular_stat_node/for_stat_node.h
         #        src/include/frontend/ast/ast.h
 #        src/include/frontend/ast/ASTNode.h

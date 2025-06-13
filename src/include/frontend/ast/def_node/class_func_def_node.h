@@ -10,5 +10,5 @@ private:
     std::shared_ptr<BlockNode> block_node;
 public:
     ClassFuncDefNode() = delete;
-    ClassFuncDefNode(std::string ID, std::shared_ptr<BlockNode> block_node, Position position) : block_node(std::move(block_node)), DefNode(std::move(ID), position) {};
+    ClassFuncDefNode(std::shared_ptr<IdNode> ID, std::shared_ptr<BlockNode> block_node, Position position) : block_node(std::move(block_node)), DefNode(std::move(ID), position) {};
 };

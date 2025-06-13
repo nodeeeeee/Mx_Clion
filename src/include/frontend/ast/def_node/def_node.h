@@ -3,10 +3,12 @@
 //
 #pragma once
 #include "frontend/ast/ASTNode.h"
+class IdNode;
+
 class DefNode : public ASTNode {
 private:
-    std::string ID;
+    std::shared_ptr<IdNode>id_node;
 public:
     DefNode () = delete;
-    explicit DefNode (std::string ID, Position pos) : ASTNode(pos), ID(std::move(ID)) {}
+    explicit DefNode (std::shared_ptr<IdNode>id_node, Position pos) : ASTNode(pos), id_node(std::move(id_node)) {}
 };

@@ -7,6 +7,6 @@
 class ExprNode : public RegularStatNode {
 public:
     ExprNode() = delete;
-    explicit ExprNode(Position position) : ASTNode(position) {}
+    explicit ExprNode(Position position) : RegularStatNode(position) {}
 
 };
