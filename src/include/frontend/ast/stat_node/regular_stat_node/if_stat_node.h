@@ -8,14 +8,18 @@
 #include "expr_node/expr_node.h"
 
 class IfStatNode : public RegularStatNode {
-private:
-    std::shared_ptr<ExprNode> predicate;
-    std::shared_ptr<RegularStatNode> then_stat;
-    std::shared_ptr<RegularStatNode> else_stat = nullptr;
+
 public:
     IfStatNode() = delete;
-    IfStatNode(std::shared_ptr<ExprNode> predicate, std::shared_ptr<RegularStatNode> then_stat, std::shared_ptr<RegularStatNode> else_stat, Position position)
-        : predicate(std::move(predicate)), then_stat(std::move(then_stat)), else_stat(std::move(else_stat)), RegularStatNode(position) {};
-    IfStatNode(std::shared_ptr<ExprNode> predicate, std::shared_ptr<RegularStatNode> then_stat, Position position)
-        : predicate(std::move(predicate)), then_stat(std::move(then_stat)), RegularStatNode(position) {};
+    IfStatNode(std::shared_ptr<ExprNode> predicate, std::shared_ptr<BlockNode> then_block, std::shared_ptr<BlockNode> else_block, Position position)
+        : predicate(std::move(predicate)), then_block(std::move(then_block)), else_block(std::move(else_block)), RegularStatNode(position) {};
+    IfStatNode(std::shared_ptr<ExprNode> predicate, std::shared_ptr<BlockNode> then_block, Position position)
+        : predicate(std::move(predicate)), then_block(std::move(then_block)), RegularStatNode(position) {}
+    const std::shared_ptr<ExprNode> &getPredicate() {return predicate;}
+    const std::shared_ptr<BlockNode> &getThenBlock() {return then_block;}
+    const std::shared_ptr<BlockNode> &getElseBlock() {return else_block;}
+private:
+    std::shared_ptr<ExprNode> predicate;
+    std::shared_ptr<BlockNode> then_block;
+    std::shared_ptr<BlockNode> else_block = nullptr;
 };

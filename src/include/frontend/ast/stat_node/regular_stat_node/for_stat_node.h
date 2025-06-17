@@ -10,6 +10,21 @@ class AssignStatNode;
 class VarDefNode;
 
 class ForStatNode : public StatNode {
+public:
+    ForStatNode() = delete;
+    ForStatNode(std::shared_ptr<VarDefNode> initial_var_def_node,std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<AssignStatNode> update_assign_stat_node, std::shared_ptr<BlockNode> block_node, Position position) : initial_var_def_nodes(std::move(initial_var_def_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_assign_stat_node(std::move(update_assign_stat_node)), block_node(std::move(block_node)), StatNode(position) {}
+    ForStatNode(std::shared_ptr<AssignStatNode> initial_assign_stat_node, std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<AssignStatNode> update_assign_stat_node, std::shared_ptr<BlockNode> block_node, Position position) : initial_assign_stat_node(std::move(initial_assign_stat_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_assign_stat_node(std::move(update_assign_stat_node)),block_node(std::move(block_node)), StatNode(position) {}
+    ForStatNode(std::shared_ptr<ExprNode> initial_expr_node, std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<AssignStatNode> update_assign_stat_node, std::shared_ptr<BlockNode> block_node, Position position) : initial_expr_node(std::move(initial_expr_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_assign_stat_node(std::move(update_assign_stat_node)), block_node(std::move(block_node)), StatNode(position) {}
+    ForStatNode(std::shared_ptr<VarDefNode> initial_var_def_node,std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<ExprNode> update_expr_node, std::shared_ptr<BlockNode> block_node, Position position) : initial_var_def_nodes(std::move(initial_var_def_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_expr_node(std::move(update_expr_node)), block_node(std::move(block_node)), StatNode(position) {}
+    ForStatNode(std::shared_ptr<AssignStatNode> initial_assign_stat_node, std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<ExprNode> update_expr_node, std::shared_ptr<BlockNode> block_node, Position position) : initial_assign_stat_node(std::move(initial_assign_stat_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_expr_node(std::move(update_expr_node)), block_node(std::move(block_node)), StatNode(position) {}
+    ForStatNode(std::shared_ptr<ExprNode> initial_expr_node, std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<ExprNode> update_expr_node, std::shared_ptr<BlockNode> block_node, Position position) : initial_expr_node(std::move(initial_expr_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_expr_node(std::move(update_expr_node)), block_node(std::move(block_node)), StatNode(position) {}
+
+    const std::shared_ptr<VarDefNode> &getInitialVarDefNode() {return initial_var_def_nodes;}
+    const std::shared_ptr<AssignStatNode> &getUpdateAssignStatNode() {return update_assign_stat_node;}
+    const std::shared_ptr<BlockNode> &getBlockNode() {return block_node;}
+    const std::shared_ptr<ExprNode> &getForCondExprNode() {return for_cond_expr_node;}
+    const std::shared_ptr<ExprNode> &getUpdateExprNode() {return update_expr_node;}
+    const std::shared_ptr<ExprNode> &getInitialExprNode() {return initial_expr_node;}
 private:
     std::shared_ptr<VarDefNode> initial_var_def_nodes;
     std::shared_ptr<AssignStatNode> update_assign_stat_node;
@@ -17,13 +32,5 @@ private:
     std::shared_ptr<AssignStatNode> initial_assign_stat_node;
     std::shared_ptr<ExprNode> initial_expr_node;
     std::shared_ptr<ExprNode> for_cond_expr_node;
-    std::shared_ptr<RegularStatNode> regular_stat_node;
-public:
-    ForStatNode() = delete;
-    ForStatNode(std::shared_ptr<VarDefNode> initial_var_def_node,std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<AssignStatNode> update_assign_stat_node, std::shared_ptr<RegularStatNode> regular_stat_node, Position position) : initial_var_def_nodes(std::move(initial_var_def_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_assign_stat_node(std::move(update_assign_stat_node)), regular_stat_node(std::move(regular_stat_node)), StatNode(position) {}
-    ForStatNode(std::shared_ptr<AssignStatNode> initial_assign_stat_node, std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<AssignStatNode> update_assign_stat_node, std::shared_ptr<RegularStatNode> regular_stat_node, Position position) : initial_assign_stat_node(std::move(initial_assign_stat_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_assign_stat_node(std::move(update_assign_stat_node)),regular_stat_node(std::move(regular_stat_node)), StatNode(position) {}
-    ForStatNode(std::shared_ptr<ExprNode> initial_expr_node, std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<AssignStatNode> update_assign_stat_node, std::shared_ptr<RegularStatNode> regular_stat_node, Position position) : initial_expr_node(std::move(initial_expr_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_assign_stat_node(std::move(update_assign_stat_node)), regular_stat_node(std::move(regular_stat_node)), StatNode(position) {}
-    ForStatNode(std::shared_ptr<VarDefNode> initial_var_def_node,std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<ExprNode> update_expr_node, std::shared_ptr<RegularStatNode> regular_stat_node, Position position) : initial_var_def_nodes(std::move(initial_var_def_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_expr_node(std::move(update_expr_node)), regular_stat_node(std::move(regular_stat_node)), StatNode(position) {}
-    ForStatNode(std::shared_ptr<AssignStatNode> initial_assign_stat_node, std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<ExprNode> update_expr_node, std::shared_ptr<RegularStatNode> regular_stat_node, Position position) : initial_assign_stat_node(std::move(initial_assign_stat_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_expr_node(std::move(update_expr_node)), regular_stat_node(std::move(regular_stat_node)), StatNode(position) {}
-    ForStatNode(std::shared_ptr<ExprNode> initial_expr_node, std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<ExprNode> update_expr_node, std::shared_ptr<RegularStatNode> regular_stat_node, Position position) : initial_expr_node(std::move(initial_expr_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_expr_node(std::move(update_expr_node)), regular_stat_node(std::move(regular_stat_node)), StatNode(position) {}
+    std::shared_ptr<BlockNode> block_node;
 };

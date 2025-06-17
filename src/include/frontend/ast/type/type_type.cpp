@@ -5,6 +5,7 @@
 
 #include "bool_type.h"
 #include "int_type.h"
+#include "no_type.h"
 #include "string_type.h"
 #include "void_type.h"
 
@@ -24,11 +25,23 @@ TypeType::TypeType (MxParser::TypeContext *ctx) {
     dimension = countBracket(ctx, &type_ref, &customized_type);
   }
 }
-TypeType::TypeType(int special_code) {
+TypeType::TypeType(PrimitiveType primitive_type, int dimension = 0) : dimension(dimension) {
+  if (primitive_type == PrimitiveType::kBOOL) {
+    type_ref = &BoolType::Instance();
+  } else if (primitive_type == PrimitiveType::kINT) {
+    type_ref = &IntType::Instance();
+  } else if (primitive_type == PrimitiveType::kVOID) {
+    type_ref = &VoidType::Instance();
+  } else if (primitive_type == PrimitiveType::kSTRING) {
+    type_ref = &StringType::Instance();
+  }
+}
+
+TypeType::TypeType(SpecialCode special_code) {
   if (special_code == IntType) { // for 'int main'
     type_ref = &IntType::Instance();
   } else if (special_code == NoType) {
-    has_type = false;
+    type_ref = &NoType::Instance();
   }
 }
 

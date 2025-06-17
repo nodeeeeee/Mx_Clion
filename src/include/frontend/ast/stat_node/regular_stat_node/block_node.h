@@ -11,4 +11,8 @@ private:
 public:
     BlockNode() = delete;
     BlockNode(std::vector<std::shared_ptr<StatNode>> stat_nodes, Position position) : stat_nodes(std::move(stat_nodes)), StatNode(position) {};
+    BlockNode(std::shared_ptr<StatNode> stat_node, Position position) : StatNode(position) {
+        stat_nodes.push_back(stat_node);
+    }
+    const std::vector<std::shared_ptr<StatNode>>& getStatNodes() const { return stat_nodes; }
 };

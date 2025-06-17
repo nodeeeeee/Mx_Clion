@@ -8,6 +8,7 @@
 class RegularStatNode : public StatNode {
 public:
     RegularStatNode() = delete;
-    explicit RegularStatNode(Position position) : StatNode(position) {}
-
+    explicit RegularStatNode(Position position) : StatNode(position) {
+    }
+    virtual ~RegularStatNode() = default;
 };

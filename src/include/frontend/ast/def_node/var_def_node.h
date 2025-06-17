@@ -15,8 +15,9 @@ private:
 
 public:
     VarDefNode() = delete;
-    VarDefNode(std::shared_ptr<IdNode> ID, const Position& position, std::shared_ptr<ExprNode> expr_node) : DefNode(std::move(ID), position), expr_node(std::move(expr_node)){
+    VarDefNode(std::shared_ptr<IdNode> ID, const Position& position, std::shared_ptr<ExprNode> expr_node) : DefNode(std::move(ID), DefType::kVar, position), expr_node(std::move(expr_node)){
     }
-    VarDefNode(std::shared_ptr<IdNode> ID, const Position& position) : DefNode(std::move(ID), position){
+    VarDefNode(std::shared_ptr<IdNode> ID, const Position& position) : DefNode(std::move(ID),DefType::kVar, position){
     }
+    const std::shared_ptr<ExprNode>& getExpr() const { return expr_node; }
 };

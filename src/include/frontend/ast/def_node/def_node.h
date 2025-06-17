@@ -6,9 +6,25 @@
 class IdNode;
 
 class DefNode : public ASTNode {
-private:
-    std::shared_ptr<IdNode>id_node;
 public:
-    DefNode () = delete;
-    explicit DefNode (std::shared_ptr<IdNode>id_node, Position pos) : ASTNode(pos), id_node(std::move(id_node)) {}
+  enum class DefType : int {
+    kVar, kFunc, kClass, kMain, kClassFunc
+  };
+
+  virtual ~DefNode() = default;
+  DefNode() = delete;
+  void accept() ;
+  explicit DefNode(std::shared_ptr<IdNode> id_node, DefType def_type, Position pos) : ASTNode(pos), def_type(def_type),
+    id_node(std::move(id_node)) {
+  }
+
+  const std::shared_ptr<IdNode> &getIdNode() {
+    return id_node;
+  }
+  const DefType &getDefType() {return def_type;}
+  void accept(VisitControl *visitor) {visitor->visit(this);}
+
+private:
+  std::shared_ptr<IdNode> id_node;
+  DefType def_type;
 };

@@ -1,0 +1,11 @@
+对于global scope，由于class和function可以进行向后引用，所以进行提前提取
+
+class需要提取ID和内部所有var declaration, function declaration（当作普通function进行collect），class constructor但是我们不会用嵌套类
+
+function需要提取return type，param type，ID
+
+在semantic_check的rootnode入口处先调用global_scope_extractor。
+
+semantic_check中我需要追踪current scope，其实可以作为全局变量进行keep track。在global_scope_extractor的时候要进行传入。
+
+我将为所有的scope加入return type，为了进行return statement判断。只有function会有valid return type，其他都是nullptr

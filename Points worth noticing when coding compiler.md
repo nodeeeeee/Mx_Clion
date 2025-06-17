@@ -23,6 +23,8 @@
 
    **const:** no effect. You cannot move the content away for const types.
 
+   p.s. prvalue is just temporary, and does not have an address, need to be objectified to get its own address. While xvalue already has its address, its resources will be stolen and moved to another address. It is like prvalue is gold panning and store it somewhere, xvalue is a opened safe, its gold is prepared to be moved to other places.
+   
 6. forward:
    std::forward acts with T&&, the universal reference. 
 
@@ -137,3 +139,30 @@
     ```
 
     A better practice is to move the definition to `a.cpp` and `b.cpp`, only do declaration in `a.h` and `b.h`. And use forward declaration `Class B;` 
+
+11. ```cpp
+    virtual void visit(RootNode *node) = 0;
+    // With '= 0': method pure virtual, containing class abstract and unable to instantiate, derived classes must override it
+    // Without '= 0': method not pure virtual, containing class can instantiate if there is no other pure virtual methods, derived classes need not override it.
+    ```
+
+    When we want to use dynamic type casting, we must make the base class virtual, and must declare a virtual destructor `virtual ~Base() = default;`
+
+12. Things to be aware of when using `T &` as return type:
+    This is returning a reference of the original value, which means we must guarantee that the object is still alive when we use its value outside the method.
+    If we don't want the object be modified outside the method, we can return `const T&`.
+    We must avoid returning a local variable inside the method or a prvalue.
+
+13. `if`,`while`,`for` has two types of writing, either adding curly bracket or not.
+    So I manually added the brackets when there is not, making it a block. So I can easily judge which is a new scope by looking at the blocks.
+
+14. ```cpp
+    Scope current_scope = new GlobalScope();
+    ```
+
+    This is wrong for C++, because `new GlobalScope()` yields a GlobalScope* pointer. 
+
+15. To support built-in methods, I will hard-code `string` as a class.
+
+16. It seems quite important to design your code structure before you start coding. This includes drawing a diagram for the main methods and classes, assigning jobs to each file, and plot `.h` file.
+
