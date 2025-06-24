@@ -3,8 +3,6 @@
 //
 
 #pragma once
-#include "frontend/ast/stat_node/stat_node.h"
-
 class BlockNode : public StatNode {
 private:
     std::vector<std::shared_ptr<StatNode>> stat_nodes;
@@ -14,5 +12,8 @@ public:
     BlockNode(std::shared_ptr<StatNode> stat_node, Position position) : StatNode(position) {
         stat_nodes.push_back(stat_node);
     }
+
     const std::vector<std::shared_ptr<StatNode>>& getStatNodes() const { return stat_nodes; }
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 };

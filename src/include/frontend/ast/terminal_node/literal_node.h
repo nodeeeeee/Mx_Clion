@@ -31,6 +31,8 @@ public:
 
     TypeType::PrimitiveType getLiteralType() {return literal_type;}
     bool isNull() {return is_null;}
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 private:
     TypeType::PrimitiveType literal_type;
     bool is_null;

@@ -12,6 +12,7 @@ public:
   //get to other nodes from current node.
   virtual void visit (RootNode* node) = 0;
   virtual void visit (std::shared_ptr<ClassFuncDefNode> node) = 0;
+  virtual void visit(std::shared_ptr<ClassDefNode> node);
   virtual void visit (std::shared_ptr<FuncDefNode> node) = 0;
   virtual void visit (std::shared_ptr<MainFuncNode> node) = 0;
   virtual void visit (std::shared_ptr<VarDefNode> node) = 0;
@@ -35,4 +36,6 @@ public:
   virtual void visit (std::shared_ptr<LiteralNode> node) = 0;
   virtual void visit (std::shared_ptr<TerminalNode> node) = 0;
   virtual void visit (std::shared_ptr<RootNode> node) = 0;
+  virtual void createScope(const std::shared_ptr<ASTNode> &node);
+  virtual void exitScope();
 };

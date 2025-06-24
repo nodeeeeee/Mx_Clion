@@ -12,6 +12,7 @@ public:
     };
     UnaryExprNode() = delete;
     UnaryExprNode(UnaryOp op, std::shared_ptr<ExprNode> expr, Position position) : op(std::move(op)), expr(std::move(expr)), ExprNode(position) {}
+    void accept(VisitControl *visitor) {visitor->visit(this);}
 
 private:
 

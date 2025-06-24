@@ -5,12 +5,14 @@
 #pragma once
 #include "type_type.h"
 
+
 class BoolType : public TypeType{
 public:
   static BoolType& Instance() {
     static BoolType instance;
     return instance;
   }
+
 private:
   BoolType(){}
   //Singleton

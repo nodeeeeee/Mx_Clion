@@ -11,4 +11,6 @@ public:
     explicit RegularStatNode(Position position) : StatNode(position) {
     }
     virtual ~RegularStatNode() = default;
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 };

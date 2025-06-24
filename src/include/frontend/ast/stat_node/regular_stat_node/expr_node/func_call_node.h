@@ -11,4 +11,6 @@ private:
 public:
     FuncCallNode() = delete;
     FuncCallNode(std::string func_name, Position position) : func_name(std::move(func_name)), ExprNode(position) {};
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 };

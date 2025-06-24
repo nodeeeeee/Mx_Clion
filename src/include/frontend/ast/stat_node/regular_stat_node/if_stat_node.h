@@ -18,6 +18,8 @@ public:
     const std::shared_ptr<ExprNode> &getPredicate() {return predicate;}
     const std::shared_ptr<BlockNode> &getThenBlock() {return then_block;}
     const std::shared_ptr<BlockNode> &getElseBlock() {return else_block;}
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 private:
     std::shared_ptr<ExprNode> predicate;
     std::shared_ptr<BlockNode> then_block;

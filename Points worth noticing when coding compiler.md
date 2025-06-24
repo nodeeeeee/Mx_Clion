@@ -166,3 +166,11 @@
 
 16. It seems quite important to design your code structure before you start coding. This includes drawing a diagram for the main methods and classes, assigning jobs to each file, and plot `.h` file.
 
+17. Use visitor + accept to dfs the ast-tree. Because this can automatically give you dynamic binding. If you only use visit method, then you have to manually write massive dynamic bindings.
+
+18. For class usage, we can either forward declare using `class Foo;`, or use `#include`. We need to notice the following points:
+
+    1. `class Foo;` does not automatically help you find the definition of the class. This is typically used in `.h` files, we need to materialize it using `# include` in the corresponding `.cpp` files.
+    2. When using `#include`, we need to beware that we cannot `include` recursively, namely, `#include b.h` in `a.h` and `#include a.h` in `b.h`.
+    3. One common solution is to give `class` declaration in `.h` to guarantee no recursive declaration is involved. And then use `#include` in `.cpp` files. In these `include` sentences, they will find the declaration of `.h` file, and now we don't have recursive `#include` in `.h` files.
+

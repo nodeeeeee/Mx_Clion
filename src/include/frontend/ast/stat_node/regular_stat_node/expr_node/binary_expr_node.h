@@ -13,6 +13,8 @@ public:
 };
     BinaryExprNode() = delete;
     BinaryExprNode(BinaryOp op, std::shared_ptr<ExprNode> lhs, std::shared_ptr<ExprNode> rhs, Position position) : op(op), lhs(std::move(lhs)), rhs(std::move(rhs)), ExprNode(position) {}
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
     // const ... = Div();
 
 private:

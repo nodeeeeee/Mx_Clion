@@ -20,4 +20,6 @@ public:
     explicit ReturnStatNode(Position position) : RegularStatNode(position) {}
     [[nodiscard]] const std::shared_ptr<ExprNode>& getReturnExpr() const { return return_expr_node; }
     [[nodiscard]] const std::shared_ptr<FuncCallNode>& getFuncCall() const { return return_func_call_node; }
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 };

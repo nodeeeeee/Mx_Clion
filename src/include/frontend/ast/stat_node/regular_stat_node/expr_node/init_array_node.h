@@ -16,4 +16,6 @@ public:
     InitArrayNode() = delete;
     InitArrayNode(std::shared_ptr<TypeType> type, std::vector<std::shared_ptr<ExprNode>> range_node, Position position)
         :  type(std::move(type)),range_node(std::move(range_node)), ExprNode(position) {}
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 };

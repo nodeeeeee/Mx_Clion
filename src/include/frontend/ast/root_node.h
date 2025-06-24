@@ -15,9 +15,9 @@ public:
     RootNode(std::vector<std::shared_ptr<DefNode>> def_nodes, const Position& position) : def_nodes(std::move(def_nodes)) {
         ASTNode(NULL, position);
     };
-    void accept(VisitControl *visitor) {visitor->visit(this);}
     const std::vector<std::shared_ptr<DefNode>> &getDefNodes() const { return def_nodes; }
     const std::shared_ptr<MainFuncNode> &getMainNode() { return main_node; }
+    void accept(VisitControl *visitor) {visitor->visit(this);}
 
 private:
     std::vector<std::shared_ptr<DefNode>> def_nodes;

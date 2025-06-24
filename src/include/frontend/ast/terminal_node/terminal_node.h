@@ -6,12 +6,16 @@
 #include "frontend/ast/ASTNode.h"
 
 class TerminalNode : public ASTNode {
- public:
-    enum class TerminalType {
-        kCONTINUE, kBREAK, kTHIS, kID, kLITERAL
-    };
-    TerminalNode(TerminalType node_type, Position position) : node_type(std::move(node_type)), ASTNode(position) {}
+public:
+  enum class TerminalType {
+    kCONTINUE, kBREAK, kTHIS, kID, kLITERAL
+  };
 
- private:
-    TerminalType node_type;
+  TerminalNode(TerminalType node_type, Position position) : node_type(std::move(node_type)), ASTNode(position) {
+  }
+
+  void accept(VisitControl* visitor) { visitor->visit(this); }
+
+private:
+  TerminalType node_type;
 };

@@ -9,5 +9,6 @@ class StatNode : public ASTNode {
 public:
     StatNode() = delete;
     explicit StatNode(Position position) : ASTNode(position) {}
+    void accept(VisitControl *visitor) {visitor->visit(this);}
 
 };

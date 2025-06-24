@@ -12,6 +12,7 @@ public:
     AssignStatNode(std::shared_ptr<ExprNode> lhs, std::shared_ptr<ExprNode> rhs, Position position) : lhs(std::move(lhs)), rhs(std::move(rhs)), StatNode(position) {}
     const std::shared_ptr<ExprNode> &getLhs() {return lhs;}
     const std::shared_ptr<ExprNode> &getRhs() {return rhs;}
+    void accept(VisitControl *visitor) {visitor->visit(this);}
 
 private:
     std::shared_ptr<ExprNode> lhs;

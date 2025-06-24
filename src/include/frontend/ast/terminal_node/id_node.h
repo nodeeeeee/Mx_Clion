@@ -16,6 +16,8 @@ public:
     IdNode(std::shared_ptr<TypeType> type, antlr4::tree::TerminalNode *ID) : type(std::move(type)), id_name(ID->getSymbol()->getText()), TerminalNode(TerminalType::kID, Position(ID->getSymbol())) {}
     std::string &getIdName() { return id_name; }
     std::shared_ptr<TypeType> getType() { return type; }
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 private:
     std::string id_name;
     std::shared_ptr<TypeType> type;

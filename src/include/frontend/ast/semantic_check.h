@@ -17,6 +17,7 @@ public:
   std::shared_ptr<Scope> current_scope = std::make_shared<GlobalScope>(root_node);
   void visit(std::shared_ptr<RootNode> node) final;
   void visit(std::shared_ptr<ClassFuncDefNode> node) final;
+  void visit(std::shared_ptr<ClassDefNode> node) final;
   void visit(std::shared_ptr<FuncDefNode> node) final;
   void visit(std::shared_ptr<MainFuncNode> node) final;
   void visit(std::shared_ptr<VarDefNode> node) final;
@@ -31,7 +32,7 @@ public:
   void visit(std::shared_ptr<NullExprNode> node) final;
   void visit(std::shared_ptr<UnaryExprNode> node) final;
   void visit(std::shared_ptr<AssignStatNode> node) final;
-  void visit(std::shared_ptr<BlockNode> node, std::shared_ptr<ASTNode> block_owner) final;
+  void visit(std::shared_ptr<BlockNode> node) final;
   void visit(std::shared_ptr<ForStatNode> node) final;
   void visit(std::shared_ptr<IfStatNode> node) final;
   void visit(std::shared_ptr<ReturnStatNode> node) final;
@@ -40,4 +41,6 @@ public:
   void visit(std::shared_ptr<LiteralNode> node) final;
   void visit(std::shared_ptr<TerminalNode> node) final;
   void visit(std::shared_ptr<RootNode> node) final;
+  void createScope(const std::shared_ptr<ASTNode> &node) final;
+  void exitScope() final;
 };

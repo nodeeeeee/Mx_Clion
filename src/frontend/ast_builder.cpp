@@ -107,26 +107,27 @@ std::any ASTBuilder::visitFuncDef(MxParser::FuncDefContext* ctx) {
 
 std::any ASTBuilder::visitClassDef(MxParser::ClassDefContext* ctx) {
     auto ID = std::make_shared<IdNode>(ctx->ID()->getSymbol()->getText(), Position(ctx));
-    std::vector<std::shared_ptr<DefNode>> def_nodes;
+    std::vector<std::shared_ptr<StatNode>> def_nodes;
     for (const auto& var_def_context : ctx->varDef()) {
-        auto ret = std::any_cast<std::vector<std::shared_ptr<DefNode>>>(var_def_context->accept(&ast_builder));
+        auto ret = std::any_cast<std::vector<std::shared_ptr<StatNode>>>(var_def_context->accept(&ast_builder));
         for (const auto& ret_vardef : ret) {
             def_nodes.push_back(ret_vardef);
         }
     }
     for (const auto& func_def_context : ctx->funcDef()) {
-        auto ret = std::any_cast<std::shared_ptr<DefNode>>(func_def_context->accept(&ast_builder));
+        auto ret = std::any_cast<std::shared_ptr<StatNode>>(func_def_context->accept(&ast_builder));
         def_nodes.push_back(ret);
     }
     for (const auto& class_def_context : ctx->classDef()) {
-        auto ret = std::any_cast<std::shared_ptr<DefNode>>(class_def_context->accept(&ast_builder));
+        auto ret = std::any_cast<std::shared_ptr<StatNode>>(class_def_context->accept(&ast_builder));
         def_nodes.push_back(ret);
     }
     for (const auto& class_func_def_context : ctx->classFuncDef()) {
-        auto ret = std::any_cast<std::shared_ptr<DefNode>>(class_func_def_context->accept(&ast_builder));
+        auto ret = std::any_cast<std::shared_ptr<StatNode>>(class_func_def_context->accept(&ast_builder));
         def_nodes.push_back(ret);
     }
-    return std::make_shared<ClassDefNode>(std::move(def_nodes), std::move(ID), Position(ctx));
+    auto block_node = std::make_shared<BlockNode>(def_nodes, Position(ctx));
+    return std::make_shared<ClassDefNode>(std::move(block_node), std::move(ID), Position(ctx));
 }
 
 std::any ASTBuilder::visitMainFunc(MxParser::MainFuncContext* ctx) {

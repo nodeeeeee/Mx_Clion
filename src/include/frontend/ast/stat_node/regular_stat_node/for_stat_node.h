@@ -25,6 +25,8 @@ public:
     const std::shared_ptr<ExprNode> &getForCondExprNode() {return for_cond_expr_node;}
     const std::shared_ptr<ExprNode> &getUpdateExprNode() {return update_expr_node;}
     const std::shared_ptr<ExprNode> &getInitialExprNode() {return initial_expr_node;}
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 private:
     std::shared_ptr<VarDefNode> initial_var_def_nodes;
     std::shared_ptr<AssignStatNode> update_assign_stat_node;

@@ -5,11 +5,13 @@
 #include "frontend/ast/visit_control.h"
 #include "frontend/ast/def_node/def_node.h"
 
+class BlockNode;
+
 class ClassDefNode : public DefNode {
 private:
-    std::vector<std::shared_ptr<DefNode>> def_nodes;
+    std::shared_ptr<BlockNode> block_node;
 public:
-    const std::vector<std::shared_ptr<DefNode>>& GetDefNodes() { return def_nodes; }
+    const std::shared_ptr<BlockNode>& GetBlockNode() { return block_node; }
     void accept(VisitControl *visitor) final {visitor->visit(this);}
-    ClassDefNode(std::vector<std::shared_ptr<DefNode>> def_nodes, std::shared_ptr<IdNode> ID, Position pos) : def_nodes(std::move(def_nodes)), DefNode(std::move(ID), DefType::kClass, pos) {}
+    ClassDefNode(std::shared_ptr<BlockNode>, std::shared_ptr<IdNode> ID, Position pos) : block_node(std::move(block_node)), DefNode(std::move(ID), DefType::kClass, pos) {}
 };

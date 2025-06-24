@@ -75,11 +75,15 @@ std::shared_ptr<Function> makeFunction(std::shared_ptr<TypeType> return_type, st
 }
 
 std::shared_ptr<Scope> Scope::makeClass(std::shared_ptr<ClassDefNode> class_def_node) {
-  auto class_scope = std::make_shared<Scope>(std::make_shared<Scope>(*this));
+  auto class_scope = std::make_shared<Scope>(*this);
   this->addChildScope(class_scope);
-  auto def_nodes = class_def_node->GetDefNodes();
-  for (auto def_node : def_nodes) {
-    class_scope->declare(def_node);
+  auto stat_nodes = class_def_node->GetBlockNode()->getStatNodes();
+  for (auto stat_node : stat_nodes) {
+    if (auto def_node = std::dynamic_pointer_cast<DefNode>(stat_node)) {
+      class_scope->declare(def_node);
+    } else {
+      throw std::runtime_error("cannot put statements other than def in a class");
+    }
   }
   return class_scope;
 }

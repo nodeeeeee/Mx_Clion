@@ -8,4 +8,6 @@ class NullExprNode : public ExprNode {
 public:
     NullExprNode() = delete;
     NullExprNode(Position position) : ExprNode(position) {}
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 };

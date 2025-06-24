@@ -9,6 +9,8 @@
 #include "frontend/ast/def_node/def_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/type_node.h"
 
+class ExprNode;
+
 class VarDefNode : public DefNode {
 private:
     std::shared_ptr<ExprNode> expr_node;
@@ -20,4 +22,6 @@ public:
     VarDefNode(std::shared_ptr<IdNode> ID, const Position& position) : DefNode(std::move(ID),DefType::kVar, position){
     }
     const std::shared_ptr<ExprNode>& getExpr() const { return expr_node; }
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 };

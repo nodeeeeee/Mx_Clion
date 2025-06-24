@@ -11,4 +11,6 @@ private:
 public:
     IndexExprNode() = delete;
     IndexExprNode(std::vector<std::shared_ptr<ExprNode>> indices, Position position) : indices(std::move(indices)), ExprNode(position) {}
+    void accept(VisitControl *visitor) {visitor->visit(this);}
+
 };

@@ -16,4 +16,5 @@ public:
     MainFuncNode() = delete;
     MainFuncNode(std::shared_ptr<BlockNode> body, Position position) : body(std::move(body)), DefNode(std::make_shared<IdNode>(std::make_shared<TypeType>(0), "main", position), DefType::kFunc, position) {}
     const std::shared_ptr<BlockNode> getBody() const { return body; }
+    void accept(VisitControl *visitor) {visitor->visit(this);}
 };

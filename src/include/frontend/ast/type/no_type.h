@@ -5,12 +5,14 @@
 #pragma once
 #include "type_type.h"
 
+
 class NoType : public TypeType{
 public:
   static NoType& Instance() {
     static NoType instance;
     return instance;
   }
+
 private:
   NoType() {
   }
