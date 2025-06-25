@@ -43,4 +43,9 @@ public:
   void visit(std::shared_ptr<RootNode> node) final;
   void createScope(const std::shared_ptr<ASTNode> &node) final;
   void exitScope() final;
+
+private:
+  auto k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
+  auto k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
+  auto k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
 };

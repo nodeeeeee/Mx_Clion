@@ -5,16 +5,13 @@
 #pragma once
 #include <optional>
 
-#include "terminal_node.h"
 #include "ast/type/type_type.h"
-#include "terminal_node.h"
-#include "frontend/ast/type/type_type.h"
 #include "parser/MxParser.h"
 
-class LiteralNode : public TerminalNode {
+class LiteralNode : public ExprNode {
 public:
     LiteralNode() = delete;
-    explicit LiteralNode(antlr4::Token* token) : TerminalNode(TerminalType::kLITERAL, Position(token)) {
+    explicit LiteralNode(antlr4::Token* token) : ExprNode(Position(token)) {
         if (token->getType() == MxParser::INTEGER) {
             literal_type = TypeType::PrimitiveType::kINT;
             int_value = std::stoi(token->getText());

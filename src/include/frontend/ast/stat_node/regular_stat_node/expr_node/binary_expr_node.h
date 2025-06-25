@@ -14,9 +14,10 @@ public:
     BinaryExprNode() = delete;
     BinaryExprNode(BinaryOp op, std::shared_ptr<ExprNode> lhs, std::shared_ptr<ExprNode> rhs, Position position) : op(op), lhs(std::move(lhs)), rhs(std::move(rhs)), ExprNode(position) {}
     void accept(VisitControl *visitor) {visitor->visit(this);}
-
+    std::shared_ptr<ExprNode> getLhs() {return lhs;}
+    std::shared_ptr<ExprNode> getRhs() {return rhs;}
     // const ... = Div();
-
+    BinaryOp getOp() {return op;}
 private:
     BinaryOp op;
     std::shared_ptr<ExprNode> lhs;

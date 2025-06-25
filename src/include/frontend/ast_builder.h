@@ -1,5 +1,5 @@
 #pragma once
-#include "ast/terminal_node/literal_node.h"
+#include "ast/stat_node/regular_stat_node/expr_node/literal_node.h"
 #include "parser/MxBaseVisitor.h"
 #include "parser/MxParser.h"
 

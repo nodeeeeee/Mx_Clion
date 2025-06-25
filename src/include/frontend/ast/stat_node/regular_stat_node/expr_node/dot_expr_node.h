@@ -7,11 +7,12 @@
 
 class DotExprNode : public ExprNode {
 private:
-    std::shared_ptr<ExprNode> lhs_expr;
+    std::shared_ptr<ExprNode> lhs;
     std::shared_ptr<ExprNode> rhs;
 public:
     DotExprNode() = delete;
-    DotExprNode(std::shared_ptr<ExprNode> lhs_expr, std::shared_ptr<ExprNode> rhs, Position position) : lhs_expr(std::move(lhs_expr)), rhs(std::move(rhs)), ExprNode(position) {}
+    DotExprNode(std::shared_ptr<ExprNode> lhs, std::shared_ptr<ExprNode> rhs, Position position) : lhs(std::move(lhs)), rhs(std::move(rhs)), ExprNode(position) {}
     void accept(VisitControl *visitor) {visitor->visit(this);}
-
+    std::shared_ptr<ExprNode> getLhs() {return lhs;}
+    std::shared_ptr<ExprNode> getRhs() {return rhs;}
 };

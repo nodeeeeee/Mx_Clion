@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../ASTNode.h"
-#include "frontend/ast/terminal_node/id_node.h"
+#include "../stat_node/regular_stat_node/expr_node/id_node.h"
 #include "frontend/ast/type/type_type.h"
 
 class BlockNode;

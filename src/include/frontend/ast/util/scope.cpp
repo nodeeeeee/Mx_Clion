@@ -16,7 +16,7 @@ void Scope::declare(const std::shared_ptr<DefNode>& def_node) {
     if (vars.contains(decl_name) || functions.contains(decl_name)) {
       throw std::runtime_error("repeated declaration");
     }
-    vars[decl_name] = true;
+    vars[decl_name] = nullptr;
   } else if (auto func_def = dynamic_pointer_cast<FuncDefNode>(def_node)) {
     if (vars.contains(decl_name) || functions.contains(decl_name) || classes.contains(decl_name)) {
       throw std::runtime_error("repeated declaration");
@@ -70,7 +70,7 @@ std::shared_ptr<Function> Scope::makeFunction(std::shared_ptr<MainFuncNode> main
   return std::make_shared<Function>(return_type, param_type, func_name);
 }
 
-std::shared_ptr<Function> makeFunction(std::shared_ptr<TypeType> return_type, std::vector<std::shared_ptr<TypeType>> param_type, std::string func_name) {
+std::shared_ptr<Function> Scope::makeFunction(std::shared_ptr<TypeType> return_type, std::vector<std::shared_ptr<TypeType>> param_type, std::string func_name) {
   return std::make_shared<Function>(return_type, param_type, func_name);
 }
 
@@ -93,9 +93,9 @@ void Scope::addChildScope(std::shared_ptr<Scope> scope) {
 }
 
 
-const bool Scope::findVar(std::string var_name) {
+const std::shared_ptr<TypeType> Scope::findVar(std::string var_name) {
   if (vars.contains(var_name)) {
-    return true;
+    return vars[var_name];
   } else {
     if (this->getParent != nullptr) {
         return this->getParent()->findVar(var_name);
@@ -104,6 +104,15 @@ const bool Scope::findVar(std::string var_name) {
     }
   }
 }
+
+void Scope::setVarType(std::string var_name, std::shared_ptr<TypeType> var_type) {
+  if (vars.contains(var_name)) {
+    vars[var_name] = var_type;
+  } else {
+    throw std::runtime_error("var name not found" + var_name);
+  }
+}
+
 
 const std::shared_ptr<Function>& Scope::findFunc(std::string func_name) {
   if (vars.contains(func_name)) {
@@ -117,12 +126,12 @@ const std::shared_ptr<Function>& Scope::findFunc(std::string func_name) {
   }
 }
 
-const std::shared_ptr<Scope>& Scope::getClass(std::string class_name) {
+const std::shared_ptr<Scope>& Scope::findClass(std::string class_name) {
   if (classes.contains(class_name)) {
     return classes[class_name];
   } else {
     if (this->getParent() != nullptr) {
-      return this->getParent()->getClass(class_name);
+      return this->getParent()->findClass(class_name);
     } else{
       throw std::runtime_error("class name not found" + class_name);
     }
@@ -131,35 +140,3 @@ const std::shared_ptr<Scope>& Scope::getClass(std::string class_name) {
 
 const std::shared_ptr<Scope>& Scope::getParent() { return parent; }
 
-GlobalScope::GlobalScope() {
-  auto void_ = std::make_shared<TypeType>(TypeType::PrimitiveType::kVOID);
-  auto bool_ = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
-  auto int_ = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
-  auto string_ = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
-  auto print_func = std::make_shared<Function>(void_, std::vector<std::shared_ptr<TypeType>>{string_}, "print");
-  functions.emplace("print", print_func);
-  auto println_func = std::make_shared<Function>(void_, std::vector<std::shared_ptr<TypeType>>{string_}, "println");
-  functions.emplace("println", println_func);
-  auto printInt_func = std::make_shared<Function>(void_, std::vector<std::shared_ptr<TypeType>>{int_}, "printInt");
-  functions.emplace("printInt", printInt_func);
-  auto printlnInt_func = std::make_shared<Function>(void_, std::vector<std::shared_ptr<TypeType>>{int_}, "printlnInt");
-  functions.emplace("printlnInt", printlnInt_func);
-  auto getString_func = std::make_shared<Function>(string_, std::vector<std::shared_ptr<TypeType>>{}, "getString");
-  functions.emplace("getString", getString_func);
-  auto getInt_func = std::make_shared<Function>(int_, std::vector<std::shared_ptr<TypeType>>{}, "getInt");
-  functions.emplace("getInt", getInt_func);
-  auto toString_func = std::make_shared<Function>(string_, std::vector<std::shared_ptr<TypeType>>{int_}, "toString");
-  functions.emplace("toString", toString_func);
-
-  auto string_class_scope = std::make_shared<Scope>(std::make_shared<Scope>(*this));
-  this->addChildScope(string_class_scope);
-  auto length_func = std::make_shared<Function>(int_, std::vector<std::shared_ptr<TypeType>>{}, "length");
-  auto subString_func = std::make_shared<Function>(string_, std::vector<std::shared_ptr<TypeType>>{int_, int_}, "subString");
-  auto parseInt_func = std::make_shared<Function>(int_, std::vector<std::shared_ptr<TypeType>>{}, "parseInt");
-  auto ord_func = std::make_shared<Function>(int_, std::vector<std::shared_ptr<TypeType>>{int_}, "ord");
-  string_class_scope->declare(length_func);
-  string_class_scope->declare(subString_func);
-  string_class_scope->declare(parseInt_func);
-  string_class_scope->declare(ord_func);
-
-}

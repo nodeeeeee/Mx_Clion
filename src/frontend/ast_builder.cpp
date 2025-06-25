@@ -31,7 +31,7 @@
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/init_object_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/null_expr_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/ternary_expr_node.h"
-#include "frontend/ast/terminal_node/id_node.h"
+#include "../include/frontend/ast/stat_node/regular_stat_node/expr_node/id_node.h"
 #include "frontend/ast/terminal_node/literal_node.h"
 
 
@@ -406,7 +406,12 @@ std::any ASTBuilder::visitThisExpr(MxParser::ThisExprContext* ctx) {
 
 std::any ASTBuilder::visitFuncCall(MxParser::FuncCallContext* ctx) {
     std::string func_name = ctx->ID()->getSymbol()->getText();
-    return std::make_shared<FuncCallNode>(std::move(func_name), Position(ctx));
+    std::vector<std::shared_ptr<ExprNode>> args;
+    auto exprs = ctx->expr();
+    for (auto expr : exprs) {
+        args.push_back(std::any_cast<std::shared_ptr<ExprNode>>(expr->accept(&ast_builder)));
+    }
+    return std::make_shared<FuncCallNode>(std::move(func_name), args, Position(ctx));
 }
 
 std::any ASTBuilder::visitInitObject(MxParser::InitObjectContext* ctx) {

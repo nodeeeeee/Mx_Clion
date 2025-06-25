@@ -8,7 +8,7 @@ class LiteralNode;
 
 class FormatStringNode : public ExprNode {
 private:
-    std::vector<std::shared_ptr<LiteralNode>> literal_nodes;
+    std::vector<std::shared_ptr<LiteralNode>> literal_nodes; //strings
     std::vector<std::shared_ptr<ExprNode>> expr_nodes;
     bool literal_first;
 public:
@@ -16,5 +16,6 @@ public:
     FormatStringNode(std::vector<std::shared_ptr<LiteralNode>> literal_nodes, std::vector<std::shared_ptr<ExprNode>> expr_nodes, bool literal_first, Position position)
         : literal_nodes(std::move(literal_nodes)), expr_nodes(std::move(expr_nodes)), literal_first(literal_first), ExprNode(position){}
     void accept(VisitControl *visitor) {visitor->visit(this);}
-
+    std::vector<std::shared_ptr<LiteralNode>>& getLiteralNodes() { return literal_nodes; }
+    std::vector<std::shared_ptr<ExprNode>>& getExprNodes() { return expr_nodes; }
 };

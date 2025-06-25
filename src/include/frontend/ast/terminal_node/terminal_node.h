@@ -8,7 +8,7 @@
 class TerminalNode : public ASTNode {
 public:
   enum class TerminalType {
-    kCONTINUE, kBREAK, kTHIS, kID, kLITERAL
+    kCONTINUE, kBREAK
   };
 
   TerminalNode(TerminalType node_type, Position position) : node_type(std::move(node_type)), ASTNode(position) {

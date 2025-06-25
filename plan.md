@@ -9,3 +9,8 @@ function需要提取return type，param type，ID
 semantic_check中我需要追踪current scope，其实可以作为全局变量进行keep track。在global_scope_extractor的时候要进行传入。
 
 我将为所有的scope加入return type，为了进行return statement判断。只有function会有valid return type，其他都是nullptr
+
+为了将return, continue, break定位，我为所有block加入了其父节点信息。
+
+在global_scope_extractor中我已经将所有global中的classdef, funcdef拉取出来了。同时也拉取了class中的funcdef。所以在所有semantic check的 funcdef 和 classdef 中我不需要再加入scope了
+

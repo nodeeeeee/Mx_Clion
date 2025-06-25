@@ -8,9 +8,11 @@
 class FuncCallNode : public ExprNode {
 private:
     std::string func_name;
+    std::vector<std::shared_ptr<ExprNode>> args;
 public:
     FuncCallNode() = delete;
-    FuncCallNode(std::string func_name, Position position) : func_name(std::move(func_name)), ExprNode(position) {};
+    FuncCallNode(std::string func_name, std::vector<std::shared_ptr<ExprNode>> args, Position position) : func_name(std::move(func_name)), args(std::move(args)), ExprNode(position) {};
     void accept(VisitControl *visitor) {visitor->visit(this);}
-
+    const std::string &getName() {return func_name;}
+    const std::vector<std::shared_ptr<ExprNode>> &getArgs() {return args;}
 };

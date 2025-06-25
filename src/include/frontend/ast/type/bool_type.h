@@ -14,7 +14,7 @@ public:
   }
 
 private:
-  BoolType(){}
+  BoolType() : TypeType(PrimitiveType::kBOOL){}
   //Singleton
   BoolType(const BoolType&) = delete;             //delete copy construction
   BoolType& operator=(const BoolType&) = delete;  //delete copy assignment

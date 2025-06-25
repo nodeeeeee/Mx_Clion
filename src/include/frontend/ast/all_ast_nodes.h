@@ -32,7 +32,7 @@
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/type_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/unary_expr_node.h"
 
-#include "frontend/ast/terminal_node/id_node.h"
+#include "stat_node/regular_stat_node/expr_node/id_node.h"
 #include "frontend/ast/terminal_node/literal_node.h"
 #include "frontend/ast/terminal_node/terminal_node.h"
 

@@ -23,6 +23,8 @@ public:
   TypeType (SpecialCode special_code) ;
   TypeType (PrimitiveType primitive_type, int dimension = 0);
   TypeType (MxParser::TypeContext *ctx);
+  // std::shared_ptr<TypeType> assignType(PrimitiveType primitive_type);
+  // std::shared_ptr<TypeType> assignType(SpecialCode special_code);
   bool operator==(TypeType const &other) const {
 
     if (this->type_ref != nullptr) {
@@ -52,6 +54,7 @@ public:
 
 private:
   TypeType* type_ref = nullptr;
+
   std::string customized_type;
   std::vector<TypeType> param_type;
   std::vector<std::shared_ptr<Function>> string_functions;

@@ -174,3 +174,33 @@
     2. When using `#include`, we need to beware that we cannot `include` recursively, namely, `#include b.h` in `a.h` and `#include a.h` in `b.h`.
     3. One common solution is to give `class` declaration in `.h` to guarantee no recursive declaration is involved. And then use `#include` in `.cpp` files. In these `include` sentences, they will find the declaration of `.h` file, and now we don't have recursive `#include` in `.h` files.
 
+19. Singleton
+    We use singleton mainly for category classes. Such as when we need to separate different types, we may define a virtual class `Type`, and define its subclasses `BoolType`, `IntType`, etc. We need to delete all the invisible move constructors and copy constructors to ensure safety. We need to add a factory method, and an existing instance.
+
+    ```C++
+    static BoolType& Instance() {
+        static BoolType instance;
+        return instance;
+      }
+    ```
+
+    
+
+    Then in `Type` class, we will define some basic methods:
+
+    ```c++
+    class Type{
+        ...
+        bool equal(Type& other) {
+            return this == other;
+        }
+    }
+    ```
+
+    When we want to bind a type to a identifier, we can use 
+
+    ```C++
+    Type& tmp = BoolType::Instance();
+    ```
+
+    

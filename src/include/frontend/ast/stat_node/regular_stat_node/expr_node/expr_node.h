@@ -21,6 +21,27 @@ public:
     return expr_type;
   }
 
+  const bool isAssignable() const {
+    return assignable;
+  }
+
+  const bool isValid() const {
+    return valid;
+  }
+
+
+
+  void setAssignable(bool assignable_) {
+    assignable = assignable_;
+  }
+
+  void setValid(bool valid_) {
+    valid = valid_;
+  }
+
 private:
   std::shared_ptr<TypeType> expr_type = nullptr;
+  bool assignable = true;
+  bool valid = true;
+
 };

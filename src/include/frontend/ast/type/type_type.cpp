@@ -45,7 +45,16 @@ TypeType::TypeType(SpecialCode special_code) {
   }
 }
 
-
+// std::shared_ptr<TypeType> TypeType::assignType(PrimitiveType primitive_type) {
+//   if (primitive_type == PrimitiveType::kBOOL) {
+//     return
+//   }
+// }
+//
+// std::shared_ptr<TypeType> TypeType::assignType(SpecialType special_type) {
+//
+// }
+//
 int TypeType::countBracket(MxParser::TypeContext *ctx, TypeType** type_ref_ptr, std::string *customized_ptr) {
   if (ctx->LEFT_SQUARE_BRACKET()) {
     return countBracket(ctx->type(), type_ref_ptr, customized_ptr);
