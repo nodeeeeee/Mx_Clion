@@ -40,6 +40,7 @@ public:
   std::shared_ptr<Function> makeFunction(std::shared_ptr<MainFuncNode> main_func);
   std::shared_ptr<Function> makeFunction(std::shared_ptr<TypeType> return_type, std::vector<std::shared_ptr<TypeType>> param_type, std::string func_name);
   std::shared_ptr<Scope> makeClass(std::shared_ptr<ClassDefNode> class_def_node);
+  const std::shared_ptr<ASTNode> &getScopeOwner() {return scope_owner;}
   void addChildScope(std::shared_ptr<Scope> scope);
   const std::shared_ptr<Scope> & getParent();
   const std::shared_ptr<Scope> temp_scope;

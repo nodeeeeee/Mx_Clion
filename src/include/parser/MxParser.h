@@ -702,10 +702,11 @@ public:
     TypeContext *type();
     std::vector<antlr4::tree::TerminalNode *> LEFT_SQUARE_BRACKET();
     antlr4::tree::TerminalNode* LEFT_SQUARE_BRACKET(size_t i);
-    std::vector<antlr4::tree::TerminalNode *> RIGHT_SQUARE_BRACKET();
-    antlr4::tree::TerminalNode* RIGHT_SQUARE_BRACKET(size_t i);
     std::vector<ExprContext *> expr();
     ExprContext* expr(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> RIGHT_SQUARE_BRACKET();
+    antlr4::tree::TerminalNode* RIGHT_SQUARE_BRACKET(size_t i);
+    ArrayConstContext *arrayConst();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;

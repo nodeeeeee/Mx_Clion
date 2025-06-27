@@ -185,9 +185,17 @@ std::any ASTBuilder::visitUnaryExpr(MxParser::UnaryExprContext* ctx) {
     std::shared_ptr<ExprNode> expr_node = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr()->accept(&ast_builder));
     UnaryExprNode::UnaryOp op;
     if (ctx->PLUS_PLUS()) {
-        op = UnaryExprNode::UnaryOp::kPLUS_PLUS;
+        if (ctx->PLUS_PLUS()->getSymbol()->getTokenIndex() <ctx->expr()->getStart()->getTokenIndex()) {
+            op = UnaryExprNode::UnaryOp::kPRE_PP;
+        } else {
+            op = UnaryExprNode::UnaryOp::kPOST_PP;
+        }
     } else if (ctx->MINUS_MINUS()) {
-        op =  UnaryExprNode::UnaryOp::kMINUS_MINUS;
+        if (ctx->MINUS_MINUS()->getSymbol()->getTokenIndex() <ctx->expr()->getStart()->getTokenIndex()) {
+            op = UnaryExprNode::UnaryOp::kPRE_MM;
+        } else {
+            op = UnaryExprNode::UnaryOp::kPOST_MM;
+        }
     } else if (ctx->WAVE()) {
         op =  UnaryExprNode::UnaryOp::kWAVE;
     } else if (ctx->EXCLAIMER()) {
@@ -276,15 +284,18 @@ std::any ASTBuilder::visitInitArray(MxParser::InitArrayContext* ctx) {
             ranges.push_back(nullptr);
         }
     }
+
+    if (ctx->arrayConst()) {
+        auto default_array = std::any_cast<std::shared_ptr<ArrayConstNode>>(ctx->arrayConst()->accept(&ast_builder));
+        return std::make_shared<InitArrayNode>(type, ranges, default_array, Position(ctx));
+    }
     return std::make_shared<InitArrayNode>(type, ranges, Position(ctx));
 }
 
 std::any ASTBuilder::visitIndexExpr(MxParser::IndexExprContext* ctx) {
-    std::vector<std::shared_ptr<ExprNode>> indices;
-    for (const auto& expr_node : ctx->expr()) {
-        indices.push_back(std::any_cast<std::shared_ptr<ExprNode>>(expr_node->accept(&ast_builder)));
-    }
-    return std::make_shared<IndexExprNode>(indices, Position(ctx));
+    auto base = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr(0)->accept(&ast_builder));
+    auto index = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr(1)->accept(&ast_builder));
+    return std::make_shared<IndexExprNode>(base, index, Position(ctx));
 }
 
 std::any ASTBuilder::visitLiteral(antlr4::Token* token) {
@@ -302,7 +313,7 @@ std::any ASTBuilder::visitParenExpr(MxParser::ParenExprContext* ctx) {
 }
 
 std::any ASTBuilder::visitClassFuncDef(MxParser::ClassFuncDefContext* ctx) {
-    auto ID = std::make_shared<IdNode>(std::make_shared<TypeType>(1), ctx->ID());
+    auto ID = std::make_shared<IdNode>(std::make_shared<TypeType>(TypeType::SpecialCode::NoType), ctx->ID());
     auto func_block = std::any_cast<std::shared_ptr<BlockNode>>(ctx->block()->accept(&ast_builder));
     return std::make_shared<ClassFuncDefNode>(std::move(ID), std::move(func_block), Position(ctx));
 }

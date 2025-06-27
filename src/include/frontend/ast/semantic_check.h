@@ -37,10 +37,8 @@ public:
   void visit(std::shared_ptr<IfStatNode> node) final;
   void visit(std::shared_ptr<ReturnStatNode> node) final;
   void visit(std::shared_ptr<WhileStatNode> node) final;
-  void visit(std::shared_ptr<IdNode> node) final;
   void visit(std::shared_ptr<LiteralNode> node) final;
   void visit(std::shared_ptr<TerminalNode> node) final;
-  void visit(std::shared_ptr<RootNode> node) final;
   void createScope(const std::shared_ptr<ASTNode> &node) final;
   void exitScope() final;
 

@@ -17,9 +17,14 @@ public:
     this->expr_type = expr_type;
   }
 
+  void setPrvalue(bool prvalue_) {
+    prvalue = prvalue_;
+  }
+
   std::shared_ptr<TypeType> getExprType() {
     return expr_type;
   }
+
 
   const bool isAssignable() const {
     return assignable;
@@ -29,6 +34,9 @@ public:
     return valid;
   }
 
+  const bool isPrvalue() const {
+    return prvalue;
+  }
 
 
   void setAssignable(bool assignable_) {
@@ -43,5 +51,5 @@ private:
   std::shared_ptr<TypeType> expr_type = nullptr;
   bool assignable = true;
   bool valid = true;
-
+  bool prvalue = true;
 };

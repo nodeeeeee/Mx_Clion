@@ -23,6 +23,9 @@ public:
   TypeType (SpecialCode special_code) ;
   TypeType (PrimitiveType primitive_type, int dimension = 0);
   TypeType (MxParser::TypeContext *ctx);
+  TypeType (std::shared_ptr<TypeType> base, int increment);
+  TypeType (std::string customized_type);
+
   // std::shared_ptr<TypeType> assignType(PrimitiveType primitive_type);
   // std::shared_ptr<TypeType> assignType(SpecialCode special_code);
   bool operator==(TypeType const &other) const {
@@ -33,27 +36,12 @@ public:
       return this->customized_type == other.customized_type && this->dimension == other.dimension;
     }
   }
-  // bool hasType() {
-  //   return has_type;
-  // }
-  // std::pair<std::string, int> getType() {
-  //   if (!has_type) {
-  //     throw std::runtime_error("Cannot get type of non-type");
-  //   }
-  //   if (customized_type.empty()) {
-  //     switch (primitive_type) {
-  //       case PrimitiveType::kINT: return std::make_pair("int",dimension);
-  //       case PrimitiveType::kBOOL: return std::make_pair("bool", dimension);
-  //       case PrimitiveType::kSTRING: return std::make_pair("string", dimension);
-  //       case PrimitiveType::kVOID: return std::make_pair("void", dimension);
-  //     }
-  //   } else {
-  //     return std::make_pair(customized_type, dimension);
-  //   }
-  // }
+
+  size_t getDimension() {return dimension;}
+
 
 private:
-  TypeType* type_ref = nullptr;
+  TypeType *type_ref = nullptr;
 
   std::string customized_type;
   std::vector<TypeType> param_type;

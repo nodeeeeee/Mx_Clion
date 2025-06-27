@@ -4,6 +4,7 @@
 
 #pragma once
 #include "expr_node.h"
+#include "frontend/ast/type/type_type.h"
 
 class ArrayConstNode : public ExprNode {
 private:
@@ -37,6 +38,8 @@ public:
                                   [&](const std::shared_ptr<LiteralNode>& e) { return e->getLiteralType() == ref; });
       if (!all_same) {
         throw std::runtime_error("array const type mismatch");
+      } else {
+        return std::make_shared<TypeType>(ref, 0);
       }
     } else if (current_array->array_elements.size() != 0) {
       auto ref = preCheck(current_array->array_elements.front());
@@ -44,6 +47,8 @@ public:
         [&](const std::shared_ptr<ArrayConstNode>& e) {return preCheck(e) == ref;});
       if (!all_same) {
         throw std::runtime_error("array const type mismatch");
+      } else {
+        return std::make_shared<TypeType>(ref, 1);
       }
     } else {
       return std::make_shared<TypeType>(TypeType::SpecialCode::NoType);

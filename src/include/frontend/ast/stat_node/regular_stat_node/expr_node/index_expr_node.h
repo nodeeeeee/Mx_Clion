@@ -7,10 +7,13 @@
 
 class IndexExprNode : public ExprNode {
 private:
-    std::vector<std::shared_ptr<ExprNode>> indices;
+    std::shared_ptr<ExprNode> index;
+    std::shared_ptr<ExprNode> base;
 public:
     IndexExprNode() = delete;
-    IndexExprNode(std::vector<std::shared_ptr<ExprNode>> indices, Position position) : indices(std::move(indices)), ExprNode(position) {}
+    IndexExprNode(std::shared_ptr<ExprNode> base, std::shared_ptr<ExprNode> index, Position position) : index(std::move(index)), base(std::move(base)), ExprNode(position) {}
+    std::shared_ptr<ExprNode> getIndex() {return index;}
+    std::shared_ptr<ExprNode> getBase() {return base;}
     void accept(VisitControl *visitor) {visitor->visit(this);}
 
 };

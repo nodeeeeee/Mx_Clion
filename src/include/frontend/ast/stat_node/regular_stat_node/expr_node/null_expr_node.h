@@ -5,6 +5,8 @@
 #include "expr_node.h"
 
 class NullExprNode : public ExprNode {
+/** used as an helper signal that marks nothing is involved in the expression
+ */
 public:
     NullExprNode() = delete;
     NullExprNode(Position position) : ExprNode(position) {}

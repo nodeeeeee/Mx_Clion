@@ -13,6 +13,7 @@ private:
 public:
     InitObjectNode() = delete;
     InitObjectNode(std::shared_ptr<TypeType> type, Position position) : type(std::move(type)), ExprNode(position) {}
+    const std::shared_ptr<TypeType>& getType() const { return type; }
     void accept(VisitControl *visitor) {visitor->visit(this);}
 
 };

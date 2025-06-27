@@ -55,7 +55,7 @@ continue : CONTINUE;
 break : BREAK;
 
 expr : '(' expr? ')'                                                    #parenExpr
-     | expr '[' expr? ']'                                               #indexExpr
+     | expr '[' expr ']'                                               #indexExpr
      | arrayConst                                                       #arrayExpr
      | funcCall                                                         #funcCallExpr
      | expr '.' expr                                                    #dotExpr
@@ -90,7 +90,8 @@ funcCall : ID '(' (expr (',' expr)*)? ')';
 arrayConst : '{' (LITERAL (',' LITERAL)*)? '}'
            | '{' arrayConst (',' arrayConst)* '}';
 
-initArray : NEW type ('['expr?']')+;
+initArray : NEW type ('['expr']')+('[' ']')*
+          | NEW type ('[' ']')+ arrayConst;
 
 initObject : NEW type ('('')')?;
 

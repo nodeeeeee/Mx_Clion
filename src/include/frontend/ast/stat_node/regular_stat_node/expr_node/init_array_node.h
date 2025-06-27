@@ -12,10 +12,16 @@ class InitArrayNode : public ExprNode {
 private:
     std::vector<std::shared_ptr<ExprNode>> range_node;
     std::shared_ptr<TypeType> type;
+    std::shared_ptr<ArrayConstNode> default_array = nullptr;
 public:
     InitArrayNode() = delete;
     InitArrayNode(std::shared_ptr<TypeType> type, std::vector<std::shared_ptr<ExprNode>> range_node, Position position)
         :  type(std::move(type)),range_node(std::move(range_node)), ExprNode(position) {}
+    InitArrayNode(std::shared_ptr<TypeType> type, std::vector<std::shared_ptr<ExprNode>> range_node, std::shared_ptr<ArrayConstNode> default_array, Position position) :
+    type(std::move(type)), range_node(std::move(range_node)), default_array(std::move(default_array)), ExprNode(position) {}
+    const std::vector<std::shared_ptr<ExprNode>>& getRangeNode() { return range_node; }
+    const std::shared_ptr<TypeType>& getType() { return type; }
+    const std::shared_ptr<ArrayConstNode> getDefaultArray() { return default_array; }
     void accept(VisitControl *visitor) {visitor->visit(this);}
 
 };

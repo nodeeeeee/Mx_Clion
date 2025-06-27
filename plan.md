@@ -14,3 +14,9 @@ semantic_check中我需要追踪current scope，其实可以作为全局变量�
 
 在global_scope_extractor中我已经将所有global中的classdef, funcdef拉取出来了。同时也拉取了class中的funcdef。所以在所有semantic check的 funcdef 和 classdef 中我不需要再加入scope了
 
+idNode和LiteralNode应该是ExprNode下面的
+
+todo: arrayconstnode访问时要记录下arrayconst的dimension
+
+idNode如果算作exprnode，那么definition中用的ID应该另存在一个地方
+semantic check时我不对Idnode本身进行检查，只在exprnode中用到idnode时对其检查

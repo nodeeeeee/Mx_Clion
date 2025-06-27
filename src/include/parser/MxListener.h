@@ -5,7 +5,7 @@
 
 
 #include "antlr4-runtime.h"
-#include "../../parser/antlr4/MxParser.h"
+#include "MxParser.h"
 
 
 /**

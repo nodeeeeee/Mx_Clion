@@ -45,6 +45,17 @@ TypeType::TypeType(SpecialCode special_code) {
   }
 }
 
+TypeType::TypeType(std::shared_ptr<TypeType> base, int increment) {
+  type_ref = base->type_ref;
+  customized_type = base->customized_type;
+  dimension = base->dimension + increment;
+}
+
+TypeType::TypeType (std::string customized_type) : customized_type(std::move(customized_type)) {
+  type_ref = nullptr;
+  dimension = 0;
+}
+
 // std::shared_ptr<TypeType> TypeType::assignType(PrimitiveType primitive_type) {
 //   if (primitive_type == PrimitiveType::kBOOL) {
 //     return
