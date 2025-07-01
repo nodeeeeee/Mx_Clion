@@ -8,7 +8,7 @@
 class TypeType;
 class TypeNode;
 
-class InitArrayNode : public ExprNode {
+class InitArrayNode : public ExprNode, public std::enable_shared_from_this<InitArrayNode> {
 private:
     std::vector<std::shared_ptr<ExprNode>> range_node;
     std::shared_ptr<TypeType> type;
@@ -22,6 +22,6 @@ public:
     const std::vector<std::shared_ptr<ExprNode>>& getRangeNode() { return range_node; }
     const std::shared_ptr<TypeType>& getType() { return type; }
     const std::shared_ptr<ArrayConstNode> getDefaultArray() { return default_array; }
-    void accept(VisitControl *visitor) {visitor->visit(this);}
+    void accept(VisitControl *visitor) override {visitor->visit(shared_from_this());}
 
 };

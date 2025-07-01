@@ -3,16 +3,50 @@
 //
 
 #pragma once
-#include "all_ast_nodes.h"
+#include <memory>
+
+class ExprNode;
+class RegularStatNode;
+class StatNode;
+class IdNode;
+class AssignStatNode;
+class Scope;
+class RootNode;
+class ClassFuncDefNode;
+class ClassDefNode;
+class FuncDefNode;
+class MainFuncNode;
+class VarDeclNode;
+class VarDefNode;
+class ArrayConstNode;
+class BinaryExprNode;
+class DotExprNode;
+class FormatStringNode;
+class FuncCallNode;
+class IndexExprNode;
+class InitArrayNode;
+class InitObjectNode;
+class NullExprNode;
+class UnaryExprNode;
+class AssignExprNode;
+class BlockNode;
+class ForStatNode;
+class IfStatNode;
+class ReturnStatNode;
+class WhileStatNode;
+class LiteralNode;
+class TerminalNode;
+class ASTNode;
+class DefNode;
+class TernaryExprNode;
 
 class VisitControl {
 public:
-  virtual ~VisitControl() = default;
+  virtual ~VisitControl();
 
   //get to other nodes from current node.
-  virtual void visit (RootNode* node) = 0;
   virtual void visit (std::shared_ptr<ClassFuncDefNode> node) = 0;
-  virtual void visit(std::shared_ptr<ClassDefNode> node);
+  virtual void visit (std::shared_ptr<ClassDefNode> node) = 0;
   virtual void visit (std::shared_ptr<FuncDefNode> node) = 0;
   virtual void visit (std::shared_ptr<MainFuncNode> node) = 0;
   virtual void visit (std::shared_ptr<VarDefNode> node) = 0;
@@ -26,16 +60,19 @@ public:
   virtual void visit (std::shared_ptr<InitObjectNode> node) = 0;
   virtual void visit (std::shared_ptr<NullExprNode> node) = 0;
   virtual void visit (std::shared_ptr<UnaryExprNode> node) = 0;
+  virtual void visit (std::shared_ptr<TernaryExprNode> node) = 0;
   virtual void visit (std::shared_ptr<AssignStatNode> node) = 0;
   virtual void visit (std::shared_ptr<BlockNode> node) = 0;
   virtual void visit (std::shared_ptr<ForStatNode> node) = 0;
   virtual void visit (std::shared_ptr<IfStatNode> node) = 0;
   virtual void visit (std::shared_ptr<ReturnStatNode> node) = 0;
   virtual void visit (std::shared_ptr<WhileStatNode> node) = 0;
-  virtual void visit (std::shared_ptr<IdNode> node) = 0;
   virtual void visit (std::shared_ptr<LiteralNode> node) = 0;
   virtual void visit (std::shared_ptr<TerminalNode> node) = 0;
   virtual void visit (std::shared_ptr<RootNode> node) = 0;
-  virtual void createScope(const std::shared_ptr<ASTNode> &node);
-  virtual void exitScope();
+  // virtual void visit (std::shared_ptr<DefNode> node) = 0;
+  virtual void visit(std::shared_ptr<IdNode> node) = 0;
+  virtual void visit(std::shared_ptr<StatNode> node) = 0;
+  virtual void visit(std::shared_ptr<RegularStatNode> node) = 0;
+  virtual void visit(std::shared_ptr<ExprNode> node) = 0;
 };

@@ -12,7 +12,7 @@ public:
     return instance;
   }
 private:
-  StringType() : TypeType(PrimitiveType::kSTRING) {}
+  StringType() : TypeType() {}
   //Singleton
   StringType(const StringType&) = delete;             //delete copy construction
   StringType& operator=(const StringType&) = delete;  //delete copy assignment

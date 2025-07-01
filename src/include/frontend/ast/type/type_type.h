@@ -20,11 +20,11 @@ public:
     IntType, NoType
   };
   TypeType () = default;
-  TypeType (SpecialCode special_code) ;
-  TypeType (PrimitiveType primitive_type, int dimension = 0);
-  TypeType (MxParser::TypeContext *ctx);
+  explicit TypeType (SpecialCode special_code) ;
+  explicit TypeType (PrimitiveType primitive_type, int dimension = 0);
+  explicit TypeType (MxParser::TypeContext *ctx);
   TypeType (std::shared_ptr<TypeType> base, int increment);
-  TypeType (std::string customized_type);
+  explicit TypeType (std::string customized_type);
 
   // std::shared_ptr<TypeType> assignType(PrimitiveType primitive_type);
   // std::shared_ptr<TypeType> assignType(SpecialCode special_code);

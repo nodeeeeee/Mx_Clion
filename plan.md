@@ -20,3 +20,19 @@ todo: arrayconstnode访问时要记录下arrayconst的dimension
 
 idNode如果算作exprnode，那么definition中用的ID应该另存在一个地方
 semantic check时我不对Idnode本身进行检查，只在exprnode中用到idnode时对其检查
+
+
+
+问题：我该如何让这个程序跑起来，并debug？
+
+问题：进行检查之后下一步是应该构筑中间语言程序了吗？
+
+
+
+
+
+std::cerr
+
+手动析构：1. 跑我定义的析构函数      2. 对每一个成员自动析构       3. 删除自己 free
+
+把asttree的根传给semantic check

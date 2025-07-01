@@ -2,12 +2,12 @@
 // Created by zhang-kai on 6/16/25.
 //
 #include "scope.h"
-
-#include "frontend/ast/def_node/class_def_node.h"
-#include "frontend/ast/def_node/class_func_def_node.h"
-#include "frontend/ast/def_node/func_def_node.h"
-#include "frontend/ast/def_node/main_func_node.h"
-#include "frontend/ast/def_node/def_node.h"
+#include "frontend/ast/stat_node/def_node/class_def_node.h"
+#include "frontend/ast/stat_node/def_node/class_func_def_node.h"
+#include "frontend/ast/stat_node/def_node/func_def_node.h"
+#include "frontend/ast/stat_node/def_node/main_func_node.h"
+#include "frontend/ast/stat_node/def_node/def_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/block_node.h"
 #include "frontend/ast/util/function.h"
 
 void Scope::declare(const std::shared_ptr<DefNode>& def_node) {
@@ -97,7 +97,7 @@ const std::shared_ptr<TypeType> Scope::findVar(std::string var_name) {
   if (vars.contains(var_name)) {
     return vars[var_name];
   } else {
-    if (this->getParent != nullptr) {
+    if (this->getParent() != nullptr) {
         return this->getParent()->findVar(var_name);
     } else {
       throw std::runtime_error("var name not found" + var_name);

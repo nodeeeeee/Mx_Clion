@@ -14,7 +14,7 @@ public:
   }
 
 private:
-  IntType() : TypeType(PrimitiveType::kINT){
+  IntType() : TypeType(){
   }
 
   //Singleton

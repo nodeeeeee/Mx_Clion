@@ -27,11 +27,59 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitSpecialStat(MxParser::SpecialStatContext *ctx) override {
+  virtual std::any visitFuncdefstat(MxParser::FuncdefstatContext *ctx) override {
     return visitChildren(ctx);
   }
 
-  virtual std::any visitRegularStat(MxParser::RegularStatContext *ctx) override {
+  virtual std::any visitClassfuncdefstat(MxParser::ClassfuncdefstatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitClassdefstat(MxParser::ClassdefstatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitExprstat(MxParser::ExprstatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitVardefstat(MxParser::VardefstatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitIfstat(MxParser::IfstatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitAssignstat(MxParser::AssignstatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitBlockstat(MxParser::BlockstatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitForstat(MxParser::ForstatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitWhilestat(MxParser::WhilestatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitReturnstat(MxParser::ReturnstatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitContinuestat(MxParser::ContinuestatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitBreakstat(MxParser::BreakstatContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitNullstat(MxParser::NullstatContext *ctx) override {
     return visitChildren(ctx);
   }
 

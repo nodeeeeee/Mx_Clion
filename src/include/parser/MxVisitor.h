@@ -25,9 +25,33 @@ public:
 
     virtual std::any visitStat(MxParser::StatContext *context) = 0;
 
-    virtual std::any visitSpecialStat(MxParser::SpecialStatContext *context) = 0;
+    virtual std::any visitFuncdefstat(MxParser::FuncdefstatContext *context) = 0;
 
-    virtual std::any visitRegularStat(MxParser::RegularStatContext *context) = 0;
+    virtual std::any visitClassfuncdefstat(MxParser::ClassfuncdefstatContext *context) = 0;
+
+    virtual std::any visitClassdefstat(MxParser::ClassdefstatContext *context) = 0;
+
+    virtual std::any visitExprstat(MxParser::ExprstatContext *context) = 0;
+
+    virtual std::any visitVardefstat(MxParser::VardefstatContext *context) = 0;
+
+    virtual std::any visitIfstat(MxParser::IfstatContext *context) = 0;
+
+    virtual std::any visitAssignstat(MxParser::AssignstatContext *context) = 0;
+
+    virtual std::any visitBlockstat(MxParser::BlockstatContext *context) = 0;
+
+    virtual std::any visitForstat(MxParser::ForstatContext *context) = 0;
+
+    virtual std::any visitWhilestat(MxParser::WhilestatContext *context) = 0;
+
+    virtual std::any visitReturnstat(MxParser::ReturnstatContext *context) = 0;
+
+    virtual std::any visitContinuestat(MxParser::ContinuestatContext *context) = 0;
+
+    virtual std::any visitBreakstat(MxParser::BreakstatContext *context) = 0;
+
+    virtual std::any visitNullstat(MxParser::NullstatContext *context) = 0;
 
     virtual std::any visitVarDef(MxParser::VarDefContext *context) = 0;
 

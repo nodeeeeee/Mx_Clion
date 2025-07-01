@@ -10,21 +10,23 @@ mainFunc : INT MAIN '(' ')' block;
 stat :  regularStat
      | specialStat;
 
-specialStat : funcDef
-            | classFuncDef
-            | classDef;
+specialStat : funcDef                   #funcdefstat
+            | classFuncDef              #classfuncdefstat
+            | classDef                  #classdefstat
+            ;
 
-regularStat : expr ';'      // expr:
-            | varDef ';'
-            | ifStat
-            | assignStat ';'
-            | block
-            | forStat
-            | whileStat
-            | returnStat ';'
-            | continue ';'
-            | break ';'
-            | ';';
+regularStat : expr ';'                  #exprstat
+            | varDef ';'                #vardefstat
+            | ifStat                    #ifstat
+            | assignStat ';'            #assignstat
+            | block                     #blockstat
+            | forStat                   #forstat
+            | whileStat                 #whilestat
+            | returnStat ';'            #returnstat
+            | continue ';'              #continuestat
+            | break ';'                 #breakstat
+            | ';'                       #nullstat
+            ;
 
 varDef : type ID (EQUAL expr)? (',' ID (EQUAL expr)?)*;
 

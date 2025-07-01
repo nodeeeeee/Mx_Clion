@@ -139,16 +139,47 @@ public:
   class  SpecialStatContext : public antlr4::ParserRuleContext {
   public:
     SpecialStatContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    FuncDefContext *funcDef();
-    ClassFuncDefContext *classFuncDef();
-    ClassDefContext *classDef();
+   
+    SpecialStatContext() = default;
+    void copyFrom(SpecialStatContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
 
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  FuncdefstatContext : public SpecialStatContext {
+  public:
+    FuncdefstatContext(SpecialStatContext *ctx);
+
+    FuncDefContext *funcDef();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
+  };
+
+  class  ClassdefstatContext : public SpecialStatContext {
+  public:
+    ClassdefstatContext(SpecialStatContext *ctx);
+
+    ClassDefContext *classDef();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  ClassfuncdefstatContext : public SpecialStatContext {
+  public:
+    ClassfuncdefstatContext(SpecialStatContext *ctx);
+
+    ClassFuncDefContext *classFuncDef();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
   };
 
   SpecialStatContext* specialStat();
@@ -156,24 +187,141 @@ public:
   class  RegularStatContext : public antlr4::ParserRuleContext {
   public:
     RegularStatContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    ExprContext *expr();
-    antlr4::tree::TerminalNode *SEMI_COLON();
-    VarDefContext *varDef();
-    IfStatContext *ifStat();
-    AssignStatContext *assignStat();
-    BlockContext *block();
-    ForStatContext *forStat();
-    WhileStatContext *whileStat();
-    ReturnStatContext *returnStat();
-    ContinueContext *continue_();
-    BreakContext *break_();
+   
+    RegularStatContext() = default;
+    void copyFrom(RegularStatContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
 
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  IfstatContext : public RegularStatContext {
+  public:
+    IfstatContext(RegularStatContext *ctx);
+
+    IfStatContext *ifStat();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
+  };
+
+  class  ExprstatContext : public RegularStatContext {
+  public:
+    ExprstatContext(RegularStatContext *ctx);
+
+    ExprContext *expr();
+    antlr4::tree::TerminalNode *SEMI_COLON();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  ReturnstatContext : public RegularStatContext {
+  public:
+    ReturnstatContext(RegularStatContext *ctx);
+
+    ReturnStatContext *returnStat();
+    antlr4::tree::TerminalNode *SEMI_COLON();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  NullstatContext : public RegularStatContext {
+  public:
+    NullstatContext(RegularStatContext *ctx);
+
+    antlr4::tree::TerminalNode *SEMI_COLON();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  VardefstatContext : public RegularStatContext {
+  public:
+    VardefstatContext(RegularStatContext *ctx);
+
+    VarDefContext *varDef();
+    antlr4::tree::TerminalNode *SEMI_COLON();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  ContinuestatContext : public RegularStatContext {
+  public:
+    ContinuestatContext(RegularStatContext *ctx);
+
+    ContinueContext *continue_();
+    antlr4::tree::TerminalNode *SEMI_COLON();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  AssignstatContext : public RegularStatContext {
+  public:
+    AssignstatContext(RegularStatContext *ctx);
+
+    AssignStatContext *assignStat();
+    antlr4::tree::TerminalNode *SEMI_COLON();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  WhilestatContext : public RegularStatContext {
+  public:
+    WhilestatContext(RegularStatContext *ctx);
+
+    WhileStatContext *whileStat();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  BreakstatContext : public RegularStatContext {
+  public:
+    BreakstatContext(RegularStatContext *ctx);
+
+    BreakContext *break_();
+    antlr4::tree::TerminalNode *SEMI_COLON();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  BlockstatContext : public RegularStatContext {
+  public:
+    BlockstatContext(RegularStatContext *ctx);
+
+    BlockContext *block();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+  };
+
+  class  ForstatContext : public RegularStatContext {
+  public:
+    ForstatContext(RegularStatContext *ctx);
+
+    ForStatContext *forStat();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
   };
 
   RegularStatContext* regularStat();

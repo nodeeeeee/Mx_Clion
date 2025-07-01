@@ -6,7 +6,7 @@
 
 class ASTBuilder : public MxBaseVisitor
 {
-    ASTBuilder ast_builder;
+public:
     std::any visitProg(MxParser::ProgContext *ctx) override;
     std::any visitMainFunc(MxParser::MainFuncContext *ctx) override;
     std::any visitVarDef(MxParser::VarDefContext *ctx) override;
@@ -26,6 +26,7 @@ class ASTBuilder : public MxBaseVisitor
     std::any visitTernaryExpr(MxParser::TernaryExprContext* context) override;
     std::any visitDotExpr(MxParser::DotExprContext* context) override;
     std::any visitLiteralExpr(MxParser::LiteralExprContext* ctx) override;
+    std::any visitIdExpr(MxParser::IdExprContext* ctx) override;
     // std::any visitFormatStringExpr(MxParser::FormatStringExprContext* ctx) override;
     std::any visitIndexExpr(MxParser::IndexExprContext* ctx) override;
     std::any visitParenExpr(MxParser::ParenExprContext* ctx) override;
@@ -35,7 +36,9 @@ class ASTBuilder : public MxBaseVisitor
     std::any visitArrayConst(MxParser::ArrayConstContext *ctx) override;
     std::any visitInitArray(MxParser::InitArrayContext *ctx) override;
     std::any visitInitObject(MxParser::InitObjectContext *ctx) override;
-    std::any visitType(MxParser::TypeContext *ctx) override;
-    std::any visitLiteral(antlr4::Token* token) override;
-    std::any visitID(antlr4::Token* token) override;
+    // std::any visitType(MxParser::TypeContext *ctx) override;
+    std::any visitExprStat(MxParser::ExprContext *ctx) override;
+
+    std::any visitLiteral(antlr4::Token* token);
+    std::any visitID(antlr4::Token* token);
 };

@@ -9,7 +9,7 @@ class ExprNode;
 class AssignStatNode;
 class VarDefNode;
 
-class ForStatNode : public StatNode {
+class ForStatNode : public StatNode, public std::enable_shared_from_this<ForStatNode> {
 public:
     ForStatNode() = delete;
     ForStatNode(std::shared_ptr<VarDefNode> initial_var_def_node,std::shared_ptr<ExprNode> for_cond_expr_node, std::shared_ptr<AssignStatNode> update_assign_stat_node, std::shared_ptr<BlockNode> block_node, Position position) : initial_var_def_nodes(std::move(initial_var_def_node)), for_cond_expr_node(std::move(for_cond_expr_node)), update_assign_stat_node(std::move(update_assign_stat_node)), block_node(std::move(block_node)), StatNode(position) {}
@@ -25,7 +25,7 @@ public:
     const std::shared_ptr<ExprNode> &getForCondExprNode() {return for_cond_expr_node;}
     const std::shared_ptr<ExprNode> &getUpdateExprNode() {return update_expr_node;}
     const std::shared_ptr<ExprNode> &getInitialExprNode() {return initial_expr_node;}
-    void accept(VisitControl *visitor) {visitor->visit(this);}
+    void accept(VisitControl *visitor) override {visitor->visit(shared_from_this());}
 
 private:
     std::shared_ptr<VarDefNode> initial_var_def_nodes;

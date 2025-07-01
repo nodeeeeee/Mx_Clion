@@ -8,7 +8,7 @@
 class FuncCallNode;
 class ExprNode;
 
-class ReturnStatNode : public RegularStatNode {
+class ReturnStatNode : public RegularStatNode, public std::enable_shared_from_this<ReturnStatNode> {
 private:
     std::shared_ptr<ExprNode> return_expr_node = nullptr;
     std::shared_ptr<FuncCallNode> return_func_call_node = nullptr;
@@ -20,6 +20,6 @@ public:
     explicit ReturnStatNode(Position position) : RegularStatNode(position) {}
     [[nodiscard]] const std::shared_ptr<ExprNode>& getReturnExpr() const { return return_expr_node; }
     [[nodiscard]] const std::shared_ptr<FuncCallNode>& getFuncCall() const { return return_func_call_node; }
-    void accept(VisitControl *visitor) {visitor->visit(this);}
+    void accept(VisitControl *visitor) override {visitor->visit(shared_from_this());}
 
 };

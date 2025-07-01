@@ -12,7 +12,7 @@ public:
     return instance;
   }
 private:
-  VoidType() : TypeType(PrimitiveType::kVOID){}
+  VoidType() : TypeType(){}
   //Singleton
   VoidType(const VoidType&) = delete;             //delete copy construction
   VoidType& operator=(const VoidType&) = delete;  //delete copy assignment

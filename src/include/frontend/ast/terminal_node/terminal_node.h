@@ -5,7 +5,7 @@
 #pragma once
 #include "frontend/ast/ASTNode.h"
 
-class TerminalNode : public ASTNode {
+class TerminalNode : public ASTNode, public std::enable_shared_from_this<TerminalNode> {
 public:
   enum class TerminalType {
     kCONTINUE, kBREAK
@@ -14,7 +14,7 @@ public:
   TerminalNode(TerminalType node_type, Position position) : node_type(std::move(node_type)), ASTNode(position) {
   }
 
-  void accept(VisitControl* visitor) { visitor->visit(this); }
+  void accept(VisitControl* visitor) override { visitor->visit(shared_from_this()); }
 
 private:
   TerminalType node_type;

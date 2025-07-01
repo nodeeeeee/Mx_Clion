@@ -2,6 +2,8 @@
 // Created by zhang-kai on 6/16/25.
 //
 #include "frontend/global_scope_extractor.h"
+#include "frontend/ast/stat_node/def_node/class_def_node.h"
+#include "frontend/ast/stat_node/def_node/func_def_node.h"
 
 void GlobalScopeExtractor::extract_root_node(std::shared_ptr<RootNode> root_node) {
   auto defs = root_node->getDefNodes();

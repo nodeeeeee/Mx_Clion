@@ -6,7 +6,7 @@
 #include "ast/util/scope.h"
 #include "ast/visit_control.h"
 #include "ast/root_node.h"
-#include "ast/def_node/class_def_node.h"
+#include "ast/stat_node/def_node/class_def_node.h"
 class GlobalScopeExtractor {
 public:
   std::shared_ptr<Scope> current_scope;

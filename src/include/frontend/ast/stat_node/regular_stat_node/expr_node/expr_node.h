@@ -3,6 +3,7 @@
 //
 #pragma once
 #include "frontend/ast/stat_node/regular_stat_node/regular_stat_node.h"
+#include "frontend/ast/type/type_type.h"
 
 class ExprNode : public RegularStatNode {
 public:
@@ -11,7 +12,7 @@ public:
   explicit ExprNode(Position position) : RegularStatNode(position) {
   }
 
-  void accept(VisitControl* visitor) { visitor->visit(this); }
+
 
   void setExprType(std::shared_ptr<TypeType> expr_type) {
     this->expr_type = expr_type;
@@ -46,6 +47,8 @@ public:
   void setValid(bool valid_) {
     valid = valid_;
   }
+
+
 
 private:
   std::shared_ptr<TypeType> expr_type = nullptr;

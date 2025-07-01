@@ -25,7 +25,7 @@ TypeType::TypeType (MxParser::TypeContext *ctx) {
     dimension = countBracket(ctx, &type_ref, &customized_type);
   }
 }
-TypeType::TypeType(PrimitiveType primitive_type, int dimension = 0) : dimension(dimension) {
+TypeType::TypeType(PrimitiveType primitive_type, int dimension) : dimension(dimension) {
   if (primitive_type == PrimitiveType::kBOOL) {
     type_ref = &BoolType::Instance();
   } else if (primitive_type == PrimitiveType::kINT) {
@@ -36,6 +36,7 @@ TypeType::TypeType(PrimitiveType primitive_type, int dimension = 0) : dimension(
     type_ref = &StringType::Instance();
   }
 }
+
 
 TypeType::TypeType(SpecialCode special_code) {
   if (special_code == IntType) { // for 'int main'

@@ -3,7 +3,7 @@
 //
 
 #pragma once
-class BlockNode : public StatNode {
+class BlockNode : public StatNode, std::enable_shared_from_this<BlockNode> {
 private:
     std::vector<std::shared_ptr<StatNode>> stat_nodes;
 public:
@@ -14,6 +14,6 @@ public:
     }
 
     const std::vector<std::shared_ptr<StatNode>>& getStatNodes() const { return stat_nodes; }
-    void accept(VisitControl *visitor) {visitor->visit(this);}
+    void accept(VisitControl *visitor) {visitor->visit(shared_from_this());}
 
 };

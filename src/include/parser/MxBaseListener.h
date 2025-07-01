@@ -25,11 +25,47 @@ public:
   virtual void enterStat(MxParser::StatContext * /*ctx*/) override { }
   virtual void exitStat(MxParser::StatContext * /*ctx*/) override { }
 
-  virtual void enterSpecialStat(MxParser::SpecialStatContext * /*ctx*/) override { }
-  virtual void exitSpecialStat(MxParser::SpecialStatContext * /*ctx*/) override { }
+  virtual void enterFuncdefstat(MxParser::FuncdefstatContext * /*ctx*/) override { }
+  virtual void exitFuncdefstat(MxParser::FuncdefstatContext * /*ctx*/) override { }
 
-  virtual void enterRegularStat(MxParser::RegularStatContext * /*ctx*/) override { }
-  virtual void exitRegularStat(MxParser::RegularStatContext * /*ctx*/) override { }
+  virtual void enterClassfuncdefstat(MxParser::ClassfuncdefstatContext * /*ctx*/) override { }
+  virtual void exitClassfuncdefstat(MxParser::ClassfuncdefstatContext * /*ctx*/) override { }
+
+  virtual void enterClassdefstat(MxParser::ClassdefstatContext * /*ctx*/) override { }
+  virtual void exitClassdefstat(MxParser::ClassdefstatContext * /*ctx*/) override { }
+
+  virtual void enterExprstat(MxParser::ExprstatContext * /*ctx*/) override { }
+  virtual void exitExprstat(MxParser::ExprstatContext * /*ctx*/) override { }
+
+  virtual void enterVardefstat(MxParser::VardefstatContext * /*ctx*/) override { }
+  virtual void exitVardefstat(MxParser::VardefstatContext * /*ctx*/) override { }
+
+  virtual void enterIfstat(MxParser::IfstatContext * /*ctx*/) override { }
+  virtual void exitIfstat(MxParser::IfstatContext * /*ctx*/) override { }
+
+  virtual void enterAssignstat(MxParser::AssignstatContext * /*ctx*/) override { }
+  virtual void exitAssignstat(MxParser::AssignstatContext * /*ctx*/) override { }
+
+  virtual void enterBlockstat(MxParser::BlockstatContext * /*ctx*/) override { }
+  virtual void exitBlockstat(MxParser::BlockstatContext * /*ctx*/) override { }
+
+  virtual void enterForstat(MxParser::ForstatContext * /*ctx*/) override { }
+  virtual void exitForstat(MxParser::ForstatContext * /*ctx*/) override { }
+
+  virtual void enterWhilestat(MxParser::WhilestatContext * /*ctx*/) override { }
+  virtual void exitWhilestat(MxParser::WhilestatContext * /*ctx*/) override { }
+
+  virtual void enterReturnstat(MxParser::ReturnstatContext * /*ctx*/) override { }
+  virtual void exitReturnstat(MxParser::ReturnstatContext * /*ctx*/) override { }
+
+  virtual void enterContinuestat(MxParser::ContinuestatContext * /*ctx*/) override { }
+  virtual void exitContinuestat(MxParser::ContinuestatContext * /*ctx*/) override { }
+
+  virtual void enterBreakstat(MxParser::BreakstatContext * /*ctx*/) override { }
+  virtual void exitBreakstat(MxParser::BreakstatContext * /*ctx*/) override { }
+
+  virtual void enterNullstat(MxParser::NullstatContext * /*ctx*/) override { }
+  virtual void exitNullstat(MxParser::NullstatContext * /*ctx*/) override { }
 
   virtual void enterVarDef(MxParser::VarDefContext * /*ctx*/) override { }
   virtual void exitVarDef(MxParser::VarDefContext * /*ctx*/) override { }

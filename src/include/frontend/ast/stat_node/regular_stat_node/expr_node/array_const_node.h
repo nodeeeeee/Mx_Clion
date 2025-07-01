@@ -6,7 +6,7 @@
 #include "expr_node.h"
 #include "frontend/ast/type/type_type.h"
 
-class ArrayConstNode : public ExprNode {
+class ArrayConstNode : public ExprNode, public std::enable_shared_from_this<ArrayConstNode> {
 private:
   std::vector<std::shared_ptr<LiteralNode>> literal_elements;
   std::vector<std::shared_ptr<ArrayConstNode>> array_elements;
@@ -31,8 +31,8 @@ public:
   explicit ArrayConstNode(Position position) : ExprNode(position) {
   }
 
-  std::shared_ptr<TypeType> preCheck(std::shared_ptr<ArrayConstNode> current_array) {
-    if (current_array->literal_elements.size() != 0) {
+  std::shared_ptr<TypeType> preCheck(const std::shared_ptr<ArrayConstNode>& current_array) {
+    if (!current_array->literal_elements.empty()) {
       auto ref = current_array->literal_elements.front()->getLiteralType();
       bool all_same = std::all_of(current_array->literal_elements.begin() + 1, current_array->literal_elements.end(),
                                   [&](const std::shared_ptr<LiteralNode>& e) { return e->getLiteralType() == ref; });
@@ -41,7 +41,7 @@ public:
       } else {
         return std::make_shared<TypeType>(ref, 0);
       }
-    } else if (current_array->array_elements.size() != 0) {
+    } else if (!current_array->array_elements.empty()) {
       auto ref = preCheck(current_array->array_elements.front());
       bool all_same = std::all_of(current_array->array_elements.begin() + 1, current_array->array_elements.end(),
         [&](const std::shared_ptr<ArrayConstNode>& e) {return preCheck(e) == ref;});
@@ -56,5 +56,5 @@ public:
   }
 
   //check type consistency within the array, and check how many layers are there in an array
-  void accept(VisitControl* visitor) { visitor->visit(this); }
+  void accept(VisitControl* visitor) override { visitor->visit(shared_from_this()); }
 };

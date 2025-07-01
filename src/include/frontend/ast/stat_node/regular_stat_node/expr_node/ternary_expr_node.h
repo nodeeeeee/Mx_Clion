@@ -5,13 +5,17 @@
 #pragma once
 #include "expr_node.h"
 
-class TernaryExprNode : public ExprNode {
+class TernaryExprNode : public ExprNode, public std::enable_shared_from_this<TernaryExprNode> {
 public:
   TernaryExprNode() = delete;
   TernaryExprNode(std::shared_ptr<ExprNode> predicate_node, std::shared_ptr<ExprNode> then_expr_node, std::shared_ptr<ExprNode> else_expr_node, Position position) :
   predicate_node(std::move(predicate_node)), then_expr_node(std::move(then_expr_node)), else_expr_node(std::move(else_expr_node)), ExprNode(position) {}
-  void accept(VisitControl *visitor) {visitor->visit(this);}
-
+  std::shared_ptr<ExprNode> getPredicateNode() { return predicate_node; }
+  std::shared_ptr<ExprNode> getThenExprNode() { return then_expr_node; }
+  std::shared_ptr<ExprNode> getElseExprNode() { return else_expr_node; }
+  void accept(VisitControl* visitor) override {
+    visitor->visit(shared_from_this());
+  }
 private:
   std::shared_ptr<ExprNode> predicate_node;
   std::shared_ptr<ExprNode> then_expr_node;

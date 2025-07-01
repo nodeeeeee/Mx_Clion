@@ -624,43 +624,90 @@ MxParser::SpecialStatContext::SpecialStatContext(ParserRuleContext *parent, size
   : ParserRuleContext(parent, invokingState) {
 }
 
-MxParser::FuncDefContext* MxParser::SpecialStatContext::funcDef() {
-  return getRuleContext<MxParser::FuncDefContext>(0);
-}
-
-MxParser::ClassFuncDefContext* MxParser::SpecialStatContext::classFuncDef() {
-  return getRuleContext<MxParser::ClassFuncDefContext>(0);
-}
-
-MxParser::ClassDefContext* MxParser::SpecialStatContext::classDef() {
-  return getRuleContext<MxParser::ClassDefContext>(0);
-}
-
 
 size_t MxParser::SpecialStatContext::getRuleIndex() const {
   return MxParser::RuleSpecialStat;
 }
 
-void MxParser::SpecialStatContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<MxListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterSpecialStat(this);
+void MxParser::SpecialStatContext::copyFrom(SpecialStatContext *ctx) {
+  ParserRuleContext::copyFrom(ctx);
 }
 
-void MxParser::SpecialStatContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<MxListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitSpecialStat(this);
+//----------------- FuncdefstatContext ------------------------------------------------------------------
+
+MxParser::FuncDefContext* MxParser::FuncdefstatContext::funcDef() {
+  return getRuleContext<MxParser::FuncDefContext>(0);
 }
 
+MxParser::FuncdefstatContext::FuncdefstatContext(SpecialStatContext *ctx) { copyFrom(ctx); }
 
-std::any MxParser::SpecialStatContext::accept(tree::ParseTreeVisitor *visitor) {
+void MxParser::FuncdefstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterFuncdefstat(this);
+}
+void MxParser::FuncdefstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitFuncdefstat(this);
+}
+
+std::any MxParser::FuncdefstatContext::accept(tree::ParseTreeVisitor *visitor) {
   if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
-    return parserVisitor->visitSpecialStat(this);
+    return parserVisitor->visitFuncdefstat(this);
   else
     return visitor->visitChildren(this);
 }
+//----------------- ClassdefstatContext ------------------------------------------------------------------
 
+MxParser::ClassDefContext* MxParser::ClassdefstatContext::classDef() {
+  return getRuleContext<MxParser::ClassDefContext>(0);
+}
+
+MxParser::ClassdefstatContext::ClassdefstatContext(SpecialStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::ClassdefstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterClassdefstat(this);
+}
+void MxParser::ClassdefstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitClassdefstat(this);
+}
+
+std::any MxParser::ClassdefstatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitClassdefstat(this);
+  else
+    return visitor->visitChildren(this);
+}
+//----------------- ClassfuncdefstatContext ------------------------------------------------------------------
+
+MxParser::ClassFuncDefContext* MxParser::ClassfuncdefstatContext::classFuncDef() {
+  return getRuleContext<MxParser::ClassFuncDefContext>(0);
+}
+
+MxParser::ClassfuncdefstatContext::ClassfuncdefstatContext(SpecialStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::ClassfuncdefstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterClassfuncdefstat(this);
+}
+void MxParser::ClassfuncdefstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitClassfuncdefstat(this);
+}
+
+std::any MxParser::ClassfuncdefstatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitClassfuncdefstat(this);
+  else
+    return visitor->visitChildren(this);
+}
 MxParser::SpecialStatContext* MxParser::specialStat() {
   SpecialStatContext *_localctx = _tracker.createInstance<SpecialStatContext>(_ctx, getState());
   enterRule(_localctx, 6, MxParser::RuleSpecialStat);
@@ -677,6 +724,7 @@ MxParser::SpecialStatContext* MxParser::specialStat() {
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 5, _ctx)) {
     case 1: {
+      _localctx = _tracker.createInstance<MxParser::FuncdefstatContext>(_localctx);
       enterOuterAlt(_localctx, 1);
       setState(85);
       funcDef();
@@ -684,6 +732,7 @@ MxParser::SpecialStatContext* MxParser::specialStat() {
     }
 
     case 2: {
+      _localctx = _tracker.createInstance<MxParser::ClassfuncdefstatContext>(_localctx);
       enterOuterAlt(_localctx, 2);
       setState(86);
       classFuncDef();
@@ -691,6 +740,7 @@ MxParser::SpecialStatContext* MxParser::specialStat() {
     }
 
     case 3: {
+      _localctx = _tracker.createInstance<MxParser::ClassdefstatContext>(_localctx);
       enterOuterAlt(_localctx, 3);
       setState(87);
       classDef();
@@ -717,75 +767,314 @@ MxParser::RegularStatContext::RegularStatContext(ParserRuleContext *parent, size
   : ParserRuleContext(parent, invokingState) {
 }
 
-MxParser::ExprContext* MxParser::RegularStatContext::expr() {
-  return getRuleContext<MxParser::ExprContext>(0);
-}
-
-tree::TerminalNode* MxParser::RegularStatContext::SEMI_COLON() {
-  return getToken(MxParser::SEMI_COLON, 0);
-}
-
-MxParser::VarDefContext* MxParser::RegularStatContext::varDef() {
-  return getRuleContext<MxParser::VarDefContext>(0);
-}
-
-MxParser::IfStatContext* MxParser::RegularStatContext::ifStat() {
-  return getRuleContext<MxParser::IfStatContext>(0);
-}
-
-MxParser::AssignStatContext* MxParser::RegularStatContext::assignStat() {
-  return getRuleContext<MxParser::AssignStatContext>(0);
-}
-
-MxParser::BlockContext* MxParser::RegularStatContext::block() {
-  return getRuleContext<MxParser::BlockContext>(0);
-}
-
-MxParser::ForStatContext* MxParser::RegularStatContext::forStat() {
-  return getRuleContext<MxParser::ForStatContext>(0);
-}
-
-MxParser::WhileStatContext* MxParser::RegularStatContext::whileStat() {
-  return getRuleContext<MxParser::WhileStatContext>(0);
-}
-
-MxParser::ReturnStatContext* MxParser::RegularStatContext::returnStat() {
-  return getRuleContext<MxParser::ReturnStatContext>(0);
-}
-
-MxParser::ContinueContext* MxParser::RegularStatContext::continue_() {
-  return getRuleContext<MxParser::ContinueContext>(0);
-}
-
-MxParser::BreakContext* MxParser::RegularStatContext::break_() {
-  return getRuleContext<MxParser::BreakContext>(0);
-}
-
 
 size_t MxParser::RegularStatContext::getRuleIndex() const {
   return MxParser::RuleRegularStat;
 }
 
-void MxParser::RegularStatContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<MxListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterRegularStat(this);
+void MxParser::RegularStatContext::copyFrom(RegularStatContext *ctx) {
+  ParserRuleContext::copyFrom(ctx);
 }
 
-void MxParser::RegularStatContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<MxListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitRegularStat(this);
+//----------------- IfstatContext ------------------------------------------------------------------
+
+MxParser::IfStatContext* MxParser::IfstatContext::ifStat() {
+  return getRuleContext<MxParser::IfStatContext>(0);
 }
 
+MxParser::IfstatContext::IfstatContext(RegularStatContext *ctx) { copyFrom(ctx); }
 
-std::any MxParser::RegularStatContext::accept(tree::ParseTreeVisitor *visitor) {
+void MxParser::IfstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterIfstat(this);
+}
+void MxParser::IfstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitIfstat(this);
+}
+
+std::any MxParser::IfstatContext::accept(tree::ParseTreeVisitor *visitor) {
   if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
-    return parserVisitor->visitRegularStat(this);
+    return parserVisitor->visitIfstat(this);
   else
     return visitor->visitChildren(this);
 }
+//----------------- ExprstatContext ------------------------------------------------------------------
 
+MxParser::ExprContext* MxParser::ExprstatContext::expr() {
+  return getRuleContext<MxParser::ExprContext>(0);
+}
+
+tree::TerminalNode* MxParser::ExprstatContext::SEMI_COLON() {
+  return getToken(MxParser::SEMI_COLON, 0);
+}
+
+MxParser::ExprstatContext::ExprstatContext(RegularStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::ExprstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterExprstat(this);
+}
+void MxParser::ExprstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitExprstat(this);
+}
+
+std::any MxParser::ExprstatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitExprstat(this);
+  else
+    return visitor->visitChildren(this);
+}
+//----------------- ReturnstatContext ------------------------------------------------------------------
+
+MxParser::ReturnStatContext* MxParser::ReturnstatContext::returnStat() {
+  return getRuleContext<MxParser::ReturnStatContext>(0);
+}
+
+tree::TerminalNode* MxParser::ReturnstatContext::SEMI_COLON() {
+  return getToken(MxParser::SEMI_COLON, 0);
+}
+
+MxParser::ReturnstatContext::ReturnstatContext(RegularStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::ReturnstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterReturnstat(this);
+}
+void MxParser::ReturnstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitReturnstat(this);
+}
+
+std::any MxParser::ReturnstatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitReturnstat(this);
+  else
+    return visitor->visitChildren(this);
+}
+//----------------- NullstatContext ------------------------------------------------------------------
+
+tree::TerminalNode* MxParser::NullstatContext::SEMI_COLON() {
+  return getToken(MxParser::SEMI_COLON, 0);
+}
+
+MxParser::NullstatContext::NullstatContext(RegularStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::NullstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterNullstat(this);
+}
+void MxParser::NullstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitNullstat(this);
+}
+
+std::any MxParser::NullstatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitNullstat(this);
+  else
+    return visitor->visitChildren(this);
+}
+//----------------- VardefstatContext ------------------------------------------------------------------
+
+MxParser::VarDefContext* MxParser::VardefstatContext::varDef() {
+  return getRuleContext<MxParser::VarDefContext>(0);
+}
+
+tree::TerminalNode* MxParser::VardefstatContext::SEMI_COLON() {
+  return getToken(MxParser::SEMI_COLON, 0);
+}
+
+MxParser::VardefstatContext::VardefstatContext(RegularStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::VardefstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterVardefstat(this);
+}
+void MxParser::VardefstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitVardefstat(this);
+}
+
+std::any MxParser::VardefstatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitVardefstat(this);
+  else
+    return visitor->visitChildren(this);
+}
+//----------------- ContinuestatContext ------------------------------------------------------------------
+
+MxParser::ContinueContext* MxParser::ContinuestatContext::continue_() {
+  return getRuleContext<MxParser::ContinueContext>(0);
+}
+
+tree::TerminalNode* MxParser::ContinuestatContext::SEMI_COLON() {
+  return getToken(MxParser::SEMI_COLON, 0);
+}
+
+MxParser::ContinuestatContext::ContinuestatContext(RegularStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::ContinuestatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterContinuestat(this);
+}
+void MxParser::ContinuestatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitContinuestat(this);
+}
+
+std::any MxParser::ContinuestatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitContinuestat(this);
+  else
+    return visitor->visitChildren(this);
+}
+//----------------- AssignstatContext ------------------------------------------------------------------
+
+MxParser::AssignStatContext* MxParser::AssignstatContext::assignStat() {
+  return getRuleContext<MxParser::AssignStatContext>(0);
+}
+
+tree::TerminalNode* MxParser::AssignstatContext::SEMI_COLON() {
+  return getToken(MxParser::SEMI_COLON, 0);
+}
+
+MxParser::AssignstatContext::AssignstatContext(RegularStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::AssignstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterAssignstat(this);
+}
+void MxParser::AssignstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitAssignstat(this);
+}
+
+std::any MxParser::AssignstatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitAssignstat(this);
+  else
+    return visitor->visitChildren(this);
+}
+//----------------- WhilestatContext ------------------------------------------------------------------
+
+MxParser::WhileStatContext* MxParser::WhilestatContext::whileStat() {
+  return getRuleContext<MxParser::WhileStatContext>(0);
+}
+
+MxParser::WhilestatContext::WhilestatContext(RegularStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::WhilestatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterWhilestat(this);
+}
+void MxParser::WhilestatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitWhilestat(this);
+}
+
+std::any MxParser::WhilestatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitWhilestat(this);
+  else
+    return visitor->visitChildren(this);
+}
+//----------------- BreakstatContext ------------------------------------------------------------------
+
+MxParser::BreakContext* MxParser::BreakstatContext::break_() {
+  return getRuleContext<MxParser::BreakContext>(0);
+}
+
+tree::TerminalNode* MxParser::BreakstatContext::SEMI_COLON() {
+  return getToken(MxParser::SEMI_COLON, 0);
+}
+
+MxParser::BreakstatContext::BreakstatContext(RegularStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::BreakstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterBreakstat(this);
+}
+void MxParser::BreakstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitBreakstat(this);
+}
+
+std::any MxParser::BreakstatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitBreakstat(this);
+  else
+    return visitor->visitChildren(this);
+}
+//----------------- BlockstatContext ------------------------------------------------------------------
+
+MxParser::BlockContext* MxParser::BlockstatContext::block() {
+  return getRuleContext<MxParser::BlockContext>(0);
+}
+
+MxParser::BlockstatContext::BlockstatContext(RegularStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::BlockstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterBlockstat(this);
+}
+void MxParser::BlockstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitBlockstat(this);
+}
+
+std::any MxParser::BlockstatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitBlockstat(this);
+  else
+    return visitor->visitChildren(this);
+}
+//----------------- ForstatContext ------------------------------------------------------------------
+
+MxParser::ForStatContext* MxParser::ForstatContext::forStat() {
+  return getRuleContext<MxParser::ForStatContext>(0);
+}
+
+MxParser::ForstatContext::ForstatContext(RegularStatContext *ctx) { copyFrom(ctx); }
+
+void MxParser::ForstatContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterForstat(this);
+}
+void MxParser::ForstatContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<MxListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitForstat(this);
+}
+
+std::any MxParser::ForstatContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<MxVisitor*>(visitor))
+    return parserVisitor->visitForstat(this);
+  else
+    return visitor->visitChildren(this);
+}
 MxParser::RegularStatContext* MxParser::regularStat() {
   RegularStatContext *_localctx = _tracker.createInstance<RegularStatContext>(_ctx, getState());
   enterRule(_localctx, 8, MxParser::RuleRegularStat);
@@ -802,6 +1091,7 @@ MxParser::RegularStatContext* MxParser::regularStat() {
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 6, _ctx)) {
     case 1: {
+      _localctx = _tracker.createInstance<MxParser::ExprstatContext>(_localctx);
       enterOuterAlt(_localctx, 1);
       setState(90);
       expr(0);
@@ -811,6 +1101,7 @@ MxParser::RegularStatContext* MxParser::regularStat() {
     }
 
     case 2: {
+      _localctx = _tracker.createInstance<MxParser::VardefstatContext>(_localctx);
       enterOuterAlt(_localctx, 2);
       setState(93);
       varDef();
@@ -820,6 +1111,7 @@ MxParser::RegularStatContext* MxParser::regularStat() {
     }
 
     case 3: {
+      _localctx = _tracker.createInstance<MxParser::IfstatContext>(_localctx);
       enterOuterAlt(_localctx, 3);
       setState(96);
       ifStat();
@@ -827,6 +1119,7 @@ MxParser::RegularStatContext* MxParser::regularStat() {
     }
 
     case 4: {
+      _localctx = _tracker.createInstance<MxParser::AssignstatContext>(_localctx);
       enterOuterAlt(_localctx, 4);
       setState(97);
       assignStat();
@@ -836,6 +1129,7 @@ MxParser::RegularStatContext* MxParser::regularStat() {
     }
 
     case 5: {
+      _localctx = _tracker.createInstance<MxParser::BlockstatContext>(_localctx);
       enterOuterAlt(_localctx, 5);
       setState(100);
       block();
@@ -843,6 +1137,7 @@ MxParser::RegularStatContext* MxParser::regularStat() {
     }
 
     case 6: {
+      _localctx = _tracker.createInstance<MxParser::ForstatContext>(_localctx);
       enterOuterAlt(_localctx, 6);
       setState(101);
       forStat();
@@ -850,6 +1145,7 @@ MxParser::RegularStatContext* MxParser::regularStat() {
     }
 
     case 7: {
+      _localctx = _tracker.createInstance<MxParser::WhilestatContext>(_localctx);
       enterOuterAlt(_localctx, 7);
       setState(102);
       whileStat();
@@ -857,6 +1153,7 @@ MxParser::RegularStatContext* MxParser::regularStat() {
     }
 
     case 8: {
+      _localctx = _tracker.createInstance<MxParser::ReturnstatContext>(_localctx);
       enterOuterAlt(_localctx, 8);
       setState(103);
       returnStat();
@@ -866,6 +1163,7 @@ MxParser::RegularStatContext* MxParser::regularStat() {
     }
 
     case 9: {
+      _localctx = _tracker.createInstance<MxParser::ContinuestatContext>(_localctx);
       enterOuterAlt(_localctx, 9);
       setState(106);
       continue_();
@@ -875,6 +1173,7 @@ MxParser::RegularStatContext* MxParser::regularStat() {
     }
 
     case 10: {
+      _localctx = _tracker.createInstance<MxParser::BreakstatContext>(_localctx);
       enterOuterAlt(_localctx, 10);
       setState(109);
       break_();
@@ -884,6 +1183,7 @@ MxParser::RegularStatContext* MxParser::regularStat() {
     }
 
     case 11: {
+      _localctx = _tracker.createInstance<MxParser::NullstatContext>(_localctx);
       enterOuterAlt(_localctx, 11);
       setState(112);
       match(MxParser::SEMI_COLON);

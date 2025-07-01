@@ -4,10 +4,8 @@
 
 #pragma once
 #include <vector>
-
 #include "function.h"
-#include "../def_node/def_node.h"
-#include "../stat_node/regular_stat_node/expr_node/id_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/id_node.h"
 #include "frontend/ast/root_node.h"
 /* This class will manage all functions, types, vars...
  * We will declare builtin methods here.
@@ -30,7 +28,7 @@ public:
   Scope(const std::shared_ptr<Scope>& parent) : parent(parent), scope_owner(nullptr) {}
   virtual ~Scope() = default;
   void declare(const std::shared_ptr<DefNode>& def_node);
-  void Scope::declare(const std::shared_ptr<Function>& func);
+  void declare(const std::shared_ptr<Function>& func);
   const std::shared_ptr<Function> & findFunc(std::string func_name);
   const std::shared_ptr<TypeType> findVar(std::string var_name);
   void setVarType(std::string var_name, std::shared_ptr<TypeType> var_type);
@@ -50,7 +48,6 @@ protected:
   std::map<std::string, std::shared_ptr<Scope>> classes;
   std::vector<std::shared_ptr<Scope>> children;
   std::shared_ptr<Scope> parent;
-  std::shared_ptr<TempScope> tmp_scope = std::make_shared<TempScope>();
   std::shared_ptr<ASTNode> scope_owner;
 };
 
@@ -91,7 +88,3 @@ public:
   }
 };
 
-class TempScope : public Scope {
-public:
-  TempScope();
-};

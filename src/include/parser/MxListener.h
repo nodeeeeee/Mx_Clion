@@ -23,11 +23,47 @@ public:
   virtual void enterStat(MxParser::StatContext *ctx) = 0;
   virtual void exitStat(MxParser::StatContext *ctx) = 0;
 
-  virtual void enterSpecialStat(MxParser::SpecialStatContext *ctx) = 0;
-  virtual void exitSpecialStat(MxParser::SpecialStatContext *ctx) = 0;
+  virtual void enterFuncdefstat(MxParser::FuncdefstatContext *ctx) = 0;
+  virtual void exitFuncdefstat(MxParser::FuncdefstatContext *ctx) = 0;
 
-  virtual void enterRegularStat(MxParser::RegularStatContext *ctx) = 0;
-  virtual void exitRegularStat(MxParser::RegularStatContext *ctx) = 0;
+  virtual void enterClassfuncdefstat(MxParser::ClassfuncdefstatContext *ctx) = 0;
+  virtual void exitClassfuncdefstat(MxParser::ClassfuncdefstatContext *ctx) = 0;
+
+  virtual void enterClassdefstat(MxParser::ClassdefstatContext *ctx) = 0;
+  virtual void exitClassdefstat(MxParser::ClassdefstatContext *ctx) = 0;
+
+  virtual void enterExprstat(MxParser::ExprstatContext *ctx) = 0;
+  virtual void exitExprstat(MxParser::ExprstatContext *ctx) = 0;
+
+  virtual void enterVardefstat(MxParser::VardefstatContext *ctx) = 0;
+  virtual void exitVardefstat(MxParser::VardefstatContext *ctx) = 0;
+
+  virtual void enterIfstat(MxParser::IfstatContext *ctx) = 0;
+  virtual void exitIfstat(MxParser::IfstatContext *ctx) = 0;
+
+  virtual void enterAssignstat(MxParser::AssignstatContext *ctx) = 0;
+  virtual void exitAssignstat(MxParser::AssignstatContext *ctx) = 0;
+
+  virtual void enterBlockstat(MxParser::BlockstatContext *ctx) = 0;
+  virtual void exitBlockstat(MxParser::BlockstatContext *ctx) = 0;
+
+  virtual void enterForstat(MxParser::ForstatContext *ctx) = 0;
+  virtual void exitForstat(MxParser::ForstatContext *ctx) = 0;
+
+  virtual void enterWhilestat(MxParser::WhilestatContext *ctx) = 0;
+  virtual void exitWhilestat(MxParser::WhilestatContext *ctx) = 0;
+
+  virtual void enterReturnstat(MxParser::ReturnstatContext *ctx) = 0;
+  virtual void exitReturnstat(MxParser::ReturnstatContext *ctx) = 0;
+
+  virtual void enterContinuestat(MxParser::ContinuestatContext *ctx) = 0;
+  virtual void exitContinuestat(MxParser::ContinuestatContext *ctx) = 0;
+
+  virtual void enterBreakstat(MxParser::BreakstatContext *ctx) = 0;
+  virtual void exitBreakstat(MxParser::BreakstatContext *ctx) = 0;
+
+  virtual void enterNullstat(MxParser::NullstatContext *ctx) = 0;
+  virtual void exitNullstat(MxParser::NullstatContext *ctx) = 0;
 
   virtual void enterVarDef(MxParser::VarDefContext *ctx) = 0;
   virtual void exitVarDef(MxParser::VarDefContext *ctx) = 0;

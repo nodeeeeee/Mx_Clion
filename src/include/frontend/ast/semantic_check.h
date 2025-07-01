@@ -5,14 +5,14 @@
 #pragma once
 #include "visit_control.h"
 #include "util/scope.h"
-#include "root_node.h"
-#include "frontend/global_scope_extractor.h"
 
-class Scope;
+
 
 class SemanticCheck : public VisitControl {
 public:
-  SemanticCheck(std::shared_ptr<RootNode> root_node) : root_node(std::move(root_node)) {}
+  explicit SemanticCheck(std::shared_ptr<RootNode> root_node) : root_node(std::move(root_node)) {
+    visit(root_node);
+  }
   std::shared_ptr<RootNode> root_node;
   std::shared_ptr<Scope> current_scope = std::make_shared<GlobalScope>(root_node);
   void visit(std::shared_ptr<RootNode> node) final;
@@ -31,6 +31,7 @@ public:
   void visit(std::shared_ptr<InitObjectNode> node) final;
   void visit(std::shared_ptr<NullExprNode> node) final;
   void visit(std::shared_ptr<UnaryExprNode> node) final;
+  void visit(std::shared_ptr<TernaryExprNode> node) final;
   void visit(std::shared_ptr<AssignStatNode> node) final;
   void visit(std::shared_ptr<BlockNode> node) final;
   void visit(std::shared_ptr<ForStatNode> node) final;
@@ -39,11 +40,17 @@ public:
   void visit(std::shared_ptr<WhileStatNode> node) final;
   void visit(std::shared_ptr<LiteralNode> node) final;
   void visit(std::shared_ptr<TerminalNode> node) final;
-  void createScope(const std::shared_ptr<ASTNode> &node) final;
-  void exitScope() final;
+  // void visit(std::shared_ptr<DefNode> node) override {}
+  void visit(std::shared_ptr<IdNode> node) override {}
+  void visit(std::shared_ptr<StatNode> node) override {}
+  void visit(std::shared_ptr<RegularStatNode> node) override {}
+  void visit(std::shared_ptr<ExprNode> node) override {}
+
+  void createScope(const std::shared_ptr<ASTNode> &node);
+  void exitScope();
 
 private:
-  auto k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
-  auto k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
-  auto k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
+  std::shared_ptr<TypeType> k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
+  std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
+  std::shared_ptr<TypeType> k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
 };
