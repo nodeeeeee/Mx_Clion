@@ -37,8 +37,38 @@ public:
     std::any visitInitArray(MxParser::InitArrayContext *ctx) override;
     std::any visitInitObject(MxParser::InitObjectContext *ctx) override;
     // std::any visitType(MxParser::TypeContext *ctx) override;
-    std::any visitExprStat(MxParser::ExprContext *ctx) override;
+
 
     std::any visitLiteral(antlr4::Token* token);
     std::any visitID(antlr4::Token* token);
+
+    std::any visitExprstat(MxParser::ExprstatContext *ctx) override;
+    std::any visitVardefstat(MxParser::VardefstatContext *ctx) override{
+        return std::any_cast<std::vector<std::shared_ptr<StatNode>>>(ctx->varDef()->accept(this));
+    }
+    std::any visitIfstat(MxParser::IfstatContext *ctx) override {
+        return std::any_cast<std::shared_ptr<StatNode>>(ctx->ifStat()->accept(this));
+    }
+    std::any visitAssignstat(MxParser::AssignstatContext *ctx) override {
+        return std::any_cast<std::shared_ptr<StatNode>>(ctx->assignStat()->accept(this));
+    }
+    std::any visitBlockstat(MxParser::BlockstatContext *ctx) override {
+        return std::any_cast<std::shared_ptr<StatNode>>(ctx->block()->accept(this));
+    }
+    std::any visitForstat(MxParser::ForstatContext *ctx) override {
+        return std::any_cast<std::shared_ptr<StatNode>>(ctx->forStat()->accept(this));
+    }
+    std::any visitWhilestat(MxParser::WhilestatContext *ctx) override {
+        return std::any_cast<std::shared_ptr<StatNode>>(ctx->whileStat()->accept(this));
+    }
+    std::any visitReturnstat(MxParser::ReturnstatContext *ctx) override {
+        return std::any_cast<std::shared_ptr<StatNode>>(ctx->returnStat()->accept(this));
+    }
+    std::any visitContinuestat(MxParser::ContinuestatContext *ctx) override {
+        return std::any_cast<std::shared_ptr<StatNode>>(ctx->continue_()->accept(this));
+    }
+    std::any visitBreakstat(MxParser::BreakstatContext *ctx) override {
+        return std::any_cast<std::shared_ptr<StatNode>>(ctx->break_()->accept(this));
+    }
+    std::any visitNullstat(MxParser::NullstatContext *ctx) override;
 };

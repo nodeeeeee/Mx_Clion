@@ -10,9 +10,9 @@ mainFunc : INT MAIN '(' ')' block;
 stat :  regularStat
      | specialStat;
 
-specialStat : funcDef                   #funcdefstat
-            | classFuncDef              #classfuncdefstat
-            | classDef                  #classdefstat
+specialStat : funcDef
+            | classFuncDef
+            | classDef
             ;
 
 regularStat : expr ';'                  #exprstat

@@ -14,7 +14,7 @@ public:
   }
 
 private:
-  NoType() : TypeType(SpecialCode::NoType){
+  NoType() : TypeType() {
   }
 
   //Singleton

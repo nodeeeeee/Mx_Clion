@@ -67,7 +67,7 @@ std::any ASTBuilder::visitVarDef(MxParser::VarDefContext* ctx) {
    */
   auto type = std::make_shared<TypeType>(ctx->type());
   //pruning type node, we don't need it.
-  std::vector<std::shared_ptr<VarDefNode>> var_defs;
+  std::vector<std::shared_ptr<StatNode>> var_defs;
   auto exprs = ctx->expr();
   // auto exprs = std::any_cast<std::vector<std::shared_ptr<MxParser::ExprContext>>>(ctx->expr());
 
@@ -113,7 +113,7 @@ std::any ASTBuilder::visitClassDef(MxParser::ClassDefContext* ctx) {
   auto ID = std::make_shared<IdNode>(ctx->ID()->getSymbol()->getText(), Position(ctx));
   std::vector<std::shared_ptr<StatNode>> def_nodes;
   for (const auto& var_def_context : ctx->varDef()) {
-    auto ret = std::any_cast<std::vector<std::shared_ptr<VarDefNode>>>(var_def_context->accept(this));
+    auto ret = std::any_cast<std::vector<std::shared_ptr<StatNode>>>(var_def_context->accept(this));
     for (const auto& ret_vardef : ret) {
       def_nodes.push_back(ret_vardef);
     }
@@ -281,9 +281,9 @@ std::any ASTBuilder::visitInitArray(MxParser::InitArrayContext* ctx) {
   auto exprs = ctx->expr();
   size_t range_cnt = 0;
   for (const auto& square_bracket : ctx->LEFT_SQUARE_BRACKET()) {
-    if (square_bracket->getSourceInterval().a + 1 == exprs.at(range_cnt)->getSourceInterval().a) {
-      range_cnt++;
+    if (range_cnt < exprs.size() && square_bracket->getSourceInterval().a + 1 == exprs.at(range_cnt)->getSourceInterval().a) {
       ranges.push_back(std::any_cast<std::shared_ptr<ExprNode>>(exprs.at(range_cnt)->accept(this)));
+      range_cnt++;
     } else {
       ranges.push_back(nullptr);
     }
@@ -333,7 +333,15 @@ std::any ASTBuilder::visitBlock(MxParser::BlockContext* ctx) {
   auto statements = ctx->stat();
   std::vector<std::shared_ptr<StatNode>> stat_nodes;
   for (const auto& statement : statements) {
-    stat_nodes.push_back(std::any_cast<std::shared_ptr<StatNode>>(statement->accept(this)));
+    auto stat = statement->accept(this);
+    if (stat.type() == typeid(std::vector<std::shared_ptr<StatNode>>)) {
+      auto var_defs = std::any_cast<std::vector<std::shared_ptr<StatNode>>>(stat);
+      for (const auto& var_def : var_defs) {
+        stat_nodes.push_back(var_def);
+      }
+    } else {
+      stat_nodes.push_back(std::any_cast<std::shared_ptr<StatNode>>(statement->accept(this)));
+    }
   }
   return std::make_shared<BlockNode>(std::move(stat_nodes), Position(ctx));
 }
@@ -466,11 +474,7 @@ std::any ASTBuilder::visitInitObject(MxParser::InitObjectContext* ctx) {
   return std::shared_ptr<ExprNode>(new InitObjectNode(std::move(type_node), Position(ctx)));
 }
 
-// std::any ASTBuilder::visitExprStat(MxParser::ExprContext *ctx) {
-//   auto expr_node =
-//   auto ret = ctx->accept(this);
-//   return std::shared_ptr<StatNode>()
-// }
+
 
 std::any ASTBuilder::visitIdExpr(MxParser::IdExprContext* ctx) {
   return visitID(ctx->ID()->getSymbol());
@@ -480,4 +484,14 @@ std::any ASTBuilder::visitIdExpr(MxParser::IdExprContext* ctx) {
 std::any ASTBuilder::visitID(antlr4::Token* id) {
   auto id_node = id->getText();
   return std::shared_ptr<ExprNode>(new IdNode(std::move(id_node), Position(id)));
+}
+
+std::any ASTBuilder::visitExprstat(MxParser::ExprstatContext *ctx) {
+  auto expr_node = ctx->expr();
+  auto ret = std::any_cast<std::shared_ptr<ExprNode>>(expr_node->accept(this));
+  return std::shared_ptr<StatNode>(ret);
+}
+
+std::any ASTBuilder::visitNullstat(MxParser::NullstatContext* ctx) {
+  return std::shared_ptr<StatNode>(new NullExprNode(Position(ctx)));
 }
