@@ -40,7 +40,7 @@ void SemanticCheck::visit(std::shared_ptr<FuncDefNode> node) {
 }
 
 void SemanticCheck::visit(std::shared_ptr<ClassDefNode> node) {
-  auto block_node = node->GetBlockNode();
+  auto block_node = node->getBlockNode();
   createScope(node);
   block_node->accept(this);
   exitScope();

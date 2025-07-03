@@ -10,7 +10,7 @@
 
 class SemanticCheck : public VisitControl {
 public:
-  explicit SemanticCheck(std::shared_ptr<RootNode> root_node) : root_node(std::move(root_node)) {
+  explicit SemanticCheck(std::shared_ptr<RootNode> root_node) : root_node(root_node) {
     visit(root_node);
   }
   std::shared_ptr<RootNode> root_node;

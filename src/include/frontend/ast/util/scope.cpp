@@ -9,6 +9,7 @@
 #include "frontend/ast/stat_node/def_node/def_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/block_node.h"
 #include "frontend/ast/util/function.h"
+#include <vector>
 
 void Scope::declare(const std::shared_ptr<DefNode>& def_node) {
   std::string decl_name = def_node->getIdNode()->getIdName();
@@ -77,8 +78,8 @@ std::shared_ptr<Function> Scope::makeFunction(std::shared_ptr<TypeType> return_t
 std::shared_ptr<Scope> Scope::makeClass(std::shared_ptr<ClassDefNode> class_def_node) {
   auto class_scope = std::make_shared<Scope>(*this);
   this->addChildScope(class_scope);
-  auto stat_nodes = class_def_node->GetBlockNode()->getStatNodes();
-  for (auto stat_node : stat_nodes) {
+  const auto& stat_nodes = class_def_node->getBlockNode()->getStatNodes();
+  for (const auto& stat_node : stat_nodes) {
     if (auto def_node = std::dynamic_pointer_cast<DefNode>(stat_node)) {
       class_scope->declare(def_node);
     } else {

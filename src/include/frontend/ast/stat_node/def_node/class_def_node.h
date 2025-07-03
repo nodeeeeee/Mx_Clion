@@ -9,7 +9,7 @@ class ClassDefNode : public DefNode, public std::enable_shared_from_this<ClassDe
 private:
     std::shared_ptr<BlockNode> block_node;
 public:
-    const std::shared_ptr<BlockNode>& GetBlockNode() { return block_node; }
+    const std::shared_ptr<BlockNode>& getBlockNode() { return block_node; }
     void accept(VisitControl *visitor) final {visitor->visit(shared_from_this());}
     ClassDefNode(std::shared_ptr<BlockNode>, std::shared_ptr<IdNode> ID, Position pos) : block_node(std::move(block_node)), DefNode(std::move(ID), DefNode::DefType::kClass, pos) {}
 };
