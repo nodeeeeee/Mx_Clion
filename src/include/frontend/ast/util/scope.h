@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include <vector>
 #include "function.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/id_node.h"
 #include "frontend/ast/root_node.h"

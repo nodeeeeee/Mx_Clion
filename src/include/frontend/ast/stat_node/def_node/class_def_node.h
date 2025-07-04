@@ -11,5 +11,5 @@ private:
 public:
     const std::shared_ptr<BlockNode>& getBlockNode() { return block_node; }
     void accept(VisitControl *visitor) final {visitor->visit(shared_from_this());}
-    ClassDefNode(std::shared_ptr<BlockNode>, std::shared_ptr<IdNode> ID, Position pos) : block_node(std::move(block_node)), DefNode(std::move(ID), DefNode::DefType::kClass, pos) {}
+    ClassDefNode(std::shared_ptr<BlockNode>block_node, std::shared_ptr<IdNode> ID, Position pos) : block_node(std::move(block_node)), DefNode(std::move(ID), DefNode::DefType::kClass, pos) {}
 };

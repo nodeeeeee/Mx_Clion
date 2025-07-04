@@ -35,7 +35,7 @@ void Scope::declare(const std::shared_ptr<DefNode>& def_node) {
     }
     functions[decl_name] = makeFunction(main_def);
   } else if (auto class_func_def = dynamic_pointer_cast<ClassFuncDefNode>(def_node)) {
-    if (classes.contains(decl_name) || functions.contains(decl_name)) {
+    if (functions.contains(decl_name)) {
       throw std::runtime_error("repeated declaration");
     }
     functions[decl_name] = makeFunction(class_func_def);

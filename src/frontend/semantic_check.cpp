@@ -47,6 +47,21 @@ void SemanticCheck::visit(std::shared_ptr<ClassDefNode> node) {
 }
 
 void SemanticCheck::visit(std::shared_ptr<ClassFuncDefNode> node) {
+  auto func_name = node->getIdNode()->getIdName();
+  auto tmp_scope = current_scope;
+  while (true) {
+    if (auto class_node = dynamic_pointer_cast<ClassDefNode>(tmp_scope->getScopeOwner())) {
+      if (class_node->getIdNode()->getIdName() == func_name) {
+        break;
+      } else {
+        throw std::runtime_error("class_func and class mismatch");
+      }
+    }
+    if (tmp_scope->getParent() == nullptr) {
+      throw(std::runtime_error("no enclosing classes, return statement should not exist"));
+    }
+    tmp_scope = tmp_scope->getParent();
+  }
   createScope(node);
   auto block_node = node->getBlockNode();
   block_node->accept(this);
@@ -56,8 +71,12 @@ void SemanticCheck::visit(std::shared_ptr<ClassFuncDefNode> node) {
 void SemanticCheck::visit(std::shared_ptr<VarDefNode> node) {
   auto lhs = node->getIdNode()->getType();
   auto rhs = node->getExpr();
-  rhs->accept(this); //update the expression type in visit(ExprNode)
+  if (rhs == nullptr) {
+    current_scope->declare(node);
+    return ;
+  }
 
+  rhs->accept(this); //update the expression type in visit(ExprNode)
   if (rhs->getExprType() == nullptr) {
     throw(std::runtime_error("expression has no type"));
   } else if (rhs->getExprType() != lhs) {

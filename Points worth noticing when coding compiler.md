@@ -205,5 +205,6 @@
 
 20. virtual functions in the base class only requires the leaf derived classes implements those functions, and the whole thing works properly. For example, if `A->B->CDE`, A has a virtual function f(), if `CDE` correctly implements f(), and B doesn't implement, it will perform dynamic binding properly.
 
+21. if we perform any_cast to std::any, we need to make sure the type we are casting to is precisely the compile time type of the object. So here in my compiler, I cannot `auto a = any_cast<std::shared_ptr<ExprNode>>(binary_expr->accept(this))`, if my accept returns a `BinaryExprNode`. What I can do is to make the return type of `visitBinaryExprNode` to `ExprNode`.
 
-    1. if we perform any_cast to std::any, we need to make sure the type we are casting to is precisely the compile time type of the object. So here in my compiler, I cannot `auto a = any_cast<std::shared_ptr<ExprNode>>(binary_expr->accept(this))`, if my accept returns a `BinaryExprNode`. What I can do is to make the return type of `visitBinaryExprNode` to `ExprNode`.
+22. when we use auto, and the actual type is std::vector<...>, the static syntax analyzer cannot identify whether you have used `#include<vector>` or not. This may lead to runtime error.
