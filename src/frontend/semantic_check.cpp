@@ -31,7 +31,7 @@ void SemanticCheck::visit(std::shared_ptr<BlockNode> node) {
 void SemanticCheck::visit(std::shared_ptr<FuncDefNode> node) {
   auto block_node = node->getFuncBlock();
   auto var_defs = node->getVarDefs();
-  createScope(block_node);
+  createScope(node);
   for (const auto& varDef : var_defs) {
     current_scope->declare(varDef);
   }
@@ -41,8 +41,14 @@ void SemanticCheck::visit(std::shared_ptr<FuncDefNode> node) {
 
 void SemanticCheck::visit(std::shared_ptr<ClassDefNode> node) {
   auto block_node = node->getBlockNode();
-  createScope(node);
-  block_node->accept(this);
+  current_scope = current_scope->findClass(node->getIdNode()->getIdName());
+  // block_node->accept(this);
+  auto stats = block_node->getStatNodes();
+  for (const auto& stat_node : stats) {
+    if (auto func_def = std::dynamic_pointer_cast<FuncDefNode> (stat_node)) {
+      func_def->accept(this);
+    }
+  }
   exitScope();
 }
 
@@ -157,11 +163,13 @@ void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
   auto lhs = node->getLhs();
   auto rhs = node->getRhs();
   if (auto tmp = std::dynamic_pointer_cast<IdNode>(lhs)) {
-  } else {
+  } else if (auto tmp =  std::dynamic_pointer_cast<ThisExprNode>(lhs)) {
+  }else {
     throw std::runtime_error("lhs not id");
   }
   if (auto tmp = std::dynamic_pointer_cast<IdNode>(rhs)) {
-  } else {
+  } else if (auto tmp = std::dynamic_pointer_cast<FuncCallNode>(rhs)) {
+  }else {
     throw std::runtime_error("rhs not id");
   }
   auto lhs_id = std::dynamic_pointer_cast<IdNode>(lhs);

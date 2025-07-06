@@ -20,7 +20,7 @@ class ClassDefNode;
 class FuncDefNode;
 class VarDefNode;
 
-class Scope {
+class Scope : public std::enable_shared_from_this<Scope> {
 public:
   Scope() : parent(nullptr) {};
   Scope(const std::shared_ptr<Scope>& parent, std::shared_ptr<ASTNode> scope_owner) : parent(parent), scope_owner(std::move(scope_owner)) {}

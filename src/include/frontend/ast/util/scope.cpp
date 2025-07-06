@@ -76,7 +76,7 @@ std::shared_ptr<Function> Scope::makeFunction(std::shared_ptr<TypeType> return_t
 }
 
 std::shared_ptr<Scope> Scope::makeClass(std::shared_ptr<ClassDefNode> class_def_node) {
-  auto class_scope = std::make_shared<Scope>(*this);
+  auto class_scope = std::make_shared<Scope>( shared_from_this(), class_def_node);
   this->addChildScope(class_scope);
   const auto& stat_nodes = class_def_node->getBlockNode()->getStatNodes();
   for (const auto& stat_node : stat_nodes) {
