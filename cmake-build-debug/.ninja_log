@@ -41,3 +41,14 @@
 3891	4029	1751641245208449650	Mx_Clion	32ae02c4045ad31d
 1	2305	1751641493803987251	CMakeFiles/Mx_Clion.dir/src/frontend/semantic_check.cpp.o	ee57b61c413b5f16
 2314	2463	1751641496117017871	Mx_Clion	32ae02c4045ad31d
+8	1002	1751805287222430486	CMakeFiles/Mx_Clion.dir/src/frontend/global_scope_extractor.cpp.o	3741123b0b40e741
+7	1444	1751805287221430414	CMakeFiles/Mx_Clion.dir/src/include/frontend/ast/util/scope.cpp.o	e64c80d192f3e31b
+7	1753	1751805287221430414	CMakeFiles/Mx_Clion.dir/src/frontend/semantic_check.cpp.o	ee57b61c413b5f16
+7	2110	1751805287221430414	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/main.cpp.o	975c66206f645c5a
+2112	2279	1751805289326582971	Mx_Clion	32ae02c4045ad31d
+2	1722	1751805502451858608	CMakeFiles/Mx_Clion.dir/src/frontend/semantic_check.cpp.o	ee57b61c413b5f16
+1728	1858	1751805504177950901	Mx_Clion	32ae02c4045ad31d
+1	1638	1751805747948159621	CMakeFiles/Mx_Clion.dir/src/frontend/semantic_check.cpp.o	ee57b61c413b5f16
+1646	1771	1751805749593224775	Mx_Clion	32ae02c4045ad31d
+1	1604	1751805888330327899	CMakeFiles/Mx_Clion.dir/src/frontend/semantic_check.cpp.o	ee57b61c413b5f16
+1608	1732	1751805889937382875	Mx_Clion	32ae02c4045ad31d

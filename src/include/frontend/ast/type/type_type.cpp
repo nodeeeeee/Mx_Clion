@@ -85,3 +85,15 @@ int TypeType::countBracket(MxParser::TypeContext *ctx, TypeType** type_ref_ptr, 
     return 0;
   }
 }
+
+std::string TypeType::getTypeName() {
+  if (type_ref != nullptr) {
+    if (type_ref == &StringType::Instance()) {
+      return "String";
+    } else {
+      throw std::runtime_error("getTypeName should only be used in dot Expr");
+    }
+  } else {
+    return customized_type;
+  }
+}

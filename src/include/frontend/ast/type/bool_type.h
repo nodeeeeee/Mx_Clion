@@ -13,6 +13,8 @@ public:
     return instance;
   }
 
+
+
 private:
   BoolType() : TypeType(){}
   //Singleton

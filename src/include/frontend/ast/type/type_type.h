@@ -39,6 +39,7 @@ public:
 
   size_t getDimension() {return dimension;}
 
+  std::string getTypeName();
 
 private:
   TypeType *type_ref = nullptr;

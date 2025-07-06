@@ -162,18 +162,32 @@ void SemanticCheck::visit(std::shared_ptr<BinaryExprNode> node) {
 void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
   auto lhs = node->getLhs();
   auto rhs = node->getRhs();
-  if (auto tmp = std::dynamic_pointer_cast<IdNode>(lhs)) {
-  } else if (auto tmp =  std::dynamic_pointer_cast<ThisExprNode>(lhs)) {
+  std::shared_ptr<IdNode> lhs_id;
+  std::string lhs_class;
+  if (auto id_tmp = std::dynamic_pointer_cast<IdNode>(lhs)) {
+    lhs_id = std::dynamic_pointer_cast<IdNode>(id_tmp);
+    lhs_class = lhs_id->getType()->getTypeName();
+  } else if (auto this_tmp =  std::dynamic_pointer_cast<ThisExprNode>(lhs)) {
+    auto tmp_scope = current_scope;
+    while (true) {
+      if (auto class_def = dynamic_pointer_cast<ClassDefNode>(tmp_scope->getScopeOwner())) {
+        lhs_id = class_def->getIdNode();
+        break;
+      }
+      if (tmp_scope->getParent() == nullptr) {
+        throw(std::runtime_error("'this' refers to nothing"));
+      }
+      tmp_scope = tmp_scope->getParent();
+    }
+    lhs_class= lhs_id->getIdName();
   }else {
     throw std::runtime_error("lhs not id");
   }
-  if (auto tmp = std::dynamic_pointer_cast<IdNode>(rhs)) {
-  } else if (auto tmp = std::dynamic_pointer_cast<FuncCallNode>(rhs)) {
+  if (auto id_tmp = std::dynamic_pointer_cast<IdNode>(rhs)) {
+  } else if (auto func_tmp = std::dynamic_pointer_cast<FuncCallNode>(rhs)) {
   }else {
     throw std::runtime_error("rhs not id");
   }
-  auto lhs_id = std::dynamic_pointer_cast<IdNode>(lhs);
-  auto rhs_id = std::dynamic_pointer_cast<IdNode>(rhs);
   auto class_scope = current_scope->findClass(lhs_id->getIdName());
   if (class_scope == nullptr) {
     node->setValid(false);
@@ -410,6 +424,8 @@ void SemanticCheck::visit(std::shared_ptr<TerminalNode> node) {
     tmp_scope = tmp_scope->getParent();
   }
 }
+
+
 
 void SemanticCheck::createScope(const std::shared_ptr<ASTNode>& node) {
   auto new_scope = std::make_shared<Scope>(current_scope, node);

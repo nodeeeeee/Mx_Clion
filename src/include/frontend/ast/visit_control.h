@@ -39,6 +39,7 @@ class TerminalNode;
 class ASTNode;
 class DefNode;
 class TernaryExprNode;
+class ThisExprNode;
 
 class VisitControl {
 public:

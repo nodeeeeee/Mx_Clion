@@ -11,6 +11,7 @@ public:
     static StringType instance;
     return instance;
   }
+
 private:
   StringType() : TypeType() {}
   //Singleton
