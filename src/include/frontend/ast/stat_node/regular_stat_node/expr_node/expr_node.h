@@ -2,6 +2,8 @@
 // Created by zhang-kai on 6/9/25.
 //
 #pragma once
+#include <utility>
+
 #include "frontend/ast/stat_node/regular_stat_node/regular_stat_node.h"
 #include "frontend/ast/type/type_type.h"
 
@@ -15,7 +17,7 @@ public:
 
 
   void setExprType(std::shared_ptr<TypeType> expr_type) {
-    this->expr_type = expr_type;
+    this->expr_type = std::move(expr_type);
   }
 
   void setPrvalue(bool prvalue_) {

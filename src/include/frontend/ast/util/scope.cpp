@@ -17,7 +17,7 @@ void Scope::declare(const std::shared_ptr<DefNode>& def_node) {
     if (vars.contains(decl_name) || functions.contains(decl_name)) {
       throw std::runtime_error("repeated declaration");
     }
-    vars[decl_name] = nullptr;
+    vars[decl_name] = var_def->getIdNode()->getType();
   } else if (auto func_def = dynamic_pointer_cast<FuncDefNode>(def_node)) {
     if (vars.contains(decl_name) || functions.contains(decl_name) || classes.contains(decl_name)) {
       throw std::runtime_error("repeated declaration");
@@ -116,7 +116,7 @@ void Scope::setVarType(std::string var_name, std::shared_ptr<TypeType> var_type)
 
 
 const std::shared_ptr<Function>& Scope::findFunc(std::string func_name) {
-  if (vars.contains(func_name)) {
+  if (functions.contains(func_name)) {
     return functions[func_name];
   } else {
     if (this->getParent() != nullptr) {

@@ -14,7 +14,7 @@ class VoidType;
 class TypeType {
 public:
   enum class PrimitiveType : int {
-    kINT, kBOOL, kSTRING, kVOID
+    kINT, kBOOL, kSTRING, kVOID, kOTHER
   };
   enum SpecialCode : int{
     IntType, NoType
@@ -43,7 +43,7 @@ public:
 
 private:
   TypeType *type_ref = nullptr;
-
+  PrimitiveType primitive_type_ = PrimitiveType::kOTHER;
   std::string customized_type;
   std::vector<TypeType> param_type;
   std::vector<std::shared_ptr<Function>> string_functions;

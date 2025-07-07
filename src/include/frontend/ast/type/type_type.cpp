@@ -13,19 +13,23 @@ TypeType::TypeType (MxParser::TypeContext *ctx) {
 
   if (ctx->INT()) {
     type_ref = &IntType::Instance();
+    primitive_type_ = PrimitiveType::kINT;
   } else if (ctx -> BOOLEAN()) {
     type_ref = &BoolType::Instance();
+    primitive_type_ = PrimitiveType::kBOOL;
   } else if (ctx -> STR()) {
     type_ref = &StringType::Instance();
+    primitive_type_ = PrimitiveType::kSTRING;
   } else if (ctx -> VOID()) {
     type_ref = &VoidType::Instance();
+    primitive_type_ = PrimitiveType::kVOID;
   } else if (auto id_terminal = ctx-> ID()) {
     customized_type = id_terminal ->getSymbol()->getText();
   } else if (auto array_type = ctx->type()) {
     dimension = countBracket(ctx, &type_ref, &customized_type);
   }
 }
-TypeType::TypeType(PrimitiveType primitive_type, int dimension) : dimension(dimension) {
+TypeType::TypeType(PrimitiveType primitive_type, int dimension) : dimension(dimension), primitive_type_(primitive_type) {
   if (primitive_type == PrimitiveType::kBOOL) {
     type_ref = &BoolType::Instance();
   } else if (primitive_type == PrimitiveType::kINT) {

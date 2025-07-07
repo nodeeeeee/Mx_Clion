@@ -183,21 +183,34 @@ void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
   }else {
     throw std::runtime_error("lhs not id");
   }
-  if (auto id_tmp = std::dynamic_pointer_cast<IdNode>(rhs)) {
-  } else if (auto func_tmp = std::dynamic_pointer_cast<FuncCallNode>(rhs)) {
-  }else {
-    throw std::runtime_error("rhs not id");
-  }
   auto class_scope = current_scope->findClass(lhs_id->getIdName());
   if (class_scope == nullptr) {
     node->setValid(false);
     throw(std::runtime_error("lhs not found"));
   }
-  auto rhs_type = class_scope->findVar(rhs_id->getIdName());
-  if (rhs_type == nullptr) {
-    node->setValid(false);
+
+  if (auto id_tmp = std::dynamic_pointer_cast<IdNode>(rhs)) {
+    auto rhs_type = class_scope->findVar(id_tmp->getIdName());
+    if (rhs_type == nullptr) {
+      throw std::runtime_error("rhs not found");
+      node->setValid(false);
+    }
+    node->setExprType(rhs_type);
+  } else if (auto func_tmp = std::dynamic_pointer_cast<FuncCallNode>(rhs)) {
+    auto rhs_func = class_scope->findFunc(func_tmp->getName());
+    auto rhs_type = rhs_func->getReturnType();
+    if (rhs_type == nullptr) {
+      throw std::runtime_error("rhs not found");
+      node->setValid(false);
+    }
+    node->setExprType(rhs_type);
+
+  }else {
+    throw std::runtime_error("rhs not id or funccall");
   }
-  node->setExprType(rhs_type);
+
+
+
 }
 
 void SemanticCheck::visit(std::shared_ptr<FormatStringNode> node) {
@@ -380,10 +393,16 @@ void SemanticCheck::visit(std::shared_ptr<ReturnStatNode> node) {
   //find the first typed owner of the scope,match it.
   auto return_expr = node->getReturnExpr();
   return_expr->accept(this);
+  if (auto id_expr = std::dynamic_pointer_cast<IdNode>(return_expr)) {
+    return_expr->setExprType(current_scope->findVar(id_expr->getIdName()));
+  }
   auto tmp_scope = current_scope;
   while (true) {
     if (auto func = dynamic_pointer_cast<FuncDefNode>(tmp_scope->getScopeOwner())) {
       if (func->getReturnType() != return_expr->getExprType()) {
+        auto tmpa = func->getReturnType();
+        auto tmpb = return_expr->getExprType();
+        auto equal = tmpa == tmpb;
         throw std::runtime_error("return statement type mismatch");
       } else {
         break;
@@ -424,6 +443,7 @@ void SemanticCheck::visit(std::shared_ptr<TerminalNode> node) {
     tmp_scope = tmp_scope->getParent();
   }
 }
+
 
 
 
