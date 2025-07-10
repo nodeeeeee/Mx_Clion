@@ -73,7 +73,7 @@ TypeType::TypeType (std::string customized_type) : customized_type(std::move(cus
 //
 int TypeType::countBracket(MxParser::TypeContext *ctx, TypeType** type_ref_ptr, std::string *customized_ptr) {
   if (ctx->LEFT_SQUARE_BRACKET()) {
-    return countBracket(ctx->type(), type_ref_ptr, customized_ptr);
+    return countBracket(ctx->type(), type_ref_ptr, customized_ptr) + 1;
   } else {
     if (ctx->INT()) {
       *type_ref_ptr = &IntType::Instance();

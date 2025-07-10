@@ -39,3 +39,14 @@ std::cerr
 
 
 
+对于class来说，在extract时候直接开scope；semantic check的时候进入scope即可
+
+
+
+
+
+我应该先查IdNode的Type，然后再进行方法调用。
+
+String是一个特殊情况，需要特殊处理。（但是暂时不用考虑，等到前面调试正确再改）
+
+很多问题是因为Id没有正确获得type导致的。当遇到普通id的时候我需要先findvar找到其type

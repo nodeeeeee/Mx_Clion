@@ -75,7 +75,8 @@ void SemanticCheck::visit(std::shared_ptr<ClassFuncDefNode> node) {
 }
 
 void SemanticCheck::visit(std::shared_ptr<VarDefNode> node) {
-  auto lhs = node->getIdNode()->getType();
+  auto lhs = std::shared_ptr<TypeType>(node->getIdNode()->getType());
+
   auto rhs = node->getExpr();
   if (rhs == nullptr) {
     current_scope->declare(node);
@@ -85,7 +86,7 @@ void SemanticCheck::visit(std::shared_ptr<VarDefNode> node) {
   rhs->accept(this); //update the expression type in visit(ExprNode)
   if (rhs->getExprType() == nullptr) {
     throw(std::runtime_error("expression has no type"));
-  } else if (rhs->getExprType() != lhs) {
+  } else if (*(rhs->getExprType()) != *lhs) {
     throw(std::runtime_error("expression has type mismatch"));
   }
   current_scope->declare(node);
@@ -163,10 +164,12 @@ void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
   auto lhs = node->getLhs();
   auto rhs = node->getRhs();
   std::shared_ptr<IdNode> lhs_id;
+  std::shared_ptr<TypeType> lhs_type;
   std::string lhs_class;
   if (auto id_tmp = std::dynamic_pointer_cast<IdNode>(lhs)) {
     lhs_id = std::dynamic_pointer_cast<IdNode>(id_tmp);
-    lhs_class = lhs_id->getType()->getTypeName();
+    lhs_type = current_scope->findVar(lhs_id->getIdName());
+    lhs_class = lhs_type->getTypeName();
   } else if (auto this_tmp =  std::dynamic_pointer_cast<ThisExprNode>(lhs)) {
     auto tmp_scope = current_scope;
     while (true) {
@@ -263,7 +266,7 @@ void SemanticCheck::visit(std::shared_ptr<IndexExprNode> node) {
 
 void SemanticCheck::visit(std::shared_ptr<InitArrayNode> node) {
   size_t dim = node->getRangeNode().size();
-  node->setExprType(std::make_shared<TypeType>(node->getExprType(), dim));
+  node->setExprType(std::make_shared<TypeType>(node->getType(), dim));
   auto default_array = node->getDefaultArray();
   if (default_array != nullptr) {
     default_array->accept(this);
@@ -350,7 +353,19 @@ void SemanticCheck::visit(std::shared_ptr<AssignStatNode> node) {
   auto rhs = node->getRhs();
   lhs->accept(this);
   rhs->accept(this);
-  if (lhs->getExprType() != rhs->getExprType()) {
+  std::shared_ptr<TypeType> lhs_type;
+  std::shared_ptr<TypeType> rhs_type;
+  if (auto lhs_id = std::dynamic_pointer_cast<IdNode>(lhs)) {
+    lhs_type = current_scope->findVar(lhs_id->getIdName());
+  } else {
+    lhs_type = lhs->getExprType();
+  }
+  if (auto rhs_id = std::dynamic_pointer_cast<IdNode>(rhs)) {
+    rhs_type = current_scope->findVar(rhs_id->getIdName());
+  } else {
+    rhs_type = rhs->getExprType();
+  }
+  if (*lhs_type != *rhs_type) {
     throw(std::runtime_error("assignment statement type mismatch"));
   }
 }
@@ -399,10 +414,10 @@ void SemanticCheck::visit(std::shared_ptr<ReturnStatNode> node) {
   auto tmp_scope = current_scope;
   while (true) {
     if (auto func = dynamic_pointer_cast<FuncDefNode>(tmp_scope->getScopeOwner())) {
-      if (func->getReturnType() != return_expr->getExprType()) {
+      if (*(func->getReturnType()) != *(return_expr->getExprType())) {
         auto tmpa = func->getReturnType();
         auto tmpb = return_expr->getExprType();
-        auto equal = tmpa == tmpb;
+        // auto equal = tmpa->getTypeName() == tmpb;
         throw std::runtime_error("return statement type mismatch");
       } else {
         break;
@@ -443,6 +458,7 @@ void SemanticCheck::visit(std::shared_ptr<TerminalNode> node) {
     tmp_scope = tmp_scope->getParent();
   }
 }
+
 
 
 

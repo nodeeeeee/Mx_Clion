@@ -41,7 +41,7 @@ public:
   void visit(std::shared_ptr<LiteralNode> node) final;
   void visit(std::shared_ptr<TerminalNode> node) final;
   // void visit(std::shared_ptr<DefNode> node) override {}
-  void visit(std::shared_ptr<IdNode> node) override {}
+  void visit(std::shared_ptr<IdNode> node) override{}
   void visit(std::shared_ptr<StatNode> node) override {}
   void visit(std::shared_ptr<RegularStatNode> node) override {}
   void visit(std::shared_ptr<ExprNode> node) override {}
