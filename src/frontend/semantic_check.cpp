@@ -257,7 +257,10 @@ void SemanticCheck::visit(std::shared_ptr<IndexExprNode> node) {
   if (!base->isValid() || !index->isValid()) {
     node->setValid(false);
   }
-  if (base->getExprType()->getDimension() == 0) {
+  std::shared_ptr<TypeType> base_type = checkType(base);
+  std::shared_ptr<TypeType> index_type = checkType(index);
+
+  if (base_type->getDimension() == 0) {
     node->setValid(false);
     throw std::runtime_error("not an array");
   }
@@ -471,4 +474,14 @@ void SemanticCheck::createScope(const std::shared_ptr<ASTNode>& node) {
 
 void SemanticCheck::exitScope() {
   current_scope = current_scope->getParent();
+}
+
+std::shared_ptr<TypeType> SemanticCheck::checkType(std::shared_ptr<ExprNode> expr) {
+  std::shared_ptr<TypeType> expr_type;
+  if (auto expr_id = std::dynamic_pointer_cast<IdNode>(expr)) {
+    expr_type = current_scope->findVar(expr_id->getIdName());
+  } else {
+    expr_type = expr->getExprType();
+  }
+  return expr_type;
 }

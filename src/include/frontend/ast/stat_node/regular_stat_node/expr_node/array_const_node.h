@@ -4,6 +4,7 @@
 
 #pragma once
 #include "expr_node.h"
+#include "literal_node.h"
 #include "frontend/ast/type/type_type.h"
 
 class ArrayConstNode : public ExprNode, public std::enable_shared_from_this<ArrayConstNode> {

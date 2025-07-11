@@ -48,6 +48,7 @@ public:
 
   void createScope(const std::shared_ptr<ASTNode> &node);
   void exitScope();
+  std::shared_ptr<TypeType> checkType(std::shared_ptr<ExprNode> expr);
 
 private:
   std::shared_ptr<TypeType> k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);

@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.31)
 project(Mx_Clion)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -g -O0 -fsanitize=address")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -g -O0 ")
+#set(CMAKE_CXX_FLAGS "-Ofast")
 #address violation
 
 include_directories(/usr/include/antlr4-runtime)

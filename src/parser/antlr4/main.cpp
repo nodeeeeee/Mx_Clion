@@ -50,7 +50,7 @@ int main(int argc, const char* argv[]) {
   // }
   std::ifstream stream;
 
-  stream.open("testcases/sema/symbol-package/symbol-1.mx");
+  stream.open("testcases/sema/array-package/array-1.mx");
   // stream.open(entry.path());
   // std::cout << entry.path() << std::endl;
 
@@ -96,7 +96,7 @@ int main(int argc, const char* argv[]) {
 
   auto ast_tree = std::any_cast<std::shared_ptr<RootNode>>(ast_builder.visitProg(tree));
   SemanticCheck semantic_check(ast_tree);
-  // std::cout << stream << std::endl;
+  // std::cout << stream << std::endl;  //
   std::cout << tree->toStringTree(&parser) << std::endl << std::endl;
   std::cout << "解析完成\n";
   // }
