@@ -23,14 +23,8 @@ public:
   virtual void enterStat(MxParser::StatContext *ctx) = 0;
   virtual void exitStat(MxParser::StatContext *ctx) = 0;
 
-  virtual void enterFuncdefstat(MxParser::FuncdefstatContext *ctx) = 0;
-  virtual void exitFuncdefstat(MxParser::FuncdefstatContext *ctx) = 0;
-
-  virtual void enterClassfuncdefstat(MxParser::ClassfuncdefstatContext *ctx) = 0;
-  virtual void exitClassfuncdefstat(MxParser::ClassfuncdefstatContext *ctx) = 0;
-
-  virtual void enterClassdefstat(MxParser::ClassdefstatContext *ctx) = 0;
-  virtual void exitClassdefstat(MxParser::ClassdefstatContext *ctx) = 0;
+  virtual void enterSpecialStat(MxParser::SpecialStatContext *ctx) = 0;
+  virtual void exitSpecialStat(MxParser::SpecialStatContext *ctx) = 0;
 
   virtual void enterExprstat(MxParser::ExprstatContext *ctx) = 0;
   virtual void exitExprstat(MxParser::ExprstatContext *ctx) = 0;
@@ -160,6 +154,9 @@ public:
 
   virtual void enterType(MxParser::TypeContext *ctx) = 0;
   virtual void exitType(MxParser::TypeContext *ctx) = 0;
+
+  virtual void enterLiteral(MxParser::LiteralContext *ctx) = 0;
+  virtual void exitLiteral(MxParser::LiteralContext *ctx) = 0;
 
 
 };

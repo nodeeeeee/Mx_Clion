@@ -12,18 +12,18 @@
 class  MxParser : public antlr4::Parser {
 public:
   enum {
-    LITERAL = 1, SL_COMMENT = 2, ML_COMMENT = 3, DOCS_COMMENT = 4, FORMAT_STRING_ELEMENT = 5, 
-    STRING = 6, FORMAT_STRING_STARTER = 7, QUOTATION = 8, CLASS = 9, FOR = 10, 
-    WHILE = 11, IF = 12, ELSE = 13, INT = 14, BOOLEAN = 15, STR = 16, VOID = 17, 
-    MAIN = 18, RETURN = 19, CONTINUE = 20, BREAK = 21, NEW = 22, NULL_ = 23, 
-    BOOL = 24, THIS = 25, WS = 26, ID = 27, DOLLAR = 28, INTEGER = 29, LETTER = 30, 
-    NUMBER = 31, EQUAL = 32, ADD = 33, SUB = 34, MUL = 35, DIV = 36, LEFT_PARENTHESIS = 37, 
-    RIGHT_PARENTHESIS = 38, LEFT_CURLY_BRACKET = 39, RIGHT_CURLY_BRACKET = 40, 
-    LEFT_SQUARE_BRACKET = 41, RIGHT_SQUARE_BRACKET = 42, PLUS_PLUS = 43, 
-    MINUS_MINUS = 44, MOD = 45, SRL = 46, SLL = 47, BT = 48, LT = 49, BEQ = 50, 
-    LEQ = 51, ET = 52, NET = 53, AND = 54, XOR = 55, OR = 56, AND_AND = 57, 
-    OR_OR = 58, QUESTION = 59, SEMI_COLON = 60, COLON = 61, DOT = 62, COMMA = 63, 
-    WAVE = 64, EXCLAIMER = 65
+    SL_COMMENT = 1, ML_COMMENT = 2, DOCS_COMMENT = 3, FORMAT_STRING_ELEMENT = 4, 
+    STRING = 5, FORMAT_STRING_STARTER = 6, QUOTATION = 7, CLASS = 8, FOR = 9, 
+    WHILE = 10, IF = 11, ELSE = 12, INT = 13, BOOLEAN = 14, STR = 15, VOID = 16, 
+    MAIN = 17, RETURN = 18, CONTINUE = 19, BREAK = 20, NEW = 21, NULL_ = 22, 
+    BOOL = 23, THIS = 24, WS = 25, ID = 26, DOLLAR = 27, INTEGER = 28, LETTER = 29, 
+    NUMBER = 30, EQUAL = 31, ADD = 32, SUB = 33, MUL = 34, DIV = 35, LEFT_PARENTHESIS = 36, 
+    RIGHT_PARENTHESIS = 37, LEFT_CURLY_BRACKET = 38, RIGHT_CURLY_BRACKET = 39, 
+    LEFT_SQUARE_BRACKET = 40, RIGHT_SQUARE_BRACKET = 41, PLUS_PLUS = 42, 
+    MINUS_MINUS = 43, MOD = 44, SRL = 45, SLL = 46, BT = 47, LT = 48, BEQ = 49, 
+    LEQ = 50, ET = 51, NET = 52, AND = 53, XOR = 54, OR = 55, AND_AND = 56, 
+    OR_OR = 57, QUESTION = 58, SEMI_COLON = 59, COLON = 60, DOT = 61, COMMA = 62, 
+    WAVE = 63, EXCLAIMER = 64
   };
 
   enum {
@@ -32,7 +32,7 @@ public:
     RuleIfStat = 9, RuleAssignStat = 10, RuleBlock = 11, RuleForStat = 12, 
     RuleWhileStat = 13, RuleReturnStat = 14, RuleContinue = 15, RuleBreak = 16, 
     RuleExpr = 17, RuleFormatString = 18, RuleFuncCall = 19, RuleArrayConst = 20, 
-    RuleInitArray = 21, RuleInitObject = 22, RuleType = 23
+    RuleInitArray = 21, RuleInitObject = 22, RuleType = 23, RuleLiteral = 24
   };
 
   explicit MxParser(antlr4::TokenStream *input);
@@ -75,7 +75,8 @@ public:
   class ArrayConstContext;
   class InitArrayContext;
   class InitObjectContext;
-  class TypeContext; 
+  class TypeContext;
+  class LiteralContext; 
 
   class  ProgContext : public antlr4::ParserRuleContext {
   public:
@@ -139,47 +140,16 @@ public:
   class  SpecialStatContext : public antlr4::ParserRuleContext {
   public:
     SpecialStatContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-   
-    SpecialStatContext() = default;
-    void copyFrom(SpecialStatContext *context);
-    using antlr4::ParserRuleContext::copyFrom;
-
     virtual size_t getRuleIndex() const override;
-
-   
-  };
-
-  class  FuncdefstatContext : public SpecialStatContext {
-  public:
-    FuncdefstatContext(SpecialStatContext *ctx);
-
     FuncDefContext *funcDef();
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  class  ClassdefstatContext : public SpecialStatContext {
-  public:
-    ClassdefstatContext(SpecialStatContext *ctx);
-
-    ClassDefContext *classDef();
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  class  ClassfuncdefstatContext : public SpecialStatContext {
-  public:
-    ClassfuncdefstatContext(SpecialStatContext *ctx);
-
     ClassFuncDefContext *classFuncDef();
+    ClassDefContext *classDef();
+
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
   };
 
   SpecialStatContext* specialStat();
@@ -735,7 +705,7 @@ public:
   public:
     LiteralExprContext(ExprContext *ctx);
 
-    antlr4::tree::TerminalNode *LITERAL();
+    LiteralContext *literal();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
 
@@ -826,8 +796,8 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *LEFT_CURLY_BRACKET();
     antlr4::tree::TerminalNode *RIGHT_CURLY_BRACKET();
-    std::vector<antlr4::tree::TerminalNode *> LITERAL();
-    antlr4::tree::TerminalNode* LITERAL(size_t i);
+    std::vector<LiteralContext *> literal();
+    LiteralContext* literal(size_t i);
     std::vector<antlr4::tree::TerminalNode *> COMMA();
     antlr4::tree::TerminalNode* COMMA(size_t i);
     std::vector<ArrayConstContext *> arrayConst();
@@ -905,6 +875,24 @@ public:
 
   TypeContext* type();
   TypeContext* type(int precedence);
+  class  LiteralContext : public antlr4::ParserRuleContext {
+  public:
+    LiteralContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *INTEGER();
+    antlr4::tree::TerminalNode *STRING();
+    antlr4::tree::TerminalNode *BOOL();
+    antlr4::tree::TerminalNode *NULL_();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  LiteralContext* literal();
+
 
   bool sempred(antlr4::RuleContext *_localctx, size_t ruleIndex, size_t predicateIndex) override;
 

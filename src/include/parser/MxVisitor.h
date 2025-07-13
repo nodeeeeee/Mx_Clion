@@ -25,11 +25,7 @@ public:
 
     virtual std::any visitStat(MxParser::StatContext *context) = 0;
 
-    virtual std::any visitFuncdefstat(MxParser::FuncdefstatContext *context) = 0;
-
-    virtual std::any visitClassfuncdefstat(MxParser::ClassfuncdefstatContext *context) = 0;
-
-    virtual std::any visitClassdefstat(MxParser::ClassdefstatContext *context) = 0;
+    virtual std::any visitSpecialStat(MxParser::SpecialStatContext *context) = 0;
 
     virtual std::any visitExprstat(MxParser::ExprstatContext *context) = 0;
 
@@ -116,6 +112,8 @@ public:
     virtual std::any visitInitObject(MxParser::InitObjectContext *context) = 0;
 
     virtual std::any visitType(MxParser::TypeContext *context) = 0;
+
+    virtual std::any visitLiteral(MxParser::LiteralContext *context) = 0;
 
 
 };

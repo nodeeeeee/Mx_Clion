@@ -80,7 +80,7 @@ expr : '(' expr? ')'                                                    #parenEx
      | initObject                                                       #initObjectExpr
      | formatString                                                     #formatStringExpr
      | THIS                                                             #thisExpr
-     | LITERAL                                                          #literalExpr
+     | literal                                                          #literalExpr
      | ID                                                               #idExpr
      ;
 
@@ -89,7 +89,7 @@ formatString : FORMAT_STRING_STARTER (FORMAT_STRING_ELEMENT | (DOLLAR expr DOLLA
 
 funcCall : ID '(' (expr (',' expr)*)? ')';
 
-arrayConst : '{' (LITERAL (',' LITERAL)*)? '}'
+arrayConst : '{' (literal (',' literal)*)? '}'
            | '{' arrayConst (',' arrayConst)* '}';
 
 initArray : NEW type ('['expr']')+('[' ']')*
@@ -104,12 +104,11 @@ type : INT | BOOLEAN | STR | VOID
 
 //INIT_ARRAY : 'new' type ('['INT']')+;    this makes whitespace and int jointly being type.
 //WS only skips for parser
-
-LITERAL : INTEGER
+literal : INTEGER
         | STRING
         | BOOL
         | NULL;
-
+// in fact literal be set to a parser is better because you can get more detailed type information.
 
 SL_COMMENT : '//' .*? ('\n'|EOF) -> skip;
 ML_COMMENT : '/*' .*? '*/' -> skip;

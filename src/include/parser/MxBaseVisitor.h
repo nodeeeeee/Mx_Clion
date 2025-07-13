@@ -27,15 +27,7 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitFuncdefstat(MxParser::FuncdefstatContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitClassfuncdefstat(MxParser::ClassfuncdefstatContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitClassdefstat(MxParser::ClassdefstatContext *ctx) override {
+  virtual std::any visitSpecialStat(MxParser::SpecialStatContext *ctx) override {
     return visitChildren(ctx);
   }
 
@@ -208,6 +200,10 @@ public:
   }
 
   virtual std::any visitType(MxParser::TypeContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitLiteral(MxParser::LiteralContext *ctx) override {
     return visitChildren(ctx);
   }
 

@@ -11,6 +11,7 @@
 #include "frontend/ast/all_ast_nodes.h"
 #include "frontend/ast/ASTNode.h"
 #include "parser/MxParser.h"
+#include "parser/MxParser.h"
 // #include "frontend/ast/stat_node/regular_stat_node/expr_node/binary_expr_node.h"
 // #include "../include/frontend/ast/def_node/main_func_node.h"
 // #include "frontend/ast/def_node/func_def_node.h"
@@ -252,11 +253,11 @@ std::any ASTBuilder::visitTernaryExpr(MxParser::TernaryExprContext* ctx) {
 }
 
 std::any ASTBuilder::visitArrayConst(MxParser::ArrayConstContext* ctx) {
-  if (ctx->LITERAL(0)) {
-    auto elements = ctx->LITERAL();
+  if (ctx->literal(0)) {
+    auto elements = ctx->literal();
     std::vector<std::shared_ptr<LiteralNode>> literals;
     for (const auto& element : elements) {
-      literals.push_back(std::any_cast<std::shared_ptr<LiteralNode>>(visitLiteral(element->getSymbol())));
+      literals.push_back(std::any_cast<std::shared_ptr<LiteralNode>>(element->accept(this)));
     }
     return std::dynamic_pointer_cast<ExprNode>(std::make_shared<ArrayConstNode>(std::move(literals), Position(ctx)));
   } else if (ctx->arrayConst(0)) {
@@ -277,7 +278,7 @@ std::any ASTBuilder::visitDotExpr(MxParser::DotExprContext* ctx) {
 }
 
 std::any ASTBuilder::visitLiteralExpr(MxParser::LiteralExprContext* ctx) {
-  return visitLiteral(ctx->LITERAL()->getSymbol());
+  return visitLiteral(ctx->literal());
 }
 
 std::any ASTBuilder::visitInitArray(MxParser::InitArrayContext* ctx) {
@@ -307,8 +308,8 @@ std::any ASTBuilder::visitIndexExpr(MxParser::IndexExprContext* ctx) {
   return std::dynamic_pointer_cast<ExprNode>(std::make_shared<IndexExprNode>(base, index, Position(ctx)));
 }
 
-std::any ASTBuilder:: visitLiteral(antlr4::Token* token) {
-  return std::dynamic_pointer_cast<ExprNode>(std::make_shared<LiteralNode>(token));
+std::any ASTBuilder:: visitLiteral(MxParser::LiteralContext* ctx) {
+  return std::dynamic_pointer_cast<ExprNode>(std::make_shared<LiteralNode>(ctx));
 }
 
 std::any ASTBuilder::visitParenExpr(MxParser::ParenExprContext* ctx) {
@@ -447,7 +448,7 @@ std::any ASTBuilder::visitFormatString(MxParser::FormatStringContext* ctx) {
   std::vector<std::shared_ptr<ExprNode>> exprs;
   auto format_string_elements = ctx->FORMAT_STRING_ELEMENT();
   for (const auto& element : format_string_elements) {
-    strings.push_back(std::any_cast<std::shared_ptr<LiteralNode>>(visitLiteral(element->getSymbol())));
+    strings.push_back(std::make_shared<LiteralNode>(element->getSymbol()));
   }
   auto expr_elements = ctx->expr();
   for (const auto& element : expr_elements) {

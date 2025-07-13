@@ -37,7 +37,7 @@ public:
   // std::any visitType(MxParser::TypeContext *ctx) override;
 
 
-  std::any visitLiteral(antlr4::Token* token);
+  std::any visitLiteral(MxParser::LiteralContext* ctx);
   std::any visitID(antlr4::Token* token);
 
   std::any visitExprstat(MxParser::ExprstatContext* ctx) override;

@@ -101,19 +101,19 @@ void SemanticCheck::visit(std::shared_ptr<BinaryExprNode> node) {
   auto rhs = node->getRhs();
   lhs->accept(this);
   rhs->accept(this);
-  auto lhs_type = lhs->getExprType();
-  auto rhs_type = rhs->getExprType();
+  auto lhs_type = checkType(lhs);
+  auto rhs_type = checkType(rhs);
   if (!node->getLhs()->isValid() || !node->getRhs()->isValid()) {
     node->setValid(false);
     return;
   }
-  if (lhs_type != rhs_type) {
+  if (*lhs_type != *rhs_type) {
     throw std::runtime_error("binary expression has type mismatch");
   } else {
     switch (node->getOp()) {
       //for int or string
       case BinaryExprNode::BinaryOp::kADD: {
-        if (lhs_type != k_string || lhs_type != k_int) {
+        if (*lhs_type != *k_string && *lhs_type != *k_int) {
           throw(std::runtime_error("add cannot be applied to the type"));
         }
         node->setExprType(lhs_type);
@@ -131,7 +131,7 @@ void SemanticCheck::visit(std::shared_ptr<BinaryExprNode> node) {
       case BinaryExprNode::BinaryOp::kAND:
       case BinaryExprNode::BinaryOp::kXOR:
       case BinaryExprNode::BinaryOp::kOR: {
-        if (lhs_type != k_int) {
+        if (*lhs_type != *k_int) {
           throw(std::runtime_error("the operator only applies to integers"));
         }
         node->setExprType(lhs_type);
@@ -149,7 +149,7 @@ void SemanticCheck::visit(std::shared_ptr<BinaryExprNode> node) {
       }
       case BinaryExprNode::BinaryOp::kAND_AND:
       case BinaryExprNode::BinaryOp::kOR_OR: {
-        if (lhs_type != k_bool) {
+        if (*lhs_type != *k_bool) {
           throw(std::runtime_error("the operator only applies to booleans"));
         }
         node->setExprType(lhs_type);
@@ -264,7 +264,8 @@ void SemanticCheck::visit(std::shared_ptr<IndexExprNode> node) {
     node->setValid(false);
     throw std::runtime_error("not an array");
   }
-  node->setExprType(std::make_shared<TypeType>(base->getExprType(), -1));
+  auto expr_type = checkType(base);
+  node->setExprType(std::make_shared<TypeType>(expr_type, -1));
 }
 
 void SemanticCheck::visit(std::shared_ptr<InitArrayNode> node) {
@@ -295,7 +296,7 @@ void SemanticCheck::visit(std::shared_ptr<UnaryExprNode> node) {
   switch (op) {
     case UnaryExprNode::UnaryOp::kPRE_PP:
     case UnaryExprNode::UnaryOp::kPRE_MM: {
-      if (expr->getExprType() != k_int) {
+      if (*(checkType(expr)) != *k_int) {
         throw(std::runtime_error("unary op is not int"));
       } else if (expr->isPrvalue()) {
         node->setValid(false);
@@ -306,7 +307,7 @@ void SemanticCheck::visit(std::shared_ptr<UnaryExprNode> node) {
     }
     case UnaryExprNode::UnaryOp::kPOST_PP:
     case UnaryExprNode::UnaryOp::kPOST_MM: {
-      if (expr->getExprType() != k_int) {
+      if (*checkType(expr) != *k_int) {
         throw std::runtime_error("unary op is not int");
       } else if (expr->isPrvalue()) {
         node->setValid(false);
@@ -317,14 +318,16 @@ void SemanticCheck::visit(std::shared_ptr<UnaryExprNode> node) {
     case UnaryExprNode::UnaryOp::kADD:
     case UnaryExprNode::UnaryOp::kSUB:
     case UnaryExprNode::UnaryOp::kWAVE: {
-      if (expr->getExprType() != k_int) {
+      auto expr_type = checkType(expr);
+      if (*expr_type != *k_int) {
         throw std::runtime_error("unary expression type mismatch");
       }
       node->setExprType(k_int);
       break;
     }
     case UnaryExprNode::UnaryOp::kEXCLAIMER: {
-      if (expr->getExprType() != k_bool) {
+      auto expr_type = checkType(expr);
+      if (*expr_type != *k_bool) {
         throw(std::runtime_error("unary expression type mismatch"));
       }
       node->setExprType(k_bool);
@@ -340,14 +343,14 @@ void SemanticCheck::visit(std::shared_ptr<TernaryExprNode> node) {
   predicate->accept(this);
   then_expr->accept(this);
   else_expr->accept(this);
-  if (predicate->getExprType() != k_bool) {
+  if (*checkType(predicate) != *k_bool) {
     throw std::runtime_error("predicate type error");
   }
-  if (then_expr->getExprType() != else_expr->getExprType()) {
+  if (*checkType(then_expr) != *checkType(else_expr)) {
     throw std::runtime_error("then and else are not in the same type");
   }
 
-  node->setExprType(then_expr->getExprType());
+  node->setExprType(checkType(then_expr));
 }
 
 
@@ -356,18 +359,8 @@ void SemanticCheck::visit(std::shared_ptr<AssignStatNode> node) {
   auto rhs = node->getRhs();
   lhs->accept(this);
   rhs->accept(this);
-  std::shared_ptr<TypeType> lhs_type;
-  std::shared_ptr<TypeType> rhs_type;
-  if (auto lhs_id = std::dynamic_pointer_cast<IdNode>(lhs)) {
-    lhs_type = current_scope->findVar(lhs_id->getIdName());
-  } else {
-    lhs_type = lhs->getExprType();
-  }
-  if (auto rhs_id = std::dynamic_pointer_cast<IdNode>(rhs)) {
-    rhs_type = current_scope->findVar(rhs_id->getIdName());
-  } else {
-    rhs_type = rhs->getExprType();
-  }
+  std::shared_ptr<TypeType> lhs_type = checkType(lhs);
+  std::shared_ptr<TypeType> rhs_type = checkType(rhs);
   if (*lhs_type != *rhs_type) {
     throw(std::runtime_error("assignment statement type mismatch"));
   }
@@ -418,8 +411,18 @@ void SemanticCheck::visit(std::shared_ptr<ReturnStatNode> node) {
   while (true) {
     if (auto func = dynamic_pointer_cast<FuncDefNode>(tmp_scope->getScopeOwner())) {
       if (*(func->getReturnType()) != *(return_expr->getExprType())) {
-        auto tmpa = func->getReturnType();
-        auto tmpb = return_expr->getExprType();
+        // auto tmpa = func->getReturnType();
+        // auto tmpb = return_expr->getExprType();
+        // auto equal = tmpa->getTypeName() == tmpb;
+        throw std::runtime_error("return statement type mismatch");
+      } else {
+        break;
+      }
+    }
+    if (auto func = dynamic_pointer_cast<MainFuncNode>(tmp_scope->getScopeOwner())) {
+      if (*(k_int) != *(return_expr->getExprType())) {
+        // auto tmpa = func->getReturnType();
+        // auto tmpb = return_expr->getExprType();
         // auto equal = tmpa->getTypeName() == tmpb;
         throw std::runtime_error("return statement type mismatch");
       } else {
@@ -478,6 +481,9 @@ void SemanticCheck::exitScope() {
 
 std::shared_ptr<TypeType> SemanticCheck::checkType(std::shared_ptr<ExprNode> expr) {
   std::shared_ptr<TypeType> expr_type;
+  if (auto index_expr = std::dynamic_pointer_cast<IndexExprNode>(expr)) {
+    return std::make_shared<TypeType>(checkType(index_expr->getBase()), -1);
+  }
   if (auto expr_id = std::dynamic_pointer_cast<IdNode>(expr)) {
     expr_type = current_scope->findVar(expr_id->getIdName());
   } else {

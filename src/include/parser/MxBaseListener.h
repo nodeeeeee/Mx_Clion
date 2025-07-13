@@ -25,14 +25,8 @@ public:
   virtual void enterStat(MxParser::StatContext * /*ctx*/) override { }
   virtual void exitStat(MxParser::StatContext * /*ctx*/) override { }
 
-  virtual void enterFuncdefstat(MxParser::FuncdefstatContext * /*ctx*/) override { }
-  virtual void exitFuncdefstat(MxParser::FuncdefstatContext * /*ctx*/) override { }
-
-  virtual void enterClassfuncdefstat(MxParser::ClassfuncdefstatContext * /*ctx*/) override { }
-  virtual void exitClassfuncdefstat(MxParser::ClassfuncdefstatContext * /*ctx*/) override { }
-
-  virtual void enterClassdefstat(MxParser::ClassdefstatContext * /*ctx*/) override { }
-  virtual void exitClassdefstat(MxParser::ClassdefstatContext * /*ctx*/) override { }
+  virtual void enterSpecialStat(MxParser::SpecialStatContext * /*ctx*/) override { }
+  virtual void exitSpecialStat(MxParser::SpecialStatContext * /*ctx*/) override { }
 
   virtual void enterExprstat(MxParser::ExprstatContext * /*ctx*/) override { }
   virtual void exitExprstat(MxParser::ExprstatContext * /*ctx*/) override { }
@@ -162,6 +156,9 @@ public:
 
   virtual void enterType(MxParser::TypeContext * /*ctx*/) override { }
   virtual void exitType(MxParser::TypeContext * /*ctx*/) override { }
+
+  virtual void enterLiteral(MxParser::LiteralContext * /*ctx*/) override { }
+  virtual void exitLiteral(MxParser::LiteralContext * /*ctx*/) override { }
 
 
   virtual void enterEveryRule(antlr4::ParserRuleContext * /*ctx*/) override { }

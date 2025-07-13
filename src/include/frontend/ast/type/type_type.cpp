@@ -32,12 +32,16 @@ TypeType::TypeType (MxParser::TypeContext *ctx) {
 TypeType::TypeType(PrimitiveType primitive_type, int dimension) : dimension(dimension), primitive_type_(primitive_type) {
   if (primitive_type == PrimitiveType::kBOOL) {
     type_ref = &BoolType::Instance();
+    primitive_type_ = primitive_type;
   } else if (primitive_type == PrimitiveType::kINT) {
     type_ref = &IntType::Instance();
+    primitive_type_ = primitive_type;
   } else if (primitive_type == PrimitiveType::kVOID) {
     type_ref = &VoidType::Instance();
+    primitive_type_ = primitive_type;
   } else if (primitive_type == PrimitiveType::kSTRING) {
     type_ref = &StringType::Instance();
+    primitive_type_ = primitive_type;
   }
 }
 
@@ -45,6 +49,7 @@ TypeType::TypeType(PrimitiveType primitive_type, int dimension) : dimension(dime
 TypeType::TypeType(SpecialCode special_code) {
   if (special_code == IntType) { // for 'int main'
     type_ref = &IntType::Instance();
+    primitive_type_ = PrimitiveType::kINT;
   } else if (special_code == NoType) {
     type_ref = &NoType::Instance();
   }
@@ -52,6 +57,7 @@ TypeType::TypeType(SpecialCode special_code) {
 
 TypeType::TypeType(std::shared_ptr<TypeType> base, int increment) {
   type_ref = base->type_ref;
+  primitive_type_ = base->primitive_type_;
   customized_type = base->customized_type;
   dimension = base->dimension + increment;
 }
@@ -77,12 +83,16 @@ int TypeType::countBracket(MxParser::TypeContext *ctx, TypeType** type_ref_ptr, 
   } else {
     if (ctx->INT()) {
       *type_ref_ptr = &IntType::Instance();
+      primitive_type_ = PrimitiveType::kINT;
     } else if (ctx -> BOOLEAN()) {
       *type_ref_ptr = &BoolType::Instance();
+      primitive_type_ = PrimitiveType::kBOOL;
     } else if (ctx -> STR()) {
       *type_ref_ptr = &StringType::Instance();
+      primitive_type_ = PrimitiveType::kSTRING;
     } else if (ctx -> VOID()) {
       *type_ref_ptr = &VoidType::Instance();
+      primitive_type_ = PrimitiveType::kVOID;
     } else if (auto id_terminal = ctx-> ID()) {
       *customized_ptr = id_terminal ->getSymbol()->getText();
     }

@@ -13,19 +13,30 @@
 class LiteralNode : public ExprNode, public std::enable_shared_from_this<LiteralNode> {
 public:
     LiteralNode() = delete;
-    explicit LiteralNode(antlr4::Token* token) : ExprNode(Position(token)) {
-        if (token->getType() == MxParser::INTEGER) {
+    explicit LiteralNode(MxParser::LiteralContext* ctx) : ExprNode(Position(ctx)) {
+        auto literal = ctx;
+        if (auto integer_type = literal->INTEGER()) {
+            auto token = integer_type->getSymbol();
             literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
             int_value = std::stoi(token->getText());
-        } else if (token->getType() == MxParser::BOOL) {
+        } else if (auto bool_type = literal->BOOL()) {
+            auto token = bool_type->getSymbol();
             literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
             bool_value = token->getText() == "true" ? true : false;
-        } else if (token->getType() == MxParser::STRING) {
+        } else if (auto string_type = literal->STRING()) {
+            auto token = string_type->getSymbol();
             literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
             string_value = token->getText();
-        } else if (token->getType() == MxParser::NULL_) {
+        } else if (auto null_type = literal->NULL_()) {
+            auto token = null_type->getSymbol();
             is_null = true;
         }
+    }
+
+    explicit LiteralNode(antlr4::Token* token): ExprNode(Position(token)) {
+        //only for format_string
+        literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
+        string_value = token->getText();
     }
 
     std::shared_ptr<TypeType> getLiteralType() {return literal_type;}
@@ -34,7 +45,7 @@ public:
 
 private:
     std::shared_ptr<TypeType> literal_type;
-    bool is_null;
+    bool is_null = false;
     std::optional<std::string> string_value;
     std::optional<size_t> int_value;
     std::optional<bool> bool_value;

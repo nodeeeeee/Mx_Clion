@@ -50,3 +50,10 @@ std::cerr
 String是一个特殊情况，需要特殊处理。（但是暂时不用考虑，等到前面调试正确再改）
 
 很多问题是因为Id没有正确获得type导致的。当遇到普通id的时候我需要先findvar找到其type
+
+
+
+blockstatnode会按照statnode的类型放在树上，但是本质上还是一个BlockNode。在进行accept的时候会按照blocknode去解析。实际上我可以先进行dynamic_cast判断类型再进入blocknode
+
+Expr的type不能直接判断，我加了一个函数判断是否属于id类型，并直接返回其类型。
+
