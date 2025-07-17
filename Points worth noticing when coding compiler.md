@@ -209,3 +209,8 @@
 
 22. when we use auto, and the actual type is std::vector<...>, the static syntax analyzer cannot identify whether you have used `#include<vector>` or not. This may lead to runtime error.
 
+23. ```
+    ../../../testcases/sema/scripts/test_all.bash '../../../cmake-build-testall/Mx_Clion -fsyntax-only' ../../../testcases/sema
+    ```
+
+    This is how to call the run_all script. I can either change profile or change the application. When changing the profile, I am changing the compile options(program arguments). When changing the application, I can designate program arguments, environment variables and working directory.

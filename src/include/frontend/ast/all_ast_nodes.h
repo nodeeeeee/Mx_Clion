@@ -33,6 +33,7 @@
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/this_expr_node.h"
 #include "frontend/ast/type/type_type.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/unary_expr_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/paren_expr_node.h"
 
 #include "stat_node/regular_stat_node/expr_node/id_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/literal_node.h"

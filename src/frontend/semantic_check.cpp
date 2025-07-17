@@ -5,6 +5,7 @@
 
 #include "frontend/global_scope_extractor.h"
 #include "frontend/ast/all_ast_nodes.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/paren_expr_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/ternary_expr_node.h"
 
 
@@ -156,7 +157,6 @@ void SemanticCheck::visit(std::shared_ptr<BinaryExprNode> node) {
         node->setAssignable(false);
       }
     }
-    node->setExprType(lhs_type);
   }
 }
 
@@ -242,7 +242,7 @@ void SemanticCheck::visit(std::shared_ptr<FuncCallNode> node) {
     throw std::runtime_error("function arguments number mismatch");
   }
   for (size_t i = 0; i < func_param_types.size(); ++i) {
-    if (func_param_types[i] != args[i]->getExprType()) {
+    if (*func_param_types[i] != *checkType(args[i])) {
       throw std::runtime_error("function argument type mismatch");
     }
   }
@@ -251,6 +251,9 @@ void SemanticCheck::visit(std::shared_ptr<FuncCallNode> node) {
 
 void SemanticCheck::visit(std::shared_ptr<IndexExprNode> node) {
   auto base = node->getBase();
+  if (auto init_array_expr = std::dynamic_pointer_cast<InitArrayNode>(base)) {
+    throw std::runtime_error("cannot get index for initarray");
+  }
   auto index = node->getIndex();
   base->accept(this);
   index->accept(this);
@@ -259,13 +262,16 @@ void SemanticCheck::visit(std::shared_ptr<IndexExprNode> node) {
   }
   std::shared_ptr<TypeType> base_type = checkType(base);
   std::shared_ptr<TypeType> index_type = checkType(index);
-
+  if (*index_type != *k_int) {
+    throw std::runtime_error("index type not int");
+  }
   if (base_type->getDimension() == 0) {
     node->setValid(false);
     throw std::runtime_error("not an array");
   }
   auto expr_type = checkType(base);
   node->setExprType(std::make_shared<TypeType>(expr_type, -1));
+  node->setPrvalue(false);
 }
 
 void SemanticCheck::visit(std::shared_ptr<InitArrayNode> node) {
@@ -465,7 +471,11 @@ void SemanticCheck::visit(std::shared_ptr<TerminalNode> node) {
   }
 }
 
-
+void SemanticCheck::visit(std::shared_ptr<ParenExprNode> node) {
+  auto inner_expr = node->getInnerExpr();
+  inner_expr->accept(this);
+  node->setExprType(checkType(inner_expr));
+}
 
 
 
@@ -486,6 +496,7 @@ std::shared_ptr<TypeType> SemanticCheck::checkType(std::shared_ptr<ExprNode> exp
   }
   if (auto expr_id = std::dynamic_pointer_cast<IdNode>(expr)) {
     expr_type = current_scope->findVar(expr_id->getIdName());
+    expr->setPrvalue(false);
   } else {
     expr_type = expr->getExprType();
   }

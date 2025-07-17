@@ -2,8 +2,16 @@ cmake_minimum_required(VERSION 3.31)
 project(Mx_Clion)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -g -O0 ")
-#set(CMAKE_CXX_FLAGS "-Ofast")
+
+option(ENABLE_OJ_MODE "Enable running mode on the judger" OFF)
+
+if(ENABLE_OJ_MODE)
+    set(CMAKE_CXX_FLAGS "-Ofast -Dtestall")
+    message(STATUS ">>> OJ_MODE is ON")
+else()
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -g -O0 ")
+    message(STATUS ">>> OJ_MODE is OFF")
+endif()
 #address violation
 
 include_directories(/usr/include/antlr4-runtime)
@@ -20,6 +28,7 @@ add_executable(Mx_Clion src/parser/antlr4/main.cpp
         src/frontend/ast_builder.cpp
         src/frontend/visit_control.cpp
         src/include/frontend/ast/stat_node/regular_stat_node/null_stat_node.h
+        src/include/frontend/ast/stat_node/regular_stat_node/expr_node/paren_expr_node.h
 )
 
 target_link_libraries(Mx_Clion antlr4-runtime)

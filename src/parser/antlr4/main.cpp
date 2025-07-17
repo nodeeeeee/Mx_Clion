@@ -48,9 +48,7 @@ int main(int argc, const char* argv[]) {
   // {
   // continue;
   // }
-  std::ifstream stream;
 
-  stream.open("testcases/sema/array-package/array-1.mx");
   // stream.open(entry.path());
   // std::cout << entry.path() << std::endl;
 
@@ -73,9 +71,15 @@ int main(int argc, const char* argv[]) {
   // std::cin >> stream;
 
 
+#ifndef testall
+  std::ifstream stream;
+  stream.open("testcases/sema/array-package/array-9.mx");
   ANTLRInputStream input(stream);
+#endif
   MxErrorListener error_listener;
-  // ANTLRInputStream input(std::cin);
+#ifdef testall
+  ANTLRInputStream input(std::cin);
+#endif
   // 生成 Lexer
   MxLexer lexer(&input);
   lexer.addErrorListener(&error_listener);
@@ -90,14 +94,13 @@ int main(int argc, const char* argv[]) {
   // parser.setErrorHandler(std::make_shared<BailErrorStrategy>());  This is a built-in function to catch errors in parser.
   parser.addErrorListener(&error_listener);
   // 调用起始规则
-
   auto tree = parser.prog();
   ASTBuilder ast_builder;
-
+  std::cout << tree->toStringTree(&parser) << std::endl << std::endl;
   auto ast_tree = std::any_cast<std::shared_ptr<RootNode>>(ast_builder.visitProg(tree));
   SemanticCheck semantic_check(ast_tree);
   // std::cout << stream << std::endl;  //
-  std::cout << tree->toStringTree(&parser) << std::endl << std::endl;
+
   std::cout << "解析完成\n";
   // }
 

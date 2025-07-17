@@ -4,7 +4,6 @@
 
 #pragma once
 #include "expr_node.h"
-
 class FuncCallNode : public ExprNode, public std::enable_shared_from_this<FuncCallNode> {
 private:
     std::string func_name;

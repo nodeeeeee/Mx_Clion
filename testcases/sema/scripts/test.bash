@@ -2,7 +2,7 @@
 
 # Usage: scripts/test.bash <compiler> <testcase>
 # Example:
-#     scripts/test.bash '../../mxc -fsyntax-only' ./array-package/array-1.mx
+#     ../../../testcases/sema/scripts/test.bash '../../../cmake-build-testall/Mx_Clion -fsyntax-only' ../../../testcases/sema/array-package/array-4.mx
 
 # Usage
 if [ $# -ne 2 ]; then

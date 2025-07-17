@@ -10,6 +10,7 @@
 #include <ranges>
 #include "frontend/ast/all_ast_nodes.h"
 #include "frontend/ast/ASTNode.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/paren_expr_node.h"
 #include "parser/MxParser.h"
 #include "parser/MxParser.h"
 // #include "frontend/ast/stat_node/regular_stat_node/expr_node/binary_expr_node.h"
@@ -43,9 +44,9 @@
 std::any ASTBuilder::visitProg(MxParser::ProgContext* ctx) {
   std::vector<std::shared_ptr<DefNode>> def_nodes;
   for (const auto& var_def_context : ctx->varDef()) {
-    auto ret = std::any_cast<std::vector<std::shared_ptr<DefNode>>>(var_def_context->accept(this));
+    auto ret = std::any_cast<std::vector<std::shared_ptr<StatNode>>>(var_def_context->accept(this));
     for (const auto& ret_vardef : ret) {
-      def_nodes.push_back(ret_vardef);
+      def_nodes.push_back(dynamic_pointer_cast<DefNode>(ret_vardef));
     }
   }
   for (const auto& func_def_context : ctx->funcDef()) {
@@ -237,10 +238,10 @@ std::any ASTBuilder::visitIfStat(MxParser::IfStatContext* ctx) {
     } else {
       else_block = std::make_shared<BlockNode>(else_stat, Position(ctx));
     }
-    return std::make_shared<IfStatNode>(std::move(predicate), std::move(then_block), std::move(else_block),
-                                        Position(ctx));
+    return dynamic_pointer_cast<StatNode>(std::make_shared<IfStatNode>(std::move(predicate), std::move(then_block), std::move(else_block),
+                                        Position(ctx)));
   } else {
-    return std::make_shared<IfStatNode>(std::move(predicate), std::move(then_block), Position(ctx));
+    return dynamic_pointer_cast<StatNode>(std::make_shared<IfStatNode>(std::move(predicate), std::move(then_block), Position(ctx)));
   }
 }
 
@@ -315,9 +316,11 @@ std::any ASTBuilder:: visitLiteral(MxParser::LiteralContext* ctx) {
 std::any ASTBuilder::visitParenExpr(MxParser::ParenExprContext* ctx) {
   // I compressed the tree by deleting the ParenExprNode.
   if (ctx->expr()) {
-    return std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr()->accept(this));
+    auto inner_expr = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr()->accept(this));
+
+    return std::dynamic_pointer_cast<ExprNode>(std::make_shared<ParenExprNode>(inner_expr, Position(ctx)));
   } else {
-    std::shared_ptr<ExprNode> ret = std::make_shared<NullExprNode>(Position(ctx));
+    auto ret = std::dynamic_pointer_cast<ExprNode>(std::make_shared<NullExprNode>(Position(ctx)));
     return ret;
   }
 }
@@ -529,3 +532,4 @@ std::any ASTBuilder::visitContinuestat(MxParser::ContinuestatContext *ctx) {
 std::any ASTBuilder::visitBreakstat(MxParser::BreakstatContext *ctx) {
   return std::any_cast<std::shared_ptr<StatNode>>(ctx->break_()->accept(this));
 }
+

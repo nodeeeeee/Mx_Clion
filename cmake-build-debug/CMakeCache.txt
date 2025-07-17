@@ -218,6 +218,9 @@ CMAKE_TAPI:FILEPATH=CMAKE_TAPI-NOTFOUND
 // Studio IDE projects all commands are done without /nologo.
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
+//Enable running mode on the judger
+ENABLE_OJ_MODE:BOOL=OFF
+
 //Value Computed by CMake
 Mx_Clion_BINARY_DIR:STATIC=/home/zhang-kai/Documents/计划/暑假/compiler/Mx_Clion/cmake-build-debug
 
