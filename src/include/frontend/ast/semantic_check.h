@@ -56,4 +56,5 @@ private:
   std::shared_ptr<TypeType> k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
   std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
   std::shared_ptr<TypeType> k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
+  std::shared_ptr<TypeType> k_null = std::make_shared<TypeType>(TypeType::PrimitiveType::kNULL);
 };

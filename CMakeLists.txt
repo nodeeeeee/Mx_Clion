@@ -29,6 +29,7 @@ add_executable(Mx_Clion src/parser/antlr4/main.cpp
         src/frontend/visit_control.cpp
         src/include/frontend/ast/stat_node/regular_stat_node/null_stat_node.h
         src/include/frontend/ast/stat_node/regular_stat_node/expr_node/paren_expr_node.h
+        src/include/frontend/ast/type/null_type.h
 )
 
 target_link_libraries(Mx_Clion antlr4-runtime)

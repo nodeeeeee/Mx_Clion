@@ -85,9 +85,9 @@ void SemanticCheck::visit(std::shared_ptr<VarDefNode> node) {
   }
 
   rhs->accept(this); //update the expression type in visit(ExprNode)
-  if (rhs->getExprType() == nullptr) {
+  if (checkType(rhs) == nullptr) {
     throw(std::runtime_error("expression has no type"));
-  } else if (*(rhs->getExprType()) != *lhs) {
+  } else if (*checkType(rhs) != *lhs) {
     throw(std::runtime_error("expression has type mismatch"));
   }
   current_scope->declare(node);
@@ -175,6 +175,7 @@ void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
     while (true) {
       if (auto class_def = dynamic_pointer_cast<ClassDefNode>(tmp_scope->getScopeOwner())) {
         lhs_id = class_def->getIdNode();
+        lhs_class = lhs_id->getIdName();
         break;
       }
       if (tmp_scope->getParent() == nullptr) {
@@ -183,10 +184,11 @@ void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
       tmp_scope = tmp_scope->getParent();
     }
     lhs_class= lhs_id->getIdName();
-  }else {
-    throw std::runtime_error("lhs not id");
+  } else {
+    lhs_type = checkType(lhs);
+    lhs_class = lhs_type->getTypeName();
   }
-  auto class_scope = current_scope->findClass(lhs_id->getIdName());
+  auto class_scope = current_scope->findClass(lhs_class);
   if (class_scope == nullptr) {
     node->setValid(false);
     throw(std::runtime_error("lhs not found"));
@@ -276,6 +278,16 @@ void SemanticCheck::visit(std::shared_ptr<IndexExprNode> node) {
 
 void SemanticCheck::visit(std::shared_ptr<InitArrayNode> node) {
   size_t dim = node->getRangeNode().size();
+  auto ranges = node->getRangeNode();
+  //ranges can be nullptr or expr
+  for (auto range : ranges) {
+    if (range != nullptr) {
+      range->accept(this);
+      if (*checkType(range) != *k_int) {
+        throw std::runtime_error("index type not int");
+      }
+    }
+  }
   node->setExprType(std::make_shared<TypeType>(node->getType(), dim));
   auto default_array = node->getDefaultArray();
   if (default_array != nullptr) {
@@ -367,8 +379,11 @@ void SemanticCheck::visit(std::shared_ptr<AssignStatNode> node) {
   rhs->accept(this);
   std::shared_ptr<TypeType> lhs_type = checkType(lhs);
   std::shared_ptr<TypeType> rhs_type = checkType(rhs);
-  if (*lhs_type != *rhs_type) {
+  if (*lhs_type != *rhs_type && *rhs_type != *k_null) {
     throw(std::runtime_error("assignment statement type mismatch"));
+  }
+  if (*rhs_type == *k_null && (*lhs_type == *k_int || *lhs_type == *k_bool)) {
+    throw std::runtime_error("rhs is null, cannot be assigned to simple primitive on the lhs");
   }
 }
 
@@ -445,11 +460,13 @@ void SemanticCheck::visit(std::shared_ptr<ReturnStatNode> node) {
 void SemanticCheck::visit(std::shared_ptr<WhileStatNode> node) {
   auto cond = node->getWhileCondExprNode();
   auto block = node->getBlockNode();
+  createScope(node);
   cond->accept(this);
   block->accept(this);
-  if (cond->getExprType() != k_bool) {
+  if (*checkType(cond) != *k_bool) {
     throw(std::runtime_error("condition statement type mismatch"));
   }
+  exitScope();
 }
 
 void SemanticCheck::visit(std::shared_ptr<LiteralNode> node) {
@@ -465,7 +482,7 @@ void SemanticCheck::visit(std::shared_ptr<TerminalNode> node) {
       break;
     }
     if (tmp_scope->getParent() == nullptr) {
-      throw(std::runtime_error("no enclosing functions, return statement should not exist"));
+      throw(std::runtime_error("no enclosing functions, break/continue statement should not exist"));
     }
     tmp_scope = tmp_scope->getParent();
   }

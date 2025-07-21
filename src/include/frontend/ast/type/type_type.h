@@ -14,7 +14,7 @@ class VoidType;
 class TypeType {
 public:
   enum class PrimitiveType : int {
-    kINT, kBOOL, kSTRING, kVOID, kOTHER
+    kINT, kBOOL, kSTRING, kVOID, kNULL, kOTHER
   };
   enum SpecialCode : int{
     IntType, NoType

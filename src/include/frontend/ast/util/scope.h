@@ -95,5 +95,10 @@ public:
     string_class_scope->declare(subString_func);
     string_class_scope->declare(parseInt_func);
     string_class_scope->declare(ord_func);
+    auto int_array_class_scope = std::make_shared<Scope>(*this);
+    this->addChildScope(int_array_class_scope);
+    classes["1Int"] = int_array_class_scope;
+    auto int_length_func = std::make_shared<Function>(int_, std::vector<std::shared_ptr<TypeType>>{}, "size");
+    int_array_class_scope->declare(int_length_func);
   }
 };

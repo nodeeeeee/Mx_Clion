@@ -6,6 +6,7 @@
 #include "bool_type.h"
 #include "int_type.h"
 #include "no_type.h"
+#include "null_type.h"
 #include "string_type.h"
 #include "void_type.h"
 
@@ -41,6 +42,9 @@ TypeType::TypeType(PrimitiveType primitive_type, int dimension) : dimension(dime
     primitive_type_ = primitive_type;
   } else if (primitive_type == PrimitiveType::kSTRING) {
     type_ref = &StringType::Instance();
+    primitive_type_ = primitive_type;
+  } else if (primitive_type == PrimitiveType::kNULL) {
+    type_ref = &NullType::Instance();
     primitive_type_ = primitive_type;
   }
 }
@@ -104,8 +108,11 @@ std::string TypeType::getTypeName() {
   if (type_ref != nullptr) {
     if (type_ref == &StringType::Instance()) {
       return "String";
-    } else {
-      throw std::runtime_error("getTypeName should only be used in dot Expr");
+    } else if (type_ref == &IntType::Instance()) {
+      return std::to_string(dimension) + "Int";
+    }
+    else {
+      throw std::runtime_error("Pre-built functions are only available for String or Int");
     }
   } else {
     return customized_type;

@@ -29,6 +29,7 @@ public:
             string_value = token->getText();
         } else if (auto null_type = literal->NULL_()) {
             auto token = null_type->getSymbol();
+            literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kNULL);
             is_null = true;
         }
     }

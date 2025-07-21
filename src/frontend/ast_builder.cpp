@@ -418,7 +418,7 @@ std::any ASTBuilder::visitWhileStat(MxParser::WhileStatContext* ctx) {
   auto while_cond_expr_node = std::any_cast<std::shared_ptr<ExprNode>>(ctx->whileCondExpr->accept(this));
   auto while_body_node = std::any_cast<std::shared_ptr<StatNode>>(ctx->regularStat()->accept(this));
   if (auto block = std::dynamic_pointer_cast<BlockNode>(while_body_node)) {
-    return std::make_shared<WhileStatNode>(std::move(while_cond_expr_node), std::move(block), Position(ctx));
+    return std::dynamic_pointer_cast<StatNode>(std::make_shared<WhileStatNode>(std::move(while_cond_expr_node), std::move(block), Position(ctx)));
   } else {
     auto wrapped_block = std::make_shared<BlockNode>(std::move(while_body_node), Position(ctx));
     return std::dynamic_pointer_cast<StatNode>(std::make_shared<WhileStatNode>(std::move(while_cond_expr_node), std::move(wrapped_block), Position(ctx)));
@@ -527,9 +527,9 @@ std::any ASTBuilder::visitReturnstat(MxParser::ReturnstatContext *ctx) {
   return std::any_cast<std::shared_ptr<StatNode>>(ctx->returnStat()->accept(this));
 }
 std::any ASTBuilder::visitContinuestat(MxParser::ContinuestatContext *ctx) {
-  return std::any_cast<std::shared_ptr<StatNode>>(ctx->continue_()->accept(this));
+  return std::dynamic_pointer_cast<StatNode>(std::any_cast<std::shared_ptr<TerminalNode>>(ctx->continue_()->accept(this)));
 }
 std::any ASTBuilder::visitBreakstat(MxParser::BreakstatContext *ctx) {
-  return std::any_cast<std::shared_ptr<StatNode>>(ctx->break_()->accept(this));
+  return std::dynamic_pointer_cast<StatNode>(std::any_cast<std::shared_ptr<TerminalNode>>(ctx->break_()->accept(this)));
 }
 

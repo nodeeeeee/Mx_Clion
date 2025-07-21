@@ -12,7 +12,9 @@ private:
     std::shared_ptr<TypeType> type;
 public:
     InitObjectNode() = delete;
-    InitObjectNode(std::shared_ptr<TypeType> type, Position position) : type(std::move(type)), ExprNode(position) {}
+    InitObjectNode(std::shared_ptr<TypeType> type, Position position) : type(type), ExprNode(position) {
+        setExprType(type);
+    }
     [[nodiscard]] const std::shared_ptr<TypeType>& getType() const { return type; }
 
 };
