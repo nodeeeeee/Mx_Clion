@@ -37,6 +37,16 @@ public:
     }
   }
 
+  bool compareBase(TypeType const &other) const {
+    if (this->type_ref != nullptr && other.type_ref != nullptr) {
+      return this->type_ref == other.type_ref;
+    } else if (this->type_ref == nullptr && other.type_ref == nullptr) {
+      return this->customized_type == other.customized_type;
+    } else {
+      return false;
+    }
+  }
+
   size_t getDimension() {return dimension;}
 
   std::string getTypeName();

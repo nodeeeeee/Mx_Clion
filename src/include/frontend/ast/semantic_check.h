@@ -34,6 +34,7 @@ public:
   void visit(std::shared_ptr<TernaryExprNode> node) final;
   void visit(std::shared_ptr<AssignStatNode> node) final;
   void visit(std::shared_ptr<BlockNode> node) final;
+  void visit(std::shared_ptr<BlockStatNode> node) final; // this is for raw blocks.
   void visit(std::shared_ptr<ForStatNode> node) final;
   void visit(std::shared_ptr<IfStatNode> node) final;
   void visit(std::shared_ptr<ReturnStatNode> node) final;
@@ -57,4 +58,5 @@ private:
   std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
   std::shared_ptr<TypeType> k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
   std::shared_ptr<TypeType> k_null = std::make_shared<TypeType>(TypeType::PrimitiveType::kNULL);
+  std::shared_ptr<TypeType> k_void = std::make_shared<TypeType>(TypeType::PrimitiveType::kVOID);
 };

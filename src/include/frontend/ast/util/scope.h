@@ -88,17 +88,17 @@ public:
     classes["String"] = string_class_scope;
     auto length_func = std::make_shared<Function>(int_, std::vector<std::shared_ptr<TypeType>>{}, "length");
     auto subString_func = std::make_shared<Function>(string_, std::vector<std::shared_ptr<TypeType>>{int_, int_},
-                                                     "subString");
+                                                     "substring");
     auto parseInt_func = std::make_shared<Function>(int_, std::vector<std::shared_ptr<TypeType>>{}, "parseInt");
     auto ord_func = std::make_shared<Function>(int_, std::vector<std::shared_ptr<TypeType>>{int_}, "ord");
     string_class_scope->declare(length_func);
     string_class_scope->declare(subString_func);
     string_class_scope->declare(parseInt_func);
     string_class_scope->declare(ord_func);
-    auto int_array_class_scope = std::make_shared<Scope>(*this);
-    this->addChildScope(int_array_class_scope);
-    classes["1Int"] = int_array_class_scope;
-    auto int_length_func = std::make_shared<Function>(int_, std::vector<std::shared_ptr<TypeType>>{}, "size");
-    int_array_class_scope->declare(int_length_func);
+    auto array_class_scope = std::make_shared<Scope>(*this);
+    this->addChildScope(array_class_scope);
+    classes["0Array"] = array_class_scope;
+    auto array_length_func = std::make_shared<Function>(int_, std::vector<std::shared_ptr<TypeType>>{}, "size");
+    array_class_scope->declare(array_length_func);
   }
 };

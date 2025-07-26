@@ -29,6 +29,12 @@ void SemanticCheck::visit(std::shared_ptr<BlockNode> node) {
   }
 }
 
+void SemanticCheck::visit(std::shared_ptr<BlockStatNode> node) {
+  createScope(node);
+  node->getBlockNode()->accept(this);
+  exitScope();
+}
+
 void SemanticCheck::visit(std::shared_ptr<FuncDefNode> node) {
   auto block_node = node->getFuncBlock();
   auto var_defs = node->getVarDefs();
@@ -46,7 +52,7 @@ void SemanticCheck::visit(std::shared_ptr<ClassDefNode> node) {
   // block_node->accept(this);
   auto stats = block_node->getStatNodes();
   for (const auto& stat_node : stats) {
-    if (auto func_def = std::dynamic_pointer_cast<FuncDefNode> (stat_node)) {
+    if (auto func_def = std::dynamic_pointer_cast<FuncDefNode>(stat_node)) {
       func_def->accept(this);
     }
   }
@@ -77,18 +83,26 @@ void SemanticCheck::visit(std::shared_ptr<ClassFuncDefNode> node) {
 
 void SemanticCheck::visit(std::shared_ptr<VarDefNode> node) {
   auto lhs = std::shared_ptr<TypeType>(node->getIdNode()->getType());
-
+  if (*lhs == *k_void || lhs->compareBase(*k_void)) {
+    throw std::runtime_error("variable cannot be void type");
+  }
   auto rhs = node->getExpr();
+
   if (rhs == nullptr) {
     current_scope->declare(node);
-    return ;
+    return;
   }
 
   rhs->accept(this); //update the expression type in visit(ExprNode)
-  if (checkType(rhs) == nullptr) {
+  auto rhs_type = checkType(rhs);
+  auto lhs_type = lhs;
+  if (rhs_type == nullptr) {
     throw(std::runtime_error("expression has no type"));
-  } else if (*checkType(rhs) != *lhs) {
+  } else if (*checkType(rhs) != *lhs && *rhs_type != *k_null) {
     throw(std::runtime_error("expression has type mismatch"));
+  }
+  if (*rhs_type == *k_null && (*lhs_type == *k_int || *lhs_type == *k_bool)) {
+    throw std::runtime_error("rhs is null, cannot be assigned to simple primitive on the lhs");
   }
   current_scope->declare(node);
 }
@@ -163,6 +177,7 @@ void SemanticCheck::visit(std::shared_ptr<BinaryExprNode> node) {
 void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
   auto lhs = node->getLhs();
   auto rhs = node->getRhs();
+  lhs->accept(this);
   std::shared_ptr<IdNode> lhs_id;
   std::shared_ptr<TypeType> lhs_type;
   std::string lhs_class;
@@ -170,7 +185,7 @@ void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
     lhs_id = std::dynamic_pointer_cast<IdNode>(id_tmp);
     lhs_type = current_scope->findVar(lhs_id->getIdName());
     lhs_class = lhs_type->getTypeName();
-  } else if (auto this_tmp =  std::dynamic_pointer_cast<ThisExprNode>(lhs)) {
+  } else if (auto this_tmp = std::dynamic_pointer_cast<ThisExprNode>(lhs)) {
     auto tmp_scope = current_scope;
     while (true) {
       if (auto class_def = dynamic_pointer_cast<ClassDefNode>(tmp_scope->getScopeOwner())) {
@@ -183,7 +198,7 @@ void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
       }
       tmp_scope = tmp_scope->getParent();
     }
-    lhs_class= lhs_id->getIdName();
+    lhs_class = lhs_id->getIdName();
   } else {
     lhs_type = checkType(lhs);
     lhs_class = lhs_type->getTypeName();
@@ -209,13 +224,9 @@ void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
       node->setValid(false);
     }
     node->setExprType(rhs_type);
-
-  }else {
+  } else {
     throw std::runtime_error("rhs not id or funccall");
   }
-
-
-
 }
 
 void SemanticCheck::visit(std::shared_ptr<FormatStringNode> node) {
@@ -236,7 +247,7 @@ void SemanticCheck::visit(std::shared_ptr<FuncCallNode> node) {
     arg->accept(this);
     if (!arg->isValid()) {
       node->setValid(false);
-      throw std::runtime_error("function arguments invalid") ;
+      throw std::runtime_error("function arguments invalid");
     }
   }
   auto func_param_types = func->getParamTypes();
@@ -278,6 +289,9 @@ void SemanticCheck::visit(std::shared_ptr<IndexExprNode> node) {
 
 void SemanticCheck::visit(std::shared_ptr<InitArrayNode> node) {
   size_t dim = node->getRangeNode().size();
+  if (node->getType()->getDimension() != 0) {
+    throw std::runtime_error("first index of init array is vacant");
+  }
   auto ranges = node->getRangeNode();
   //ranges can be nullptr or expr
   for (auto range : ranges) {
@@ -299,6 +313,10 @@ void SemanticCheck::visit(std::shared_ptr<InitArrayNode> node) {
 }
 
 void SemanticCheck::visit(std::shared_ptr<InitObjectNode> node) {
+  auto node_type = node->getType();
+  if (current_scope->findClass(node_type->getTypeName())) {
+    node->setExprType(node->getType());
+  }
 }
 
 void SemanticCheck::visit(std::shared_ptr<NullExprNode> node) {
@@ -320,6 +338,7 @@ void SemanticCheck::visit(std::shared_ptr<UnaryExprNode> node) {
         node->setValid(false);
         throw std::runtime_error("++/-- cannot be applied to prvalues");
       }
+      node->setExprType(k_int);
       node->setPrvalue(false);
       break;
     }
@@ -331,6 +350,7 @@ void SemanticCheck::visit(std::shared_ptr<UnaryExprNode> node) {
         node->setValid(false);
         throw std::runtime_error("++/-- cannot be applied to prvalues");
       }
+      node->setExprType(k_int);
       break;
     }
     case UnaryExprNode::UnaryOp::kADD:
@@ -376,6 +396,9 @@ void SemanticCheck::visit(std::shared_ptr<AssignStatNode> node) {
   auto lhs = node->getLhs();
   auto rhs = node->getRhs();
   lhs->accept(this);
+  if (auto lhs_literal = std::dynamic_pointer_cast<LiteralNode>(lhs)) {
+    throw std::runtime_error("lhs should not be literal");
+  }
   rhs->accept(this);
   std::shared_ptr<TypeType> lhs_type = checkType(lhs);
   std::shared_ptr<TypeType> rhs_type = checkType(rhs);
@@ -395,13 +418,13 @@ void SemanticCheck::visit(std::shared_ptr<ForStatNode> node) {
   auto update_expr = node->getUpdateExprNode();
   auto block = node->getBlockNode();
   createScope(node);
-  if (initial_var != nullptr) {initial_var->accept(this);}
+  if (initial_var != nullptr) { initial_var->accept(this); }
   if (initial_expr != nullptr) {
     initial_expr->accept(this);
   }
-  if (for_cond != nullptr) {for_cond->accept(this);}
-  if (update_assign != nullptr) {update_assign->accept(this);}
-  if (update_expr != nullptr) {update_expr->accept(this);}
+  if (for_cond != nullptr) { for_cond->accept(this); }
+  if (update_assign != nullptr) { update_assign->accept(this); }
+  if (update_expr != nullptr) { update_expr->accept(this); }
   block->accept(this);
   exitScope();
 }
@@ -424,36 +447,48 @@ void SemanticCheck::visit(std::shared_ptr<IfStatNode> node) {
 void SemanticCheck::visit(std::shared_ptr<ReturnStatNode> node) {
   //find the first typed owner of the scope,match it.
   auto return_expr = node->getReturnExpr();
-  return_expr->accept(this);
-  if (auto id_expr = std::dynamic_pointer_cast<IdNode>(return_expr)) {
-    return_expr->setExprType(current_scope->findVar(id_expr->getIdName()));
-  }
-  auto tmp_scope = current_scope;
-  while (true) {
-    if (auto func = dynamic_pointer_cast<FuncDefNode>(tmp_scope->getScopeOwner())) {
-      if (*(func->getReturnType()) != *(return_expr->getExprType())) {
-        // auto tmpa = func->getReturnType();
-        // auto tmpb = return_expr->getExprType();
-        // auto equal = tmpa->getTypeName() == tmpb;
-        throw std::runtime_error("return statement type mismatch");
-      } else {
-        break;
+  if (return_expr == nullptr) {
+    auto tmp_scope = current_scope;
+    while (true) {
+      if (auto func = dynamic_pointer_cast<FuncDefNode>(tmp_scope->getScopeOwner())) {
+        if (*(func->getReturnType()) != *k_void) {
+          throw std::runtime_error("return statement type mismatch");
+        } else {
+          break;
+        }
       }
-    }
-    if (auto func = dynamic_pointer_cast<MainFuncNode>(tmp_scope->getScopeOwner())) {
-      if (*(k_int) != *(return_expr->getExprType())) {
-        // auto tmpa = func->getReturnType();
-        // auto tmpb = return_expr->getExprType();
-        // auto equal = tmpa->getTypeName() == tmpb;
-        throw std::runtime_error("return statement type mismatch");
-      } else {
-        break;
+      if (tmp_scope->getParent() == nullptr) {
+        throw(std::runtime_error("no enclosing functions, return statement should not exist"));
       }
+      tmp_scope = tmp_scope->getParent();
     }
-    if (tmp_scope->getParent() == nullptr) {
-      throw(std::runtime_error("no enclosing functions, return statement should not exist"));
+  } else {
+    return_expr->accept(this);
+    auto return_expr_type = checkType(return_expr);
+    auto tmp_scope = current_scope;
+    while (true) {
+      if (auto func = dynamic_pointer_cast<FuncDefNode>(tmp_scope->getScopeOwner())) {
+        if (*(func->getReturnType()) != *return_expr_type) {
+          // auto tmpa = func->getReturnType();
+          // auto tmpb = return_expr->getExprType();
+          // auto equal = tmpa->getTypeName() == tmpb;
+          throw std::runtime_error("return statement type mismatch");
+        } else {
+          break;
+        }
+      }
+      if (auto func = dynamic_pointer_cast<MainFuncNode>(tmp_scope->getScopeOwner())) {
+        if (*(k_int) != *(return_expr_type)) {
+          throw std::runtime_error("return statement type mismatch");
+        } else {
+          break;
+        }
+      }
+      if (tmp_scope->getParent() == nullptr) {
+        throw(std::runtime_error("no enclosing functions, return statement should not exist"));
+      }
+      tmp_scope = tmp_scope->getParent();
     }
-    tmp_scope = tmp_scope->getParent();
   }
 }
 
@@ -492,8 +527,9 @@ void SemanticCheck::visit(std::shared_ptr<ParenExprNode> node) {
   auto inner_expr = node->getInnerExpr();
   inner_expr->accept(this);
   node->setExprType(checkType(inner_expr));
+  node->setPrvalue(inner_expr->isPrvalue());
+  node->setValid(inner_expr->isValid());
 }
-
 
 
 void SemanticCheck::createScope(const std::shared_ptr<ASTNode>& node) {
@@ -514,7 +550,8 @@ std::shared_ptr<TypeType> SemanticCheck::checkType(std::shared_ptr<ExprNode> exp
   if (auto expr_id = std::dynamic_pointer_cast<IdNode>(expr)) {
     expr_type = current_scope->findVar(expr_id->getIdName());
     expr->setPrvalue(false);
-  } else {
+  }
+    else {
     expr_type = expr->getExprType();
   }
   return expr_type;

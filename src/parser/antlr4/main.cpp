@@ -73,7 +73,7 @@ int main(int argc, const char* argv[]) {
 
 #ifndef testall
   std::ifstream stream;
-  stream.open("testcases/sema/basic-package/basic-3.mx");
+  stream.open("testcases/sema/class-package/class-1.mx");
   ANTLRInputStream input(stream);
 #endif
   MxErrorListener error_listener;

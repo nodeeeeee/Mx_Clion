@@ -26,6 +26,7 @@ if [ "$(grep -c "Verdict:" "$TESTCASE")" -ne 1 ]; then
     exit 1
 fi
 VERDICT_STRING=$(grep "Verdict:" "$TESTCASE" | awk '{print $2}')
+echo $VERDICT_STRING
 if [ "$VERDICT_STRING" == "Fail" ]; then
     VERDICT=0
 else
@@ -43,6 +44,8 @@ fail() {
 }
 $COMPILER < "$TESTCASE" > /dev/null
 RETURN_CODE=$?
+echo $RETURN_CODE
+echo $VERDICT
 if [ $RETURN_CODE -ne 0 ]; then
     if [ $VERDICT -eq 0 ]; then
         pass

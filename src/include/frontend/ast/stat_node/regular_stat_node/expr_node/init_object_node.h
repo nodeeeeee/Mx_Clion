@@ -7,7 +7,7 @@
 
 class TypeNode;
 
-class InitObjectNode : public ExprNode {
+class InitObjectNode : public ExprNode, public std::enable_shared_from_this<InitObjectNode> {
 private:
     std::shared_ptr<TypeType> type;
 public:
@@ -16,5 +16,6 @@ public:
         setExprType(type);
     }
     [[nodiscard]] const std::shared_ptr<TypeType>& getType() const { return type; }
+    void accept(VisitControl *visitor) override {visitor->visit(shared_from_this());}
 
 };

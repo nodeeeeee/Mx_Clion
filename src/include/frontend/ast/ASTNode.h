@@ -17,6 +17,9 @@ public:
     ASTNode(Position position) : position(position) {}
     virtual void accept(VisitControl *visitor) {
     }
+    Position getPosition() {
+        return position;
+    }
     virtual ~ASTNode() = default;
 
 private:

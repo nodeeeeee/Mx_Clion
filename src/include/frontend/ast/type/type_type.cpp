@@ -107,14 +107,20 @@ int TypeType::countBracket(MxParser::TypeContext *ctx, TypeType** type_ref_ptr, 
 std::string TypeType::getTypeName() {
   if (type_ref != nullptr) {
     if (type_ref == &StringType::Instance()) {
-      return "String";
-    } else if (type_ref == &IntType::Instance()) {
-      return std::to_string(dimension) + "Int";
+      if (dimension == 0) {return "String";}
+      else {return "0Array";}
+    } else if (type_ref == &IntType::Instance() && dimension != 0) {
+      return "0Array";
+    } else if (type_ref == &BoolType::Instance() && dimension != 0) {
+      return "0Array";
     }
     else {
-      throw std::runtime_error("Pre-built functions are only available for String or Int");
+      throw std::runtime_error("Pre-built functions are only available for String or Array");
     }
-  } else {
+  } else if (dimension != 0) {
+    return "0Array";
+  }
+  else {
     return customized_type;
   }
 }

@@ -30,6 +30,7 @@ class NullExprNode;
 class UnaryExprNode;
 class AssignExprNode;
 class BlockNode;
+class BlockStatNode;
 class ForStatNode;
 class IfStatNode;
 class ReturnStatNode;
@@ -65,6 +66,7 @@ public:
   virtual void visit (std::shared_ptr<TernaryExprNode> node) = 0;
   virtual void visit (std::shared_ptr<AssignStatNode> node) = 0;
   virtual void visit (std::shared_ptr<BlockNode> node) = 0;
+  virtual void visit (std::shared_ptr<BlockStatNode> node) = 0;
   virtual void visit (std::shared_ptr<ForStatNode> node) = 0;
   virtual void visit (std::shared_ptr<IfStatNode> node) = 0;
   virtual void visit (std::shared_ptr<ReturnStatNode> node) = 0;
