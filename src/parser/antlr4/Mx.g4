@@ -1,7 +1,7 @@
 grammar Mx;
 @lexer::members {
     bool isID = true;
-    bool start = true;
+    int start = 0;
 }
 prog : (classDef ';' | varDef ';' | funcDef)* mainFunc (classDef ';' | varDef ';' | funcDef)* EOF;
 
@@ -57,10 +57,10 @@ continue : CONTINUE;
 break : BREAK;
 
 expr : '(' expr? ')'                                                    #parenExpr
-     | expr '[' expr ']'                                               #indexExpr
+     | expr '[' expr ']'                                                #indexExpr
      | arrayConst                                                       #arrayExpr
      | funcCall                                                         #funcCallExpr
-     | expr '.' expr                                                    #dotExpr
+     | expr '.' (ID | funcCall)                                         #dotExpr
      | expr (PLUS_PLUS | MINUS_MINUS)                                   #unaryExpr
      | (PLUS_PLUS | MINUS_MINUS) expr                                   #unaryExpr
      | (WAVE | EXCLAIMER) expr                                          #unaryExpr
@@ -75,7 +75,7 @@ expr : '(' expr? ')'                                                    #parenEx
      | expr OR expr                                                     #binaryExpr
      | expr AND_AND expr                                                #binaryExpr
      | expr OR_OR expr                                                  #binaryExpr
-     | expr '?' expr ':' expr                                           #ternaryExpr
+     | <assoc=right> expr '?' expr ':' expr                             #ternaryExpr
      | initArray                                                        #initArrayExpr
      | initObject                                                       #initObjectExpr
      | formatString                                                     #formatStringExpr
@@ -84,7 +84,7 @@ expr : '(' expr? ')'                                                    #parenEx
      | ID                                                               #idExpr
      ;
 
-formatString : FORMAT_STRING_STARTER (FORMAT_STRING_ELEMENT | (DOLLAR expr DOLLAR))* QUOTATION;
+formatString : FORMAT_STRING_STARTER (FORMAT_STRING_ELEMENT | (DOLLAR expr? DOLLAR))* QUOTATION;
 
 
 funcCall : ID '(' (expr (',' expr)*)? ')';
@@ -114,10 +114,10 @@ SL_COMMENT : '//' .*? ('\n'|EOF) -> skip;
 ML_COMMENT : '/*' .*? '*/' -> skip;
 DOCS_COMMENT : '/**' .*? '*/' -> skip;
 //FORMAL_STRING : 'f' STRING;  //I need to guarantee that the inner $$ are executed as well.
-FORMAT_STRING_ELEMENT : {!isID && start}? ('\\n' | '\\\\' | '\\"' | '$$' | [ !#%-[\]-~])+ ;
-STRING : '"' ('\\n' | '\\\\' | '\\"' | [ !#-[\]-~])* '"';
-FORMAT_STRING_STARTER : 'f"'{isID = !isID; start = true;};
-QUOTATION : '"'{isID = !isID; start = false;};
+FORMAT_STRING_ELEMENT : {!isID && start > 0}? ('\\n' | '\\\\' | '\\"' | '$$' | [ !#%-[\]-~])+ ;
+QUOTATION : {!isID && start > 0}?'"'{isID = !isID; start--;};
+FORMAT_STRING_STARTER : 'f"'{isID = !isID; start++;};
+STRING : {isID || start == 0}?'"' ('\\n' | '\\\\' | '\\"' | [ !#-[\]-~])* '"';
 CLASS : 'class';
 FOR : 'for';
 WHILE : 'while';

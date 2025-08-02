@@ -16,7 +16,7 @@
 #include "frontend/ast/semantic_check.h"
 #include <filesystem>
 #include <thread>      // std::this_thread::sleep_for
-#include <chrono>      // std::chrono::milliseconds
+// #include <chrono>      // std::chrono::milliseconds
 
 using namespace antlr4;
 namespace fs = std::filesystem;
@@ -73,7 +73,7 @@ int main(int argc, const char* argv[]) {
 
 #ifndef testall
   std::ifstream stream;
-  stream.open("testcases/sema/class-package/class-1.mx");
+  stream.open("testcases/sema/formatted-string-package/formatted-string3.mx");
   ANTLRInputStream input(stream);
 #endif
   MxErrorListener error_listener;
@@ -85,9 +85,9 @@ int main(int argc, const char* argv[]) {
   lexer.addErrorListener(&error_listener);
   CommonTokenStream tokens(&lexer);
   tokens.fill();
-  // for (auto token : tokens.getTokens()) {
-  //   std::cout << token->toString() << std::endl;
-  // }
+  for (auto token : tokens.getTokens()) {
+    std::cout << token->toString() << std::endl;
+  }
   // 生成 Parser
 
   MxParser parser(&tokens);

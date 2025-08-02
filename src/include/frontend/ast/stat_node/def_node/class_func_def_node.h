@@ -4,6 +4,7 @@
 
 #pragma once
 #include "def_node.h"
+#include "frontend/ast/type/type_type.h"
 
 class BlockNode;
 
@@ -16,6 +17,9 @@ public:
     block_node(std::move(block_node)), DefNode(std::move(ID), DefType::kClassFunc, position) {
   };
   void accept(VisitControl* visitor) { visitor->visit(shared_from_this()); }
+  std::shared_ptr<TypeType> getReturnType() {
+    return std::make_shared<TypeType>(TypeType::PrimitiveType::kVOID);
+  }
 
 private:
   std::shared_ptr<BlockNode> block_node;

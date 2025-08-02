@@ -214,3 +214,19 @@
     ```
 
     This is how to call the run_all script. I can either change profile or change the application. When changing the profile, I am changing the compile options(program arguments). When changing the application, I can designate program arguments, environment variables and working directory.
+
+24. We can define debugging mode and oj/test mode in Clion, by "Edit Cmake Profiles", and write your customized CMake options. For example, if I add `-DENABLE_OJ_MODE=ON`, and add
+
+    ```cmake
+    if(ENABLE_OJ_MODE)
+        set(CMAKE_CXX_FLAGS "-Ofast -Dtestall")
+        message(STATUS ">>> OJ_MODE is ON")
+    else()
+        set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -g -O0 ")
+        message(STATUS ">>> OJ_MODE is OFF")
+    endif()
+    ```
+
+    in CMakeLists.txt, and add corresponding `#ifdef`, `#ifndef`, `#endif` in `main.cpp`. We can conveniently switch b
+
+    

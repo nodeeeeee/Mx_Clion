@@ -13,7 +13,7 @@ class  MxLexer : public antlr4::Lexer {
 public:
   enum {
     SL_COMMENT = 1, ML_COMMENT = 2, DOCS_COMMENT = 3, FORMAT_STRING_ELEMENT = 4, 
-    STRING = 5, FORMAT_STRING_STARTER = 6, QUOTATION = 7, CLASS = 8, FOR = 9, 
+    QUOTATION = 5, FORMAT_STRING_STARTER = 6, STRING = 7, CLASS = 8, FOR = 9, 
     WHILE = 10, IF = 11, ELSE = 12, INT = 13, BOOLEAN = 14, STR = 15, VOID = 16, 
     MAIN = 17, RETURN = 18, CONTINUE = 19, BREAK = 20, NEW = 21, NULL_ = 22, 
     BOOL = 23, THIS = 24, WS = 25, ID = 26, DOLLAR = 27, INTEGER = 28, LETTER = 29, 
@@ -32,7 +32,7 @@ public:
 
 
       bool isID = true;
-      bool start = true;
+      int start = 0;
 
 
   std::string getGrammarFileName() const override;
@@ -61,12 +61,14 @@ public:
 private:
 
   // Individual action functions triggered by action() above.
-  void FORMAT_STRING_STARTERAction(antlr4::RuleContext *context, size_t actionIndex);
   void QUOTATIONAction(antlr4::RuleContext *context, size_t actionIndex);
+  void FORMAT_STRING_STARTERAction(antlr4::RuleContext *context, size_t actionIndex);
   void DOLLARAction(antlr4::RuleContext *context, size_t actionIndex);
 
   // Individual semantic predicate functions triggered by sempred() above.
   bool FORMAT_STRING_ELEMENTSempred(antlr4::RuleContext *_localctx, size_t predicateIndex);
+  bool QUOTATIONSempred(antlr4::RuleContext *_localctx, size_t predicateIndex);
+  bool STRINGSempred(antlr4::RuleContext *_localctx, size_t predicateIndex);
 
 };
 

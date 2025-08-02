@@ -38,6 +38,7 @@ public:
   const std::shared_ptr<Function>& findFunc(std::string func_name);
   const std::shared_ptr<TypeType> findVar(std::string var_name);
   void setVarType(std::string var_name, std::shared_ptr<TypeType> var_type);
+
   const std::shared_ptr<Scope>& findClass(std::string class_name);
   std::shared_ptr<Function> makeFunction(std::shared_ptr<FuncDefNode> func);
   std::shared_ptr<Function> makeFunction(std::shared_ptr<ClassFuncDefNode> class_func);
@@ -50,6 +51,10 @@ public:
   const std::shared_ptr<Scope>& getParent();
   const std::shared_ptr<Scope> temp_scope;
 
+  //exclusively for return analysis
+  void setHasReturn(bool has_return) {has_return_ = has_return;}
+  bool getHasReturn() {return has_return_;}
+
 protected:
   std::map<std::string, std::shared_ptr<TypeType>> vars;
   std::map<std::string, std::shared_ptr<Function>> functions;
@@ -57,6 +62,7 @@ protected:
   std::vector<std::shared_ptr<Scope>> children;
   std::shared_ptr<Scope> parent;
   std::shared_ptr<ASTNode> scope_owner;
+  bool has_return_ = false;
 };
 
 

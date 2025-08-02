@@ -13,7 +13,7 @@ class  MxParser : public antlr4::Parser {
 public:
   enum {
     SL_COMMENT = 1, ML_COMMENT = 2, DOCS_COMMENT = 3, FORMAT_STRING_ELEMENT = 4, 
-    STRING = 5, FORMAT_STRING_STARTER = 6, QUOTATION = 7, CLASS = 8, FOR = 9, 
+    QUOTATION = 5, FORMAT_STRING_STARTER = 6, STRING = 7, CLASS = 8, FOR = 9, 
     WHILE = 10, IF = 11, ELSE = 12, INT = 13, BOOLEAN = 14, STR = 15, VOID = 16, 
     MAIN = 17, RETURN = 18, CONTINUE = 19, BREAK = 20, NEW = 21, NULL_ = 22, 
     BOOL = 23, THIS = 24, WS = 25, ID = 26, DOLLAR = 27, INTEGER = 28, LETTER = 29, 
@@ -582,9 +582,10 @@ public:
   public:
     DotExprContext(ExprContext *ctx);
 
-    std::vector<ExprContext *> expr();
-    ExprContext* expr(size_t i);
+    ExprContext *expr();
     antlr4::tree::TerminalNode *DOT();
+    antlr4::tree::TerminalNode *ID();
+    FuncCallContext *funcCall();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
 

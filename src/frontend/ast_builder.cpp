@@ -53,7 +53,7 @@ std::any ASTBuilder::visitProg(MxParser::ProgContext* ctx) {
     }
   }
   auto main_node = std::any_cast<std::shared_ptr<MainFuncNode>>(
-     ctx->mainFunc()->accept(this));
+    ctx->mainFunc()->accept(this));
   def_nodes.push_back(main_node);
   for (const auto& var_def_context : ctx->varDef()) {
     if (var_def_context->getSourceInterval().a > ctx->mainFunc()->getSourceInterval().a) {
@@ -87,12 +87,12 @@ std::any ASTBuilder::visitVarDef(MxParser::VarDefContext* ctx) {
   int expr_cnt = 0;
   for (const auto& varId : ctx->ID()) {
     if (expr_cnt < exprs.size() && varId->getSourceInterval().b + 2 == exprs.at(expr_cnt)->getSourceInterval().a) {
-      auto id_node = std::make_shared<IdNode>(std::move(type), varId);
+      auto id_node = std::make_shared<IdNode>(type, varId);
       auto ret = std::any_cast<std::shared_ptr<ExprNode>>(exprs[expr_cnt]->accept(this));
       var_defs.push_back(std::make_shared<VarDefNode>(std::move(id_node), Position(ctx),
                                                       std::move(ret)));
     } else {
-      auto id_node = std::make_shared<IdNode>(std::move(type), varId);
+      auto id_node = std::make_shared<IdNode>(type, varId);
       var_defs.push_back(std::make_shared<VarDefNode>(std::move(id_node), Position(ctx)));
     }
   }
@@ -159,7 +159,7 @@ std::any ASTBuilder::visitBinaryExpr(MxParser::BinaryExprContext* ctx) {
     expr_nodes.push_back(std::any_cast<std::shared_ptr<ExprNode>>(expr->accept(this)));
   }
   // auto expr_nodes = std::any_cast<std::vector<std::shared_ptr<
-    // ExprNode>>>(ctx->expr());
+  // ExprNode>>>(ctx->expr());
   std::shared_ptr<ExprNode> lhs = expr_nodes.at(0);
   std::shared_ptr<ExprNode> rhs = expr_nodes.at(1);
   BinaryExprNode::BinaryOp op;
@@ -200,7 +200,8 @@ std::any ASTBuilder::visitBinaryExpr(MxParser::BinaryExprContext* ctx) {
   } else if (ctx->OR_OR()) {
     op = BinaryExprNode::BinaryOp::kOR_OR;
   }
-  return std::dynamic_pointer_cast<ExprNode>(std::make_shared<BinaryExprNode>(op, std::move(lhs), std::move(rhs), Position(ctx)));
+  return std::dynamic_pointer_cast<ExprNode>(
+    std::make_shared<BinaryExprNode>(op, std::move(lhs), std::move(rhs), Position(ctx)));
 }
 
 std::any ASTBuilder::visitUnaryExpr(MxParser::UnaryExprContext* ctx) {
@@ -232,27 +233,67 @@ std::any ASTBuilder::visitUnaryExpr(MxParser::UnaryExprContext* ctx) {
 
 std::any ASTBuilder::visitIfStat(MxParser::IfStatContext* ctx) {
   auto predicate = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr()->accept(this));
-  auto then_stat = std::any_cast<std::shared_ptr<StatNode>>(
-    ctx->regularStat(0)->accept(this));
+  // auto then_stat = std::any_cast<std::shared_ptr<StatNode>>(
+  //   ctx->regularStat(0)->accept(this));
+  // std::shared_ptr<BlockNode> then_block;
+  // if (auto block_node = std::dynamic_pointer_cast<BlockNode>(then_stat)) {
+  //   then_block = std::move(block_node);
+  // } else {
+  //   then_block = std::make_shared<BlockNode>(then_stat, Position(ctx));
+  // }
+
+  auto then_stat = ctx->regularStat(0)->accept(this);
+  std::vector<std::shared_ptr<StatNode>> then_stat_nodes;
   std::shared_ptr<BlockNode> then_block;
-  if (auto block_node = std::dynamic_pointer_cast<BlockNode>(then_stat)) {
-    then_block = std::move(block_node);
-  } else {
-    then_block = std::make_shared<BlockNode>(then_stat, Position(ctx));
-  }
-  if (ctx->ELSE()) {
-    auto else_stat = std::any_cast<std::shared_ptr<StatNode>>(
-      ctx->regularStat(1)->accept(this));
-    std::shared_ptr<BlockNode> else_block;
-    if (auto block_node = std::dynamic_pointer_cast<BlockNode>(else_stat)) {
-      else_block = std::move(block_node);
-    } else {
-      else_block = std::make_shared<BlockNode>(else_stat, Position(ctx));
+  if (then_stat.type() == typeid(std::vector<std::shared_ptr<StatNode>>)) {
+    auto var_defs = std::any_cast<std::vector<std::shared_ptr<StatNode>>>(then_stat);
+    for (const auto& var_def : var_defs) {
+      then_stat_nodes.push_back(var_def);
+      then_block = std::make_shared<BlockNode>(std::move(then_stat_nodes), Position(ctx));
     }
-    return dynamic_pointer_cast<StatNode>(std::make_shared<IfStatNode>(std::move(predicate), std::move(then_block), std::move(else_block),
-                                        Position(ctx)));
   } else {
-    return dynamic_pointer_cast<StatNode>(std::make_shared<IfStatNode>(std::move(predicate), std::move(then_block), Position(ctx)));
+    auto regular_stat_node = std::any_cast<std::shared_ptr<StatNode>>(then_stat);
+    if (auto tmp_block = std::dynamic_pointer_cast<BlockNode>(regular_stat_node)) {
+      then_block = tmp_block;
+    } else {
+      then_block = std::make_shared<BlockNode>(std::move(regular_stat_node), Position(ctx));
+    }
+  }
+
+
+  if (ctx->ELSE()) {
+    // auto else_stat = std::any_cast<std::shared_ptr<StatNode>>(
+    //   ctx->regularStat(1)->accept(this));
+    // std::shared_ptr<BlockNode> else_block;
+    // if (auto block_node = std::dynamic_pointer_cast<BlockNode>(else_stat)) {
+    //   else_block = std::move(block_node);
+    // } else {
+    //   else_block = std::make_shared<BlockNode>(else_stat, Position(ctx));
+    // }
+    auto else_stat = ctx->regularStat(1)->accept(this);
+    std::vector<std::shared_ptr<StatNode>> else_stat_nodes;
+    std::shared_ptr<BlockNode> else_block;
+    if (else_stat.type() == typeid(std::vector<std::shared_ptr<StatNode>>)) {
+      auto var_defs = std::any_cast<std::vector<std::shared_ptr<StatNode>>>(else_stat);
+      for (const auto& var_def : var_defs) {
+        else_stat_nodes.push_back(var_def);
+        else_block = std::make_shared<BlockNode>(std::move(else_stat_nodes), Position(ctx));
+      }
+    } else {
+      auto regular_stat_node = std::any_cast<std::shared_ptr<StatNode>>(else_stat);
+      if (auto tmp_block = std::dynamic_pointer_cast<BlockNode>(regular_stat_node)) {
+        else_block = tmp_block;
+      } else {
+        else_block = std::make_shared<BlockNode>(std::move(regular_stat_node), Position(ctx));
+      }
+    }
+
+    return dynamic_pointer_cast<StatNode>(std::make_shared<IfStatNode>(std::move(predicate), std::move(then_block),
+                                                                       std::move(else_block),
+                                                                       Position(ctx)));
+  } else {
+    return dynamic_pointer_cast<StatNode>(
+      std::make_shared<IfStatNode>(std::move(predicate), std::move(then_block), Position(ctx)));
   }
 }
 
@@ -260,8 +301,9 @@ std::any ASTBuilder::visitTernaryExpr(MxParser::TernaryExprContext* ctx) {
   auto predicate = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr(0)->accept(this));
   auto then_expr = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr(1)->accept(this));
   auto else_expr = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr(2)->accept(this));
-  return std::dynamic_pointer_cast<ExprNode>(std::make_shared<TernaryExprNode>(std::move(predicate), std::move(then_expr), std::move(else_expr),
-                                           Position(ctx)));
+  return std::dynamic_pointer_cast<ExprNode>(std::make_shared<TernaryExprNode>(
+    std::move(predicate), std::move(then_expr), std::move(else_expr),
+    Position(ctx)));
 }
 
 std::any ASTBuilder::visitArrayConst(MxParser::ArrayConstContext* ctx) {
@@ -269,13 +311,15 @@ std::any ASTBuilder::visitArrayConst(MxParser::ArrayConstContext* ctx) {
     auto elements = ctx->literal();
     std::vector<std::shared_ptr<LiteralNode>> literals;
     for (const auto& element : elements) {
-      literals.push_back(std::any_cast<std::shared_ptr<LiteralNode>>(element->accept(this)));
+      literals.push_back(
+        std::dynamic_pointer_cast<LiteralNode>(std::any_cast<std::shared_ptr<ExprNode>>(element->accept(this))));
     }
     return std::dynamic_pointer_cast<ExprNode>(std::make_shared<ArrayConstNode>(std::move(literals), Position(ctx)));
   } else if (ctx->arrayConst(0)) {
     std::vector<std::shared_ptr<ArrayConstNode>> elements;
     for (const auto& element : ctx->arrayConst()) {
-      elements.push_back(std::any_cast<std::shared_ptr<ArrayConstNode>>(element->accept(this)));
+      elements.push_back(
+        std::dynamic_pointer_cast<ArrayConstNode>(std::any_cast<std::shared_ptr<ExprNode>>(element->accept(this))));
     }
     return std::dynamic_pointer_cast<ExprNode>(std::make_shared<ArrayConstNode>(std::move(elements), Position(ctx)));
   } else {
@@ -284,8 +328,14 @@ std::any ASTBuilder::visitArrayConst(MxParser::ArrayConstContext* ctx) {
 }
 
 std::any ASTBuilder::visitDotExpr(MxParser::DotExprContext* ctx) {
-  auto lhs = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr(0)->accept(this));
-  auto rhs = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr(1)->accept(this));
+  auto lhs = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr()->accept(this));
+  std::shared_ptr<ExprNode> rhs;
+  if (ctx->ID() != nullptr) {
+    rhs = std::dynamic_pointer_cast<ExprNode>(
+      std::make_shared<IdNode>(ctx->ID()->getSymbol()->getText(), Position(ctx)));
+  } else {
+    rhs = std::any_cast<std::shared_ptr<ExprNode>>(ctx->funcCall()->accept(this));
+  }
   return std::dynamic_pointer_cast<ExprNode>(std::make_shared<DotExprNode>(lhs, rhs, Position(ctx)));
 }
 
@@ -299,7 +349,8 @@ std::any ASTBuilder::visitInitArray(MxParser::InitArrayContext* ctx) {
   auto exprs = ctx->expr();
   size_t range_cnt = 0;
   for (const auto& square_bracket : ctx->LEFT_SQUARE_BRACKET()) {
-    if (range_cnt < exprs.size() && square_bracket->getSourceInterval().a + 1 == exprs.at(range_cnt)->getSourceInterval().a) {
+    if (range_cnt < exprs.size() && square_bracket->getSourceInterval().a + 1 == exprs.at(range_cnt)->
+      getSourceInterval().a) {
       ranges.push_back(std::any_cast<std::shared_ptr<ExprNode>>(exprs.at(range_cnt)->accept(this)));
       range_cnt++;
     } else {
@@ -308,8 +359,10 @@ std::any ASTBuilder::visitInitArray(MxParser::InitArrayContext* ctx) {
   }
 
   if (ctx->arrayConst()) {
-    auto default_array = std::any_cast<std::shared_ptr<ArrayConstNode>>(ctx->arrayConst()->accept(this));
-    return std::dynamic_pointer_cast<ExprNode>(std::make_shared<InitArrayNode>(type, ranges, default_array, Position(ctx)));
+    auto default_array = std::dynamic_pointer_cast<ArrayConstNode>(
+      std::any_cast<std::shared_ptr<ExprNode>>(ctx->arrayConst()->accept(this)));
+    return std::dynamic_pointer_cast<ExprNode>(
+      std::make_shared<InitArrayNode>(type, ranges, default_array, Position(ctx)));
   }
   return std::dynamic_pointer_cast<ExprNode>(std::make_shared<InitArrayNode>(type, ranges, Position(ctx)));
 }
@@ -320,7 +373,7 @@ std::any ASTBuilder::visitIndexExpr(MxParser::IndexExprContext* ctx) {
   return std::dynamic_pointer_cast<ExprNode>(std::make_shared<IndexExprNode>(base, index, Position(ctx)));
 }
 
-std::any ASTBuilder:: visitLiteral(MxParser::LiteralContext* ctx) {
+std::any ASTBuilder::visitLiteral(MxParser::LiteralContext* ctx) {
   return std::dynamic_pointer_cast<ExprNode>(std::make_shared<LiteralNode>(ctx));
 }
 
@@ -338,7 +391,7 @@ std::any ASTBuilder::visitParenExpr(MxParser::ParenExprContext* ctx) {
 
 std::any ASTBuilder::visitClassFuncDef(MxParser::ClassFuncDefContext* ctx) {
   auto func_name = ctx->ID()->getSymbol()->getText();
-  auto ID = std::make_shared<IdNode>(std::make_shared<TypeType>(TypeType::SpecialCode::NoType), ctx->ID());
+  auto ID = std::make_shared<IdNode>(std::make_shared<TypeType>(TypeType::PrimitiveType::kVOID), ctx->ID());
   auto func_block = std::any_cast<std::shared_ptr<BlockNode>>(ctx->block()->accept(this));
   return std::make_shared<ClassFuncDefNode>(std::move(ID), std::move(func_block), Position(ctx));
 }
@@ -346,7 +399,8 @@ std::any ASTBuilder::visitClassFuncDef(MxParser::ClassFuncDefContext* ctx) {
 std::any ASTBuilder::visitAssignStat(MxParser::AssignStatContext* ctx) {
   auto lhs = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr(0)->accept(this));
   auto rhs = std::any_cast<std::shared_ptr<ExprNode>>(ctx->expr(1)->accept(this));
-  return std::dynamic_pointer_cast<StatNode>(std::make_shared<AssignStatNode>(std::move(lhs), std::move(rhs), Position(ctx)));
+  return std::dynamic_pointer_cast<StatNode>(
+    std::make_shared<AssignStatNode>(std::move(lhs), std::move(rhs), Position(ctx)));
 }
 
 std::any ASTBuilder::visitBlock(MxParser::BlockContext* ctx) {
@@ -374,8 +428,8 @@ std::any ASTBuilder::visitForStat(MxParser::ForStatContext* ctx) {
   const auto update_expr = ctx->updateExpr;
   const auto for_cond_expr = ctx->forCondExpr;
   auto for_cond_expr_node = for_cond_expr == nullptr
-                                              ? nullptr
-                                              : std::any_cast<std::shared_ptr<ExprNode>>(ctx->forCondExpr->accept(this));
+                              ? nullptr
+                              : std::any_cast<std::shared_ptr<ExprNode>>(ctx->forCondExpr->accept(this));
   auto initial_var_def_node = initial_var_def == nullptr
                                 ? nullptr
                                 : std::any_cast<std::shared_ptr<VarDefNode>>(ctx->varDef()->accept(this));
@@ -393,59 +447,99 @@ std::any ASTBuilder::visitForStat(MxParser::ForStatContext* ctx) {
   auto initial_expr_node = initial_expr == nullptr
                              ? nullptr
                              : std::any_cast<std::shared_ptr<ExprNode>>(ctx->initialExpr->accept(this));
-  auto regular_stat_node = std::any_cast<std::shared_ptr<StatNode>>(ctx->regularStat()->accept(this));
+
   std::shared_ptr<BlockNode> block;
-  if (auto tmp_block = std::dynamic_pointer_cast<BlockNode>(regular_stat_node)) {
-    block = tmp_block;
+  auto stat = ctx->regularStat()->accept(this);
+  std::vector<std::shared_ptr<StatNode>> stat_nodes;
+  if (stat.type() == typeid(std::vector<std::shared_ptr<StatNode>>)) {
+    auto var_defs = std::any_cast<std::vector<std::shared_ptr<StatNode>>>(stat);
+    for (const auto& var_def : var_defs) {
+      stat_nodes.push_back(var_def);
+      block = std::make_shared<BlockNode>(std::move(stat_nodes), Position(ctx));
+    }
   } else {
-    block = std::make_shared<BlockNode>(std::move(regular_stat_node), Position(ctx));
+    auto regular_stat_node = std::any_cast<std::shared_ptr<StatNode>>(stat);
+    if (auto tmp_block = std::dynamic_pointer_cast<BlockNode>(regular_stat_node)) {
+      block = tmp_block;
+    } else {
+      block = std::make_shared<BlockNode>(std::move(regular_stat_node), Position(ctx));
+    }
   }
+
   if (initial_var_def_node != nullptr) {
     if (update_assign_stat_node != nullptr) {
-      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(initial_var_def_node, for_cond_expr_node, update_assign_stat_node,
-                                           std::move(block), Position(ctx)));
+      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(
+        initial_var_def_node, for_cond_expr_node, update_assign_stat_node,
+        std::move(block), Position(ctx)));
     } else {
-      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(initial_var_def_node, for_cond_expr_node, update_expr_node, std::move(block),
-                                           Position(ctx)));
+      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(
+        initial_var_def_node, for_cond_expr_node, update_expr_node, std::move(block),
+        Position(ctx)));
     }
   } else if (initial_assign_stat_node != nullptr) {
     if (update_assign_stat_node != nullptr) {
-      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(initial_assign_stat_node, for_cond_expr_node, update_assign_stat_node,
-                                           std::move(block), Position(ctx)));
+      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(
+        initial_assign_stat_node, for_cond_expr_node, update_assign_stat_node,
+        std::move(block), Position(ctx)));
     } else {
-      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(initial_assign_stat_node, for_cond_expr_node, update_expr_node,
-                                           std::move(block), Position(ctx)));
+      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(
+        initial_assign_stat_node, for_cond_expr_node, update_expr_node,
+        std::move(block), Position(ctx)));
     }
   } else {
     if (update_assign_stat_node != nullptr) {
-      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(initial_expr_node, for_cond_expr_node, update_assign_stat_node,
-                                           std::move(block), Position(ctx)));
+      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(
+        initial_expr_node, for_cond_expr_node, update_assign_stat_node,
+        std::move(block), Position(ctx)));
     } else {
-      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(initial_expr_node, for_cond_expr_node, update_expr_node, std::move(block),
-                                           Position(ctx)));
+      return std::dynamic_pointer_cast<StatNode>(std::make_shared<ForStatNode>(
+        initial_expr_node, for_cond_expr_node, update_expr_node, std::move(block),
+        Position(ctx)));
     }
   }
 }
 
 std::any ASTBuilder::visitWhileStat(MxParser::WhileStatContext* ctx) {
   auto while_cond_expr_node = std::any_cast<std::shared_ptr<ExprNode>>(ctx->whileCondExpr->accept(this));
-  auto while_body_node = std::any_cast<std::shared_ptr<StatNode>>(ctx->regularStat()->accept(this));
-  if (auto block = std::dynamic_pointer_cast<BlockNode>(while_body_node)) {
-    return std::dynamic_pointer_cast<StatNode>(std::make_shared<WhileStatNode>(std::move(while_cond_expr_node), std::move(block), Position(ctx)));
+  // auto while_body_node = std::any_cast<std::shared_ptr<StatNode>>(ctx->regularStat()->accept(this));
+  // if (auto block = std::dynamic_pointer_cast<BlockNode>(while_body_node)) {
+  //   return std::dynamic_pointer_cast<StatNode>(std::make_shared<WhileStatNode>(std::move(while_cond_expr_node), std::move(block), Position(ctx)));
+  // } else {
+  //   auto wrapped_block = std::make_shared<BlockNode>(std::move(while_body_node), Position(ctx));
+  //   return std::dynamic_pointer_cast<StatNode>(std::make_shared<WhileStatNode>(std::move(while_cond_expr_node), std::move(wrapped_block), Position(ctx)));
+  // }
+
+  std::shared_ptr<BlockNode> block;
+  auto stat = ctx->regularStat()->accept(this);
+  std::vector<std::shared_ptr<StatNode>> stat_nodes;
+  if (stat.type() == typeid(std::vector<std::shared_ptr<StatNode>>)) {
+    auto var_defs = std::any_cast<std::vector<std::shared_ptr<StatNode>>>(stat);
+    for (const auto& var_def : var_defs) {
+      stat_nodes.push_back(var_def);
+      block = std::make_shared<BlockNode>(std::move(stat_nodes), Position(ctx));
+    }
   } else {
-    auto wrapped_block = std::make_shared<BlockNode>(std::move(while_body_node), Position(ctx));
-    return std::dynamic_pointer_cast<StatNode>(std::make_shared<WhileStatNode>(std::move(while_cond_expr_node), std::move(wrapped_block), Position(ctx)));
+    auto regular_stat_node = std::any_cast<std::shared_ptr<StatNode>>(stat);
+    if (auto tmp_block = std::dynamic_pointer_cast<BlockNode>(regular_stat_node)) {
+      block = tmp_block;
+    } else {
+      block = std::make_shared<BlockNode>(std::move(regular_stat_node), Position(ctx));
+    }
   }
+  return std::dynamic_pointer_cast<StatNode>(
+    std::make_shared<WhileStatNode>(std::move(while_cond_expr_node), std::move(block), Position(ctx)));
 }
 
 std::any ASTBuilder::visitReturnStat(MxParser::ReturnStatContext* ctx) {
   if (const auto return_expr = ctx->expr()) {
     auto return_tmp = return_expr->accept(this);
     auto return_expr_node = std::any_cast<std::shared_ptr<ExprNode>>(return_expr->accept(this));
-    return std::dynamic_pointer_cast<StatNode>(std::make_shared<ReturnStatNode>(std::move(return_expr_node), Position(ctx)));
+    return std::dynamic_pointer_cast<StatNode>(
+      std::make_shared<ReturnStatNode>(std::move(return_expr_node), Position(ctx)));
   } else if (const auto return_func_call = ctx->funcCall()) {
     auto return_func_call_node = std::any_cast<std::shared_ptr<FuncCallNode>>(return_func_call->accept(this));
-    return std::dynamic_pointer_cast<StatNode>(std::make_shared<ReturnStatNode>(std::move(return_func_call_node), Position(ctx)));
+    return std::dynamic_pointer_cast<StatNode>(
+      std::make_shared<ReturnStatNode>(std::move(return_func_call_node), Position(ctx)));
   } else {
     return std::dynamic_pointer_cast<StatNode>(std::make_shared<ReturnStatNode>(Position(ctx)));
   }
@@ -468,12 +562,22 @@ std::any ASTBuilder::visitFormatString(MxParser::FormatStringContext* ctx) {
   }
   auto expr_elements = ctx->expr();
   for (const auto& element : expr_elements) {
-    exprs.push_back(std::any_cast<std::shared_ptr<ExprNode>>(element->accept(this)));
+    if (element != nullptr) {
+      exprs.push_back(std::any_cast<std::shared_ptr<ExprNode>>(element->accept(this)));
+    }
   }
-  if (format_string_elements.at(0)->getSourceInterval().a < expr_elements.at(0)->getSourceInterval().a) {
-    return std::dynamic_pointer_cast<ExprNode>(std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), true, Position(ctx)));
+  if (format_string_elements.empty()) {
+    return std::dynamic_pointer_cast<ExprNode>(
+      std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), false, Position(ctx)));
+  } else if (expr_elements.empty()) {
+    return std::dynamic_pointer_cast<ExprNode>(
+      std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), true, Position(ctx)));
+  } else if (format_string_elements.at(0)->getSourceInterval().a < expr_elements.at(0)->getSourceInterval().a) {
+    return std::dynamic_pointer_cast<ExprNode>(
+      std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), true, Position(ctx)));
   } else {
-    return std::dynamic_pointer_cast<ExprNode>(std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), false, Position(ctx)));
+    return std::dynamic_pointer_cast<ExprNode>(
+      std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), false, Position(ctx)));
   }
 }
 
@@ -497,7 +601,6 @@ std::any ASTBuilder::visitInitObject(MxParser::InitObjectContext* ctx) {
 }
 
 
-
 std::any ASTBuilder::visitIdExpr(MxParser::IdExprContext* ctx) {
   return visitID(ctx->ID()->getSymbol());
 }
@@ -508,7 +611,7 @@ std::any ASTBuilder::visitID(antlr4::Token* id) {
   return std::dynamic_pointer_cast<ExprNode>(std::make_shared<IdNode>(std::move(id_node), Position(id)));
 }
 
-std::any ASTBuilder::visitExprstat(MxParser::ExprstatContext *ctx) {
+std::any ASTBuilder::visitExprstat(MxParser::ExprstatContext* ctx) {
   auto expr_node = ctx->expr();
   auto ret = std::any_cast<std::shared_ptr<ExprNode>>(expr_node->accept(this));
   return std::shared_ptr<StatNode>(ret);
@@ -518,32 +621,40 @@ std::any ASTBuilder::visitNullstat(MxParser::NullstatContext* ctx) {
   return std::dynamic_pointer_cast<StatNode>(std::make_shared<NullExprNode>(Position(ctx)));
 }
 
-std::any ASTBuilder::visitVardefstat(MxParser::VardefstatContext *ctx) {
+std::any ASTBuilder::visitVardefstat(MxParser::VardefstatContext* ctx) {
   return std::any_cast<std::vector<std::shared_ptr<StatNode>>>(ctx->varDef()->accept(this));
 }
-std::any ASTBuilder::visitIfstat(MxParser::IfstatContext *ctx) {
+
+std::any ASTBuilder::visitIfstat(MxParser::IfstatContext* ctx) {
   return std::any_cast<std::shared_ptr<StatNode>>(ctx->ifStat()->accept(this));
 }
-std::any ASTBuilder::visitAssignstat(MxParser::AssignstatContext *ctx) {
+
+std::any ASTBuilder::visitAssignstat(MxParser::AssignstatContext* ctx) {
   return std::any_cast<std::shared_ptr<StatNode>>(ctx->assignStat()->accept(this));
 }
-std::any ASTBuilder::visitBlockstat(MxParser::BlockstatContext *ctx) {
+
+std::any ASTBuilder::visitBlockstat(MxParser::BlockstatContext* ctx) {
   auto block_node = std::any_cast<std::shared_ptr<BlockNode>>(ctx->block()->accept(this));
   return std::dynamic_pointer_cast<StatNode>(std::make_shared<BlockStatNode>(block_node, Position(ctx)));
 }
-std::any ASTBuilder::visitForstat(MxParser::ForstatContext *ctx) {
+
+std::any ASTBuilder::visitForstat(MxParser::ForstatContext* ctx) {
   return std::any_cast<std::shared_ptr<StatNode>>(ctx->forStat()->accept(this));
 }
-std::any ASTBuilder::visitWhilestat(MxParser::WhilestatContext *ctx) {
+
+std::any ASTBuilder::visitWhilestat(MxParser::WhilestatContext* ctx) {
   return std::any_cast<std::shared_ptr<StatNode>>(ctx->whileStat()->accept(this));
 }
-std::any ASTBuilder::visitReturnstat(MxParser::ReturnstatContext *ctx) {
+
+std::any ASTBuilder::visitReturnstat(MxParser::ReturnstatContext* ctx) {
   return std::any_cast<std::shared_ptr<StatNode>>(ctx->returnStat()->accept(this));
 }
-std::any ASTBuilder::visitContinuestat(MxParser::ContinuestatContext *ctx) {
-  return std::dynamic_pointer_cast<StatNode>(std::any_cast<std::shared_ptr<TerminalNode>>(ctx->continue_()->accept(this)));
-}
-std::any ASTBuilder::visitBreakstat(MxParser::BreakstatContext *ctx) {
-  return std::dynamic_pointer_cast<StatNode>(std::any_cast<std::shared_ptr<TerminalNode>>(ctx->break_()->accept(this)));
+
+std::any ASTBuilder::visitContinuestat(MxParser::ContinuestatContext* ctx) {
+  return std::dynamic_pointer_cast<StatNode>(
+    std::any_cast<std::shared_ptr<TerminalNode>>(ctx->continue_()->accept(this)));
 }
 
+std::any ASTBuilder::visitBreakstat(MxParser::BreakstatContext* ctx) {
+  return std::dynamic_pointer_cast<StatNode>(std::any_cast<std::shared_ptr<TerminalNode>>(ctx->break_()->accept(this)));
+}

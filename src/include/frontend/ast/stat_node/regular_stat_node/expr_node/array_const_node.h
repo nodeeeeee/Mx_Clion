@@ -26,7 +26,11 @@ public:
   }
 
   void determineArrayType() {
-    array_type = preCheck(std::shared_ptr<ArrayConstNode>(this));
+    array_type = preCheck(shared_from_this());
+  }
+
+  std::shared_ptr<TypeType> getArrayType() {
+    return array_type;
   }
 
   explicit ArrayConstNode(Position position) : ExprNode(position) {
@@ -36,11 +40,11 @@ public:
     if (!current_array->literal_elements.empty()) {
       auto ref = current_array->literal_elements.front()->getLiteralType();
       bool all_same = std::all_of(current_array->literal_elements.begin() + 1, current_array->literal_elements.end(),
-                                  [&](const std::shared_ptr<LiteralNode>& e) { return e->getLiteralType() == ref; });
+                                  [&](const std::shared_ptr<LiteralNode>& e) { return *e->getLiteralType() == *ref; });
       if (!all_same) {
         throw std::runtime_error("array const type mismatch");
       } else {
-        return std::make_shared<TypeType>(ref, 0);
+        return std::make_shared<TypeType>(ref, 1);
       }
     } else if (!current_array->array_elements.empty()) {
       auto ref = preCheck(current_array->array_elements.front());

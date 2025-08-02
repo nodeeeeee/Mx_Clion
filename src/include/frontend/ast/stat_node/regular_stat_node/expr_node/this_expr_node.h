@@ -5,7 +5,10 @@
 #pragma once
 #include "expr_node.h"
 
-class ThisExprNode : public ExprNode {
+class ThisExprNode : public ExprNode, public std::enable_shared_from_this<ThisExprNode> {
 public:
-  explicit ThisExprNode(Position position) : ExprNode(position) {}
+  explicit ThisExprNode(Position position) : ExprNode(position) {
+  }
+
+  void accept(VisitControl* visitor) override { visitor->visit(shared_from_this()); }
 };

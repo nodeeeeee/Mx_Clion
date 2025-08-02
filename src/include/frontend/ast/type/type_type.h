@@ -25,6 +25,9 @@ public:
   explicit TypeType (MxParser::TypeContext *ctx);
   TypeType (std::shared_ptr<TypeType> base, int increment);
   explicit TypeType (std::string customized_type);
+  bool is_customized() {
+    return type_ref == nullptr;
+  }
 
   // std::shared_ptr<TypeType> assignType(PrimitiveType primitive_type);
   // std::shared_ptr<TypeType> assignType(SpecialCode special_code);

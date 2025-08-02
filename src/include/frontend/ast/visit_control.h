@@ -79,5 +79,6 @@ public:
   virtual void visit(std::shared_ptr<StatNode> node) = 0;
   virtual void visit(std::shared_ptr<RegularStatNode> node) = 0;
   virtual void visit(std::shared_ptr<ExprNode> node) = 0;
+  virtual void visit(std::shared_ptr<ThisExprNode> node) = 0;
   virtual void visit(std::shared_ptr<ParenExprNode> node) = 0;
 };
