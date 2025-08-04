@@ -8,7 +8,7 @@
 #include "frontend/ast/stat_node/def_node/main_func_node.h"
 #include "frontend/ast/stat_node/def_node/def_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/block_node.h"
-#include "frontend/ast/util/function.h"
+#include "util/function.h"
 #include <vector>
 
 void Scope::declare(const std::shared_ptr<DefNode>& def_node) {
@@ -99,7 +99,7 @@ const std::shared_ptr<TypeType> Scope::findVar(std::string var_name) {
     return vars[var_name];
   } else {
     if (this->getParent() != nullptr) {
-        return this->getParent()->findVar(var_name);
+      return this->getParent()->findVar(var_name);
     } else {
       throw std::runtime_error("var name not found" + var_name);
     }
@@ -141,3 +141,22 @@ const std::shared_ptr<Scope>& Scope::findClass(std::string class_name) {
 
 const std::shared_ptr<Scope>& Scope::getParent() { return parent; }
 
+void Scope::DeclareLocal(const std::shared_ptr<DefNode>& def_node) {
+  auto node_name = def_node->getIdNode()->getIdName();
+  index_[node_name] = index_counter_;
+  index_counter_++;
+}
+
+int Scope::FindVarIndex(std::string var_name) {
+  while(1) {
+    if (this->index_.contains(var_name)) {
+      return index[var_name];
+    } else {
+      if (this->getParent() != nullptr) {
+        return this->getParent()->FindVarIndex(var_name);
+      } else {
+        return -1; // this means it is not a local var, it is a global var.
+      }
+    }
+  }
+}

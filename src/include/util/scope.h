@@ -25,11 +25,11 @@ public:
   Scope() : parent(nullptr) {
   };
 
-  Scope(const std::shared_ptr<Scope>& parent, std::shared_ptr<ASTNode> scope_owner) : parent(parent),
-    scope_owner(std::move(scope_owner)) {
+  Scope(const std::shared_ptr<Scope>& parent, std::shared_ptr<ASTNode> scope_owner, int index_counter = 1) : parent(parent),
+    scope_owner(std::move(scope_owner)), index_counter_(index_counter) {
   }
 
-  Scope(const std::shared_ptr<Scope>& parent) : parent(parent), scope_owner(nullptr) {
+  Scope(const std::shared_ptr<Scope>& parent, int index_counter = 1) : parent(parent), scope_owner(nullptr), index_counter_(index_counter) {
   }
 
   virtual ~Scope() = default;
@@ -50,10 +50,14 @@ public:
   void addChildScope(std::shared_ptr<Scope> scope);
   const std::shared_ptr<Scope>& getParent();
   const std::shared_ptr<Scope> temp_scope;
+  void DeclareLocal(const std::shared_ptr<DefNode>& def_node);
+  int FindVarIndex(std::string var_name);
 
   //exclusively for return analysis
   void setHasReturn(bool has_return) {has_return_ = has_return;}
-  bool getHasReturn() {return has_return_;}
+  bool getHasReturn() const {return has_return_;}
+
+
 
 protected:
   std::map<std::string, std::shared_ptr<TypeType>> vars;
@@ -63,6 +67,8 @@ protected:
   std::shared_ptr<Scope> parent;
   std::shared_ptr<ASTNode> scope_owner;
   bool has_return_ = false;
+  std::map<std::string, int> index_;
+  int index_counter_ = 1;
 };
 
 

@@ -4,6 +4,7 @@
 
 #pragma once
 #include <optional>
+#include <variant>
 
 #include "expr_node.h"
 #include "frontend/ast/type/type_type.h"
@@ -18,15 +19,15 @@ public:
         if (auto integer_type = literal->INTEGER()) {
             auto token = integer_type->getSymbol();
             literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
-            int_value = std::stoi(token->getText());
+            value_ = std::stoi(token->getText());
         } else if (auto bool_type = literal->BOOL()) {
             auto token = bool_type->getSymbol();
             literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
-            bool_value = token->getText() == "true" ? true : false;
+            value_ = token->getText() == "true" ? true : false;
         } else if (auto string_type = literal->STRING()) {
             auto token = string_type->getSymbol();
             literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
-            string_value = token->getText();
+            value_ = token->getText();
         } else if (auto null_type = literal->NULL_()) {
             auto token = null_type->getSymbol();
             literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kNULL);
@@ -37,17 +38,18 @@ public:
     explicit LiteralNode(antlr4::Token* token): ExprNode(Position(token)) {
         //only for format_string
         literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
-        string_value = token->getText();
+        value_ = token->getText();
     }
 
     std::shared_ptr<TypeType> getLiteralType() {return literal_type;}
     bool isNull() const {return is_null;}
     void accept(VisitControl *visitor) {visitor->visit(shared_from_this());}
 
+    [[nodiscard]] std::variant<int, bool, std::string> GetValue() const {return value_;}
+
 private:
     std::shared_ptr<TypeType> literal_type;
     bool is_null = false;
-    std::optional<std::string> string_value;
-    std::optional<size_t> int_value;
-    std::optional<bool> bool_value;
+
+    std::variant<int, bool,std::string> value_;
 };

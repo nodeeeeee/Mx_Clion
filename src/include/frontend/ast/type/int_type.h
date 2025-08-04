@@ -13,15 +13,16 @@ public:
     return instance;
   }
 
+  //Singleton
+  IntType(const IntType&) = delete;             //delete copy construction
+  IntType& operator=(const IntType&) = delete;  //delete copy assignment
+  IntType(IntType&&) = delete;                  //delete move construction
+  IntType& operator=(IntType&&) = delete;       //delete move assignment
 
 
 private:
   IntType() : TypeType(){
   }
 
-  //Singleton
-  IntType(const IntType&) = delete;             //delete copy construction
-  IntType& operator=(const IntType&) = delete;  //delete copy assignment
-  IntType(IntType&&) = delete;                  //delete move construction
-  IntType& operator=(IntType&&) = delete;       //delete move assignment
+
 };
