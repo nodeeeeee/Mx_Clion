@@ -8,14 +8,14 @@ public:
     return instance;
   }
 
-  std::string toString() {
+  std::string toString_() {
     return "i8";
   }
-  std::string GetAlign() {
+  std::string GetAlign_() {
     return "1";
   }
 
-  std::string DefaultValue() {
+  std::string DefaultValue_() {
     return "0";
   }
 

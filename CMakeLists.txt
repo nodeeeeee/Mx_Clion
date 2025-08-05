@@ -46,6 +46,8 @@ add_executable(Mx_Clion src/parser/antlr4/main.cpp
         src/include/backend/stmt/stmt.h
         src/include/backend/util/ir_function.h
         src/include/backend/util/class_type.h
+        src/include/backend/stmt/alloca_stmt.h
+        src/include/backend/stmt/store_stmt.h
         #        src/include/backend/ir_generator.h
 #        src/backend/ir_generator.cpp
 )

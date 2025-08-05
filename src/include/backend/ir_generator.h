@@ -50,8 +50,13 @@ public:
   void visit(std::shared_ptr<RegularStatNode> node) override {}
   void visit(std::shared_ptr<ExprNode> node) override {}
 
+  void InitFuncParam(std::shared_ptr<FuncDefNode> node) final;
+
 private:
   std::vector<std::shared_ptr<ClassType>> types_;
   std::vector<std::shared_ptr<IRFunction>> funcs_;
   std::shared_ptr<IRFunction> current_func_;
+  std::shared_ptr<ClassType> current_class_type_;
+  std::shared_ptr<Block> current_basic_block_;
+  std::shared_ptr<IRScope> current_scope_;
 };

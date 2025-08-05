@@ -1,12 +1,17 @@
 #pragma once
 #include <string>
+#include <utility>
 #include <vector>
+
+#include "backend/stmt/stmt.h"
 
 class Block {
 public:
   Block() = default;
 
-  void AddStmt(std::string stmt) {
+  explicit Block(std::string block_name) : block_name_(std::move(block_name)) {}
+
+  void AddStmt(const std::shared_ptr<Stmt>& stmt) {
     stmts_.push_back(stmt);
   }
 
@@ -19,10 +24,10 @@ public:
   void CreateStore() {
     //TODO
   }
-  std::shared_ptr<Block> CreateBlock(std::string block_name) {
+  static std::shared_ptr<Block> CreateBlock(const std::string& block_name) {
     return make_shared<Block>(block_name);
   }
 private:
-  std::vector<std::string> stmts_;
+  std::vector<std::shared_ptr<Stmt>> stmts_;
   std::string block_name_;
 };

@@ -8,15 +8,15 @@ public:
     return instance;
   }
 
-  std::string toString() {
+  std::string toString_() override {
     return "i32";
   }
 
-  std::string GetAlign() {
+  std::string GetAlign_() override {
     return "4";
   }
 
-  std::string DefaultValue() {
+  std::string DefaultValue_() override {
     return "0";
   }
 

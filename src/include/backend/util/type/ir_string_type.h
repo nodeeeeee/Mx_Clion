@@ -8,21 +8,22 @@ public:
     return instance;
   }
 
-  std::string toString() {
+  std::string toString_() override {
     return "ptr";
   }
 
-  std::string GetAlign() {
+  std::string GetAlign_() override {
     return "4";
   }
 
-  std::string DefaultValue() {
+  std::string DefaultValue_() override {
     return "null";
   }
 
 
 private:
   IRStringType() : IRType(){
+
   }
 
   //Singleton
