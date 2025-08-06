@@ -4,6 +4,7 @@
 
 #pragma once
 #include "frontend/ast/visit_control.h"
+#include "frontend/ast/type/type_type.h"
 #include "util/class_type.h"
 #include "util/ir_function.h"
 #include "util/scope.h"
@@ -51,6 +52,7 @@ public:
   void visit(std::shared_ptr<ExprNode> node) override {}
 
   void InitFuncParam(std::shared_ptr<FuncDefNode> node) final;
+  std::shared_ptr<Register> FetchExprReg(std::shared_ptr<ExprNode> expr);
 
 private:
   std::vector<std::shared_ptr<ClassType>> types_;
@@ -59,4 +61,10 @@ private:
   std::shared_ptr<ClassType> current_class_type_;
   std::shared_ptr<Block> current_basic_block_;
   std::shared_ptr<IRScope> current_scope_;
+
+  std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
+  std::shared_ptr<TypeType> k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
+  std::shared_ptr<TypeType> k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
+
+
 };

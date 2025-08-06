@@ -4,7 +4,7 @@
 
 #include "ir_bool_type.h"
 #include "ir_int_type.h"
-#include "ir_ptr_type.h"
+#include "ir_void_type.h"
 #include "ir_string_type.h"
 
 IRType::IRType(BasicType basic_type, int dim) : basic_type_(basic_type), dim_(dim) {

@@ -6,6 +6,11 @@
 #include "register.h"
 #include "type/ir_type.h"
 
+/* every function has its own scope, these scopes do not belong to global scope
+ * and there is no global scope
+ * but within each function, enter scope and pop scope is required
+ */
+
 class IRScope : public std::enable_shared_from_this<IRScope> {
 public:
   IRScope() : parent_(nullptr) {

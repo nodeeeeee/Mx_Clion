@@ -8,7 +8,7 @@
 class IRType {
 public:
   enum BasicType {
-    kINT, kBOOL, kSTRING
+    kINT, kBOOL, kSTRING, kVOID, kPTR
   };
   IRType() = default;
   explicit IRType(BasicType basic_type, int dim = 0);
