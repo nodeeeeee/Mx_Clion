@@ -44,6 +44,10 @@ public:
       throw std::runtime_error("Unknown type");
     }
   }
+
+  [[nodiscard]] std::shared_ptr<IRType> GetConstType() const {
+    return type_;
+  }
 private:
   std::shared_ptr<IRType> type_;
   std::variant<int, bool, std::string> value_;

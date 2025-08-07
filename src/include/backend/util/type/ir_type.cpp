@@ -1,6 +1,7 @@
 #include "ir_type.h"
 
 #include <backend/util/type/ir_type.h>
+#include <bits/regex_constants.h>
 
 #include "ir_bool_type.h"
 #include "ir_int_type.h"
@@ -31,6 +32,19 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type, int dim) : dim_(dim) 
     throw std::runtime_error("invalid TypeType");
   }
 }
+
+IRType::IRType(const std::shared_ptr<IRType>& base_ir_type, int increment) {
+  type_ref_ = base_ir_type->type_ref_;
+  basic_type_ = base_ir_type->basic_type_;
+  customized_type_ = base_ir_type->customized_type_;
+  dim_ = base_ir_type->dim_ + increment;
+}
+
+
+std::shared_ptr<IRType> IRType::DecreaseDimension() {
+  return std::make_shared<IRType>(basic_type_, dim_ - 1);
+}
+
 
 
 

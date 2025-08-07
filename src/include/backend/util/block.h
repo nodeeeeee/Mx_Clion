@@ -15,15 +15,15 @@ public:
     stmts_.push_back(stmt);
   }
 
-  void CreateAlloca() {
-    //todo
-  }
-  void CreateLoad() {
-    //TODO
-  }
-  void CreateStore() {
-    //TODO
-  }
+  // void CreateAlloca() {
+  //   //todo
+  // }
+  // void CreateLoad() {
+  //   //TODO
+  // }
+  // void CreateStore() {
+  //   //TODO
+  // }
   static std::shared_ptr<Block> CreateBlock(const std::string& block_name) {
     return make_shared<Block>(block_name);
   }

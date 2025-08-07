@@ -40,13 +40,22 @@ public:
     }
   }
 
-  void commit() const{
+  explicit GlobalStmt(std::string str) {
+    constant_value_ = std::make_shared<Constant>(str);
+    name_ = ".str." + str;
+  }
+
+  [[nodiscard]] std::string commit() const{
     //to-do: initialize the value if rhs is literal, and type is int/bool
     if (constant_value_.has_value()) {
+      if (*constant_value_.value()->GetConstType() == *k_string) {
+        auto string_size = name_.size();
+        return "@" + name_ + " = private unnamed_addr constant [" + string_size + "x i8] c\"" + name_ + "\\00, align 1";
+      }
       auto value_tmp = constant_value_.value();
-      block_->AddStmt("@" + name_ + " global " + register_->GetType()->toString() + register_->GetType()->DefaultValue() + value_tmp->ToString() + ", align" + register_->GetType()->GetAlign());
+      return "@" + name_ + " global " + register_->GetType()->toString() + register_->GetType()->DefaultValue() + value_tmp->ToString() + ", align" + register_->GetType()->GetAlign();
     } else {
-      block_->AddStmt("@" + name_ + " global " + register_->GetType()->toString() + register_->GetType()->DefaultValue() + "0, align" + register_->GetType()->GetAlign());
+      return "@" + name_ + " global " + register_->GetType()->toString() + register_->GetType()->DefaultValue() + "0, align" + register_->GetType()->GetAlign();
     }
   }
 

@@ -88,6 +88,10 @@ public:
     return last_reg_;
   }
 
+  [[nodiscard]] std::shared_ptr<IRType> GetReturnType() const {
+    return return_type_;
+  }
+
 private:
   std::string func_name_;
   std::vector<std::shared_ptr<IRType>> param_types_;

@@ -2,6 +2,7 @@
 
 #include "backend/stmt/alloca_stmt.h"
 #include "backend/stmt/global_stmt.h"
+#include "backend/stmt/load_stmt.h"
 #include "backend/stmt/store_stmt.h"
 #include "frontend/ast/stat_node/def_node/func_def_node.h"
 #include "frontend/ast/stat_node/def_node/main_func_node.h"
@@ -11,10 +12,12 @@
 
 void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
   auto def_nodes = root_node->getDefNodes();
-  std::vector<GlobalStmt> global_stmts;
   for (const auto def_node : def_nodes) {
     if (auto var_def = std::dynamic_pointer_cast<VarDefNode>(def_node)) {
-      global_stmts.push_back(GlobalStmt(var_def));
+      auto reg_type = std::make_shared<IRType>(var_def->getIdNode()->getType());
+      std::shared_ptr<Register> reg = std::make_shared<Register>(var_def->getIdNode()->getIdName(), reg_type, true);
+      global_scope_->declare(reg->GetName(), reg);
+      global_scope_->AddGlobalStmt(std::make_shared<GlobalStmt>(var_def)->commit());
     } else if (auto func_def = std::dynamic_pointer_cast<FuncDefNode>(def_node)) {
       std::shared_ptr<IRFunction> func = std::make_shared<IRFunction>(func_def);
       current_func_ = func;
@@ -122,14 +125,16 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
 void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
   auto lhs = node->getLhs();
   auto rhs = node->getRhs();
-
   lhs->accept(this);
+  std::string lhs_rep = FetchExprReg(lhs);
   rhs->accept(this);
+  std::string rhs_rep = FetchExprReg(rhs);
   auto lhs_type = lhs->getExprType();
   auto rhs_type = rhs->getExprType();
   switch (node->getOp()) {
     case BinaryExprNode::BinaryOp::kADD: {
       if (*lhs_type == *k_string) {
+        std::shared_ptr<CallStmt> = std::make_shared<CallStmt>()
         // todo concatenate strings
       } else if (*lhs_type == *k_int) {
 
@@ -204,12 +209,41 @@ void IRGenerator::InitFuncParam(std::shared_ptr<FuncDefNode>func_def_node) {
   }
 }
 
-std::shared_ptr<Register> IRGenerator::FetchExprReg(std::shared_ptr<ExprNode> expr) {
+std::string IRGenerator::FetchExprReg(std::shared_ptr<ExprNode> expr) {
   if (auto id = std::dynamic_pointer_cast<IdNode>(expr)) {
-    return current_scope_->FindRegister(id->getIdName());
+    return current_scope_->FindRegister(id->getIdName())->GetIndex();
   } else if (auto literal = std::dynamic_pointer_cast<LiteralNode>(expr)) {
     if (*literal->getLiteralType() != *k_string) {
-
+      return literal->ToString();
+    } else {
+      CreateString(literal);
+      return "@.str." + literal->ToString();
+      //global
     }
+  } else {
+    return current_func_->GetLastReg()->GetIndex();
+  }
+}
+
+void IRGenerator::CreateString(std::shared_ptr<LiteralNode> string_literal) {
+  auto string_type = std::make_shared<IRType>(IRType::kSTRING);
+  auto string_reg = std::make_shared<Register>(string_literal->ToString(), string_type, true);
+  auto stmt = std::make_shared<GlobalStmt>(string_literal->ToString());
+  global_scope_->AddGlobalStmt(stmt->commit());
+  global_scope_->declare(string_literal->ToString(), string_reg);
+}
+
+std::shared_ptr<Register> IRGenerator::ToRightVal(std::shared_ptr<Register> reg) {
+  auto rval_reg = current_func_->CreateRegister(reg->GetType()->DecreaseDimension());
+  auto stmt = std::make_shared<LoadStmt>(rval_reg, reg);
+  return rval_reg;
+}
+
+std::shared_ptr<Register> IRGenerator::FindRegister(const std::string& var_name) {
+  auto result_reg = current_scope_->FindRegister(var_name);
+  if (result_reg == nullptr) {
+    return global_scope_->FindRegister(var_name);
+  } else {
+    return result_reg;
   }
 }

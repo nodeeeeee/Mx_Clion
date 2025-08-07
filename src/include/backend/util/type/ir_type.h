@@ -13,18 +13,27 @@ public:
   IRType() = default;
   explicit IRType(BasicType basic_type, int dim = 0);
   explicit IRType(std::string type_name, int dim = 0) : customized_type_(std::move(type_name)), dim_(dim) {}
+  explicit IRType(const std::shared_ptr<IRType>& base_ir_type, int increment);
   explicit IRType(const std::shared_ptr<TypeType>& type_type, int dim = 0);
   virtual std::string toString_() = 0;
   virtual std::string GetAlign_() = 0;
   virtual std::string DefaultValue_() = 0;
 
   std::string toString() {
-    if (dim_ == 0) return type_ref_->toString_();
-    else return "ptr";
+    std::string ret = type_ref_->toString_();
+    ret.reserve(ret.size() + dim_);
+    ret.append(dim_, '*');
+    return ret;
   }
   std::string ElementToString() {
     assert(dim_ > 0);
-    return dim_ == 1 ? type_ref_->toString() : "ptr";
+    if (dim_ == 1) {return type_ref_->toString();}
+    else {
+      std::string ret = type_ref_->toString();
+      ret.reserve(ret.size() + dim_ - 1);
+      ret.append(dim_ - 1, '*');
+      return ret;
+    };
   }
   std::string GetAlign() {
     if (dim_ == 0) return type_ref_->GetAlign_();
@@ -47,6 +56,8 @@ public:
   [[nodiscard]] int GetDim() const {
     return dim_;
   }
+
+  std::shared_ptr<IRType> DecreaseDimension();
 
 private:
   // need singleton to boost up assignment

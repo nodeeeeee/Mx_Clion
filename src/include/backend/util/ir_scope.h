@@ -24,7 +24,7 @@ public:
         return regs_[var_name];
       } else {
         if (this->parent_ == nullptr) {
-          throw std::runtime_error("reg not found");
+
         } else {
           return this->parent_->FindRegister(var_name);
         }
@@ -48,4 +48,15 @@ private:
   std::shared_ptr<IRScope> parent_;
   std::map<std::string, std::shared_ptr<Register>> regs_;
 
+};
+
+class IRGlobalScope : public IRScope {
+public:
+  explicit IRGlobalScope() : IRScope(nullptr) {}
+  void AddGlobalStmt(std::string stmt) {
+    global_stmts.push_back(std::move(stmt));
+  }
+
+private:
+  std::vector<std::string> global_stmts;
 };
