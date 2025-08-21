@@ -52,14 +52,17 @@ public:
   void visit(std::shared_ptr<ExprNode> node) override {}
 
   void InitFuncParam(std::shared_ptr<FuncDefNode> node) final;
-  std::string FetchExprReg(std::shared_ptr<ExprNode> expr);
+  std::shared_ptr<Register> FetchExprReg(std::shared_ptr<ExprNode> expr);
+  std::string FetchExprRegStr(std::shared_ptr<ExprNode> expr);
   void CreateString(std::shared_ptr<LiteralNode> string_literal);
   std::shared_ptr<Register> ToRightVal(std::shared_ptr<Register> reg);
   std::shared_ptr<Register> FindRegister(const std::string& var_name);
+  std::shared_ptr<IRFunction> FindFunction(const std::string& func_name);
 
 private:
   std::vector<std::shared_ptr<ClassType>> types_;
-  std::vector<std::shared_ptr<IRFunction>> funcs_;
+  // std::vector<std::shared_ptr<IRFunction>> funcs_;
+  std::map<std::string, std::shared_ptr<IRFunction>> funcs_;
   std::shared_ptr<IRFunction> current_func_;
   std::shared_ptr<ClassType> current_class_type_;
   std::shared_ptr<Block> current_basic_block_;

@@ -92,8 +92,14 @@ public:
     return return_type_;
   }
 
+  [[nodiscard]] std::string GetName() const {
+    return func_name_;
+  }
+
 private:
   std::string func_name_;
+  // normal function: func_name
+  // class funcs: <class_name>_<func_name>
   std::vector<std::shared_ptr<IRType>> param_types_;
   std::shared_ptr<IRType> return_type_;
   std::vector<std::shared_ptr<Block>> blocks_;// the first one is entry block

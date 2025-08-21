@@ -1,6 +1,7 @@
 #include "backend/ir_generator.h"
 
 #include "backend/stmt/alloca_stmt.h"
+#include "backend/stmt/call_stmt.h"
 #include "backend/stmt/global_stmt.h"
 #include "backend/stmt/load_stmt.h"
 #include "backend/stmt/store_stmt.h"
@@ -23,12 +24,12 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
       current_func_ = func;
       current_scope_ = func->GetScope();
       func_def->accept(this);
-      funcs_.push_back(std::move(func));
+      funcs_[func->GetName()] = (std::move(func));
     } else if (auto main_func_def = std::dynamic_pointer_cast<MainFuncNode>(def_node)) {
       std::shared_ptr<IRFunction> main_func = std::make_shared<IRFunction>(main_func_def);
       current_func_ = main_func;
       func_def->accept(this);
-      funcs_.push_back(std::move(main_func));
+      funcs_["main"] = (std::move(main_func));
     } else if (auto class_def = std::dynamic_pointer_cast<ClassDefNode>(def_node)) {
       std::shared_ptr<ClassType> class_type = std::make_shared<ClassType>(class_def->getIdNode()->getIdName());
       current_class_type_ = class_type;
@@ -79,13 +80,13 @@ void IRGenerator::visit(std::shared_ptr<ClassDefNode> node) {
       current_func_ = func;
       current_scope_ = func->GetScope();
       func_def->accept(this);
-      funcs_.push_back(std::move(func));
+      funcs_[node->getIdNode()->getIdName() + func->GetName()] = (std::move(func));
     } else if (auto class_func_def = std::dynamic_pointer_cast<ClassFuncDefNode>(stat)) {
       std::shared_ptr<IRFunction> func = std::make_shared<IRFunction>(class_func_def);
       current_func_ = func;
       current_scope_ = func->GetScope();
       class_func_def->accept(this);
-      funcs_.push_back(std::move(func));
+      funcs_[node->getIdNode()->getIdName() + func->GetName()] = (std::move(func));
     }
   }
 }
@@ -134,10 +135,20 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
   switch (node->getOp()) {
     case BinaryExprNode::BinaryOp::kADD: {
       if (*lhs_type == *k_string) {
-        std::shared_ptr<CallStmt> = std::make_shared<CallStmt>()
+        auto concat_func = FindFunction("__concat");
+        std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kPTR);
+        std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+        std::shared_ptr<Register> param_reg1 =
+        std::vector<std::shared_ptr<Register>> params;
+        params.push_back(param_reg1);
+        params.push_back(param_reg2);
+
+        std::shared_ptr<Stmt> call_stmt = std::static_pointer_cast<Stmt>(std::make_shared<CallStmt>(concat_func, dest_reg, params));
+        current_basic_block_->AddStmt(call_stmt);
+        // find function by name, call
         // todo concatenate strings
       } else if (*lhs_type == *k_int) {
-
+        std::shared_ptr<>;
       }
       break;
     }
@@ -175,8 +186,8 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       node->setAssignable(false);
     }
   }
-  }
 }
+
 
 
 
@@ -209,7 +220,7 @@ void IRGenerator::InitFuncParam(std::shared_ptr<FuncDefNode>func_def_node) {
   }
 }
 
-std::string IRGenerator::FetchExprReg(std::shared_ptr<ExprNode> expr) {
+std::string IRGenerator::FetchExprRegStr(std::shared_ptr<ExprNode> expr) {
   if (auto id = std::dynamic_pointer_cast<IdNode>(expr)) {
     return current_scope_->FindRegister(id->getIdName())->GetIndex();
   } else if (auto literal = std::dynamic_pointer_cast<LiteralNode>(expr)) {
@@ -224,6 +235,23 @@ std::string IRGenerator::FetchExprReg(std::shared_ptr<ExprNode> expr) {
     return current_func_->GetLastReg()->GetIndex();
   }
 }
+
+std::shared_ptr<Register> IRGenerator::FetchExprReg(std::shared_ptr<ExprNode> expr) {
+  if (auto id = std::dynamic_pointer_cast<IdNode>(expr)) {
+    return current_scope_->FindRegister(id->getIdName())->GetIndex();
+  } else if (auto literal = std::dynamic_pointer_cast<LiteralNode>(expr)) {
+    if (*literal->getLiteralType() != *k_string) {
+      return literal->ToString();
+    } else {
+      CreateString(literal);
+      return "@.str." + literal->ToString();
+      //global
+    }
+  } else {
+    return current_func_->GetLastReg();
+  }
+}
+
 
 void IRGenerator::CreateString(std::shared_ptr<LiteralNode> string_literal) {
   auto string_type = std::make_shared<IRType>(IRType::kSTRING);
@@ -246,4 +274,8 @@ std::shared_ptr<Register> IRGenerator::FindRegister(const std::string& var_name)
   } else {
     return result_reg;
   }
+}
+
+std::shared_ptr<IRFunction> IRGenerator::FindFunction(const std::string& func_name) {
+  return funcs_[func_name];
 }
