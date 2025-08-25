@@ -1,6 +1,7 @@
 #include "backend/ir_generator.h"
 
 #include "backend/stmt/alloca_stmt.h"
+#include "backend/stmt/binary_stmt.h"
 #include "backend/stmt/call_stmt.h"
 #include "backend/stmt/global_stmt.h"
 #include "backend/stmt/load_stmt.h"
@@ -8,7 +9,10 @@
 #include "frontend/ast/stat_node/def_node/func_def_node.h"
 #include "frontend/ast/stat_node/def_node/main_func_node.h"
 #include "frontend/ast/stat_node/def_node/var_def_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/array_const_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/binary_expr_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/dot_expr_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/func_call_node.h"
 
 
 void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
@@ -34,7 +38,7 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
       std::shared_ptr<ClassType> class_type = std::make_shared<ClassType>(class_def->getIdNode()->getIdName());
       current_class_type_ = class_type;
       class_def->accept(this);
-      types_.push_back(std::move(class_type));
+      types_[class_def->getIdNode()->getIdName()] = std::move(class_type);
     }
   }
 }
@@ -74,7 +78,7 @@ void IRGenerator::visit(std::shared_ptr<ClassDefNode> node) {
     if (auto var_def = std::dynamic_pointer_cast<VarDefNode>(stat)) {
       //add to type
       std::shared_ptr<IRType> var_type = std::make_shared<IRType>(var_def->getIdNode()->getType());
-      current_class_type_->AddElement(var_type);
+      current_class_type_->AddElement(var_def->getIdNode()->getIdName(), var_type);
     } else if (auto func_def = std::dynamic_pointer_cast<FuncDefNode>(stat)) {
       std::shared_ptr<IRFunction> func = std::make_shared<IRFunction>(func_def, node->getIdNode()->getIdName());
       current_func_ = func;
@@ -127,9 +131,9 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
   auto lhs = node->getLhs();
   auto rhs = node->getRhs();
   lhs->accept(this);
-  std::string lhs_rep = FetchExprReg(lhs);
+  auto lhs_rep = FetchExprReg(lhs);
   rhs->accept(this);
-  std::string rhs_rep = FetchExprReg(rhs);
+  auto rhs_rep = FetchExprReg(rhs);
   auto lhs_type = lhs->getExprType();
   auto rhs_type = rhs->getExprType();
   switch (node->getOp()) {
@@ -138,56 +142,216 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
         auto concat_func = FindFunction("__concat");
         std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kPTR);
         std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
-        std::shared_ptr<Register> param_reg1 =
-        std::vector<std::shared_ptr<Register>> params;
-        params.push_back(param_reg1);
-        params.push_back(param_reg2);
-
+        std::vector<std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
+        params.push_back(lhs_rep);
+        params.push_back(rhs_rep);
         std::shared_ptr<Stmt> call_stmt = std::static_pointer_cast<Stmt>(std::make_shared<CallStmt>(concat_func, dest_reg, params));
         current_basic_block_->AddStmt(call_stmt);
         // find function by name, call
         // todo concatenate strings
       } else if (*lhs_type == *k_int) {
-        std::shared_ptr<>;
+        std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kINT);
+        std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+        std::shared_ptr<Stmt> add_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, lhs_rep, rhs_rep, dest_reg));
+        current_basic_block_->AddStmt(add_stmt);
+      } else {
+        throw std::runtime_error("binary operation type mismatch");
       }
       break;
     }
-    case BinaryExprNode::BinaryOp::kMUL:
-    case BinaryExprNode::BinaryOp::kDIV:
-    case BinaryExprNode::BinaryOp::kMOD:
-    case BinaryExprNode::BinaryOp::kSUB:
-    case BinaryExprNode::BinaryOp::kSRL:
-    case BinaryExprNode::BinaryOp::kSLL:
-    case BinaryExprNode::BinaryOp::kAND:
-    case BinaryExprNode::BinaryOp::kXOR:
+    case BinaryExprNode::BinaryOp::kMUL: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kINT);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> mul_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kMUL, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(mul_stmt);
+    }
+    case BinaryExprNode::BinaryOp::kDIV: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kINT);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> div_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kDIV, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(div_stmt);
+    }
+    case BinaryExprNode::BinaryOp::kMOD: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kINT);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> mod_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kMOD, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(mod_stmt);
+    }
+    case BinaryExprNode::BinaryOp::kSUB: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kINT);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> sub_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kSUB, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(sub_stmt);
+    }
+    case BinaryExprNode::BinaryOp::kSRL: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kINT);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> srl_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kSRL, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(srl_stmt);
+    }
+    case BinaryExprNode::BinaryOp::kSLL: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kINT);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> sll_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kSLL, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(sll_stmt);
+    }
+    case BinaryExprNode::BinaryOp::kAND: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> and_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kAND, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(and_stmt);
+    }
+    case BinaryExprNode::BinaryOp::kXOR: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> xor_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kXOR, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(xor_stmt);
+    }
     case BinaryExprNode::BinaryOp::kOR: {
       if (*lhs_type != *k_int) {
-
+        throw std::runtime_error("binary operation type mismatch");
       }
-      node->setExprType(lhs_type);
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> or_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kOR, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(or_stmt);
       break;
     }
-    case BinaryExprNode::BinaryOp::kBT:
-    case BinaryExprNode::BinaryOp::kLT:
-    case BinaryExprNode::BinaryOp::kBEQ:
-    case BinaryExprNode::BinaryOp::kLEQ:
-    case BinaryExprNode::BinaryOp::kET:
+    case BinaryExprNode::BinaryOp::kBT: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> bt_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kBT, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(bt_stmt);
+      break;
+    }
+    case BinaryExprNode::BinaryOp::kLT: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> lt_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kLT, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(lt_stmt);
+      break;
+    }
+    case BinaryExprNode::BinaryOp::kBEQ: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> beq_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kBEQ, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(beq_stmt);
+      break;
+    }
+    case BinaryExprNode::BinaryOp::kLEQ: {
+      if (*lhs_type != *k_int) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> leq_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kLEQ, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(leq_stmt);
+      break;
+    }
+    case BinaryExprNode::BinaryOp::kET: {
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> et_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kET, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(et_stmt);
+      break;
+    }
     case BinaryExprNode::BinaryOp::kNET: {
-      node->setExprType(k_bool);
-      node->setAssignable(false);
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> net_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kNET, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(net_stmt);
       break;
     }
-    case BinaryExprNode::BinaryOp::kAND_AND:
+    case BinaryExprNode::BinaryOp::kAND_AND: {
+      if (*lhs_type != *k_bool) {
+        throw std::runtime_error("binary operation type mismatch");
+      }
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> and_and_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kAND_AND, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(and_and_stmt);
+      break;
+    }
     case BinaryExprNode::BinaryOp::kOR_OR: {
       if (*lhs_type != *k_bool) {
-        throw(std::runtime_error("the operator only applies to booleans"));
+        throw std::runtime_error("binary operation type mismatch");
       }
-      node->setExprType(lhs_type);
-      node->setAssignable(false);
+      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
+      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
+      std::shared_ptr<Stmt> or_or_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kOR_OR, lhs_rep, rhs_rep, dest_reg));
+      current_basic_block_->AddStmt(or_or_stmt);
+      break;
     }
   }
 }
 
+void IRGenerator::visit(std::shared_ptr<ArrayConstNode> node) {
+  //don't want to implement, it will be processed in the def
+}
+
+void IRGenerator::visit(std::shared_ptr<DotExprNode> node) {
+  auto lhs = node->getLhs();
+  auto rhs = node->getRhs();
+  lhs->accept(this);
+  auto lhs_rep = FetchExprReg(lhs);
+  std::shared_ptr<IRType> lhs_type;
+  if (std::holds_alternative<LiteralNode>(lhs_rep)) {
+    lhs_type = std::make_shared<IRType>(std::get<LiteralNode>(lhs_rep).getLiteralType());
+  } else {
+    lhs_type = std::get<std::shared_ptr<Register>>(lhs_rep)->GetType();
+  }
+  if (auto func_call = std::dynamic_pointer_cast<FuncCallNode>(rhs)) {
+    std::string func_name = lhs_type->GetTypeName() + "@" + func_call->getName();
+    std::shared_ptr<IRFunction> func = FindFunction(func_name);
+    auto dest_reg = current_func_->CreateRegister(func->GetReturnType());
+    auto args = func_call->getArgs();
+    std::vector<std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> arg_reps;
+    for (const auto &arg : args) {
+      arg->accept(this);
+      auto arg_rep = FetchExprReg(arg);
+      arg_reps.push_back(arg_rep);
+    }
+    std::shared_ptr<Stmt> call_stmt = std::static_pointer_cast<Stmt>(std::make_shared<CallStmt>(func, dest_reg, arg_reps));
+    current_basic_block_->AddStmt(call_stmt);
+  } else if (auto field = std::dynamic_pointer_cast<IdNode>(rhs)) {
+    std::string var_name = field->getIdName();
+    int index = GetStructIndex(lhs_type->GetTypeName(), var_name);
+
+  }
+}
 
 
 
@@ -220,31 +384,15 @@ void IRGenerator::InitFuncParam(std::shared_ptr<FuncDefNode>func_def_node) {
   }
 }
 
-std::string IRGenerator::FetchExprRegStr(std::shared_ptr<ExprNode> expr) {
+std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> IRGenerator::FetchExprReg(std::shared_ptr<ExprNode> expr) { // must be directly after accept
   if (auto id = std::dynamic_pointer_cast<IdNode>(expr)) {
-    return current_scope_->FindRegister(id->getIdName())->GetIndex();
+    return current_scope_->FindRegister(id->getIdName());
   } else if (auto literal = std::dynamic_pointer_cast<LiteralNode>(expr)) {
     if (*literal->getLiteralType() != *k_string) {
-      return literal->ToString();
+      return literal;
     } else {
-      CreateString(literal);
-      return "@.str." + literal->ToString();
-      //global
-    }
-  } else {
-    return current_func_->GetLastReg()->GetIndex();
-  }
-}
-
-std::shared_ptr<Register> IRGenerator::FetchExprReg(std::shared_ptr<ExprNode> expr) {
-  if (auto id = std::dynamic_pointer_cast<IdNode>(expr)) {
-    return current_scope_->FindRegister(id->getIdName())->GetIndex();
-  } else if (auto literal = std::dynamic_pointer_cast<LiteralNode>(expr)) {
-    if (*literal->getLiteralType() != *k_string) {
-      return literal->ToString();
-    } else {
-      CreateString(literal);
-      return "@.str." + literal->ToString();
+      std::shared_ptr<Register> string_reg = CreateString(literal);
+      return string_reg;
       //global
     }
   } else {
@@ -253,12 +401,13 @@ std::shared_ptr<Register> IRGenerator::FetchExprReg(std::shared_ptr<ExprNode> ex
 }
 
 
-void IRGenerator::CreateString(std::shared_ptr<LiteralNode> string_literal) {
+std::shared_ptr<Register> IRGenerator::CreateString(std::shared_ptr<LiteralNode> string_literal) {
   auto string_type = std::make_shared<IRType>(IRType::kSTRING);
   auto string_reg = std::make_shared<Register>(string_literal->ToString(), string_type, true);
   auto stmt = std::make_shared<GlobalStmt>(string_literal->ToString());
   global_scope_->AddGlobalStmt(stmt->commit());
   global_scope_->declare(string_literal->ToString(), string_reg);
+  return string_reg;
 }
 
 std::shared_ptr<Register> IRGenerator::ToRightVal(std::shared_ptr<Register> reg) {
@@ -278,4 +427,8 @@ std::shared_ptr<Register> IRGenerator::FindRegister(const std::string& var_name)
 
 std::shared_ptr<IRFunction> IRGenerator::FindFunction(const std::string& func_name) {
   return funcs_[func_name];
+}
+
+int IRGenerator::GetStructIndex(std::string type_name, std::string field_name) {
+  return types_[type_name]->GetElementIndex(field_name);
 }

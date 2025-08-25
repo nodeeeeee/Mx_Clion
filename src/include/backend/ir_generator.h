@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include <variant>
+
 #include "frontend/ast/visit_control.h"
 #include "frontend/ast/type/type_type.h"
 #include "util/class_type.h"
@@ -52,15 +54,15 @@ public:
   void visit(std::shared_ptr<ExprNode> node) override {}
 
   void InitFuncParam(std::shared_ptr<FuncDefNode> node) final;
-  std::shared_ptr<Register> FetchExprReg(std::shared_ptr<ExprNode> expr);
-  std::string FetchExprRegStr(std::shared_ptr<ExprNode> expr);
-  void CreateString(std::shared_ptr<LiteralNode> string_literal);
+  std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> FetchExprReg(std::shared_ptr<ExprNode> expr);
+  std::shared_ptr<Register> CreateString(std::shared_ptr<LiteralNode> string_literal);
   std::shared_ptr<Register> ToRightVal(std::shared_ptr<Register> reg);
   std::shared_ptr<Register> FindRegister(const std::string& var_name);
   std::shared_ptr<IRFunction> FindFunction(const std::string& func_name);
+  int GetStructIndex(std::string type_name, std::string field_name);
 
 private:
-  std::vector<std::shared_ptr<ClassType>> types_;
+  std::map<std::string, std::shared_ptr<ClassType>> types_;
   // std::vector<std::shared_ptr<IRFunction>> funcs_;
   std::map<std::string, std::shared_ptr<IRFunction>> funcs_;
   std::shared_ptr<IRFunction> current_func_;

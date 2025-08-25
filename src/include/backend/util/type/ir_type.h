@@ -59,6 +59,19 @@ public:
 
   std::shared_ptr<IRType> DecreaseDimension();
 
+  std::string GetTypeName() {
+    if (!customized_type_.empty()) {
+      return customized_type_;
+    } else {
+      switch (basic_type_) {
+        case kINT: return "Int";
+        case kBOOL: return "Bool";
+        case kSTRING: return "String";
+        default: throw std::runtime_error("Unsupported type");
+      }
+    }
+  }
+
 private:
   // need singleton to boost up assignment
   BasicType basic_type_;
