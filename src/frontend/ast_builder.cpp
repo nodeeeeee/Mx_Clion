@@ -554,31 +554,37 @@ std::any ASTBuilder::visitBreak(MxParser::BreakContext* ctx) {
 }
 
 std::any ASTBuilder::visitFormatString(MxParser::FormatStringContext* ctx) {
-  std::vector<std::shared_ptr<LiteralNode>> strings;
-  std::vector<std::shared_ptr<ExprNode>> exprs;
+  // std::vector<std::shared_ptr<LiteralNode>> strings;
+  // std::vector<std::shared_ptr<ExprNode>> exprs;
+  std::vector<std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<ExprNode>>> nodes;
   auto format_string_elements = ctx->FORMAT_STRING_ELEMENT();
   for (const auto& element : format_string_elements) {
-    strings.push_back(std::make_shared<LiteralNode>(element->getSymbol()));
+    // strings.push_back(std::make_shared<LiteralNode>(element->getSymbol()));
+    nodes.push_back(std::make_shared<LiteralNode>(element->getSymbol()));
   }
   auto expr_elements = ctx->expr();
   for (const auto& element : expr_elements) {
     if (element != nullptr) {
-      exprs.push_back(std::any_cast<std::shared_ptr<ExprNode>>(element->accept(this)));
+      // exprs.push_back(std::any_cast<std::shared_ptr<ExprNode>>(element->accept(this)));
+      nodes.push_back(std::any_cast<std::shared_ptr<ExprNode>>(element->accept(this)));
+
     }
   }
-  if (format_string_elements.empty()) {
-    return std::dynamic_pointer_cast<ExprNode>(
-      std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), false, Position(ctx)));
-  } else if (expr_elements.empty()) {
-    return std::dynamic_pointer_cast<ExprNode>(
-      std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), true, Position(ctx)));
-  } else if (format_string_elements.at(0)->getSourceInterval().a < expr_elements.at(0)->getSourceInterval().a) {
-    return std::dynamic_pointer_cast<ExprNode>(
-      std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), true, Position(ctx)));
-  } else {
-    return std::dynamic_pointer_cast<ExprNode>(
-      std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), false, Position(ctx)));
-  }
+  return std::dynamic_pointer_cast<ExprNode>(
+    std::make_shared<FormatStringNode>(std::move(nodes), false, Position(ctx)));
+  // if (format_string_elements.empty()) {
+  //   return std::dynamic_pointer_cast<ExprNode>(
+  //     std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), false, Position(ctx)));
+  // } else if (expr_elements.empty()) {
+  //   return std::dynamic_pointer_cast<ExprNode>(
+  //     std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), true, Position(ctx)));
+  // } else if (format_string_elements.at(0)->getSourceInterval().a < expr_elements.at(0)->getSourceInterval().a) {
+  //   return std::dynamic_pointer_cast<ExprNode>(
+  //     std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), true, Position(ctx)));
+  // } else {
+  //   return std::dynamic_pointer_cast<ExprNode>(
+  //     std::make_shared<FormatStringNode>(std::move(strings), std::move(exprs), false, Position(ctx)));
+  // }
 }
 
 std::any ASTBuilder::visitThisExpr(MxParser::ThisExprContext* ctx) {

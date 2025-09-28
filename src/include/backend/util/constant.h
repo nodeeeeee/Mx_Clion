@@ -10,7 +10,7 @@
 
 class Constant {
 public:
-  explicit Constant(std::variant<int, bool, std::string> value) : value_(std::move(value)) {
+  explicit Constant(std::variant<int, bool, std::string, std::shared_ptr<Arr>> value) : value_(std::move(value)) {
     if (auto tmp = std::get_if<int>(&value_)) {
       type_ = std::make_shared<IRType>(IRType::kINT);
     } else if (auto tmp1 = std::get_if<bool>(&value_)) {

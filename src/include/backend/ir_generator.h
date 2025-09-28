@@ -32,7 +32,7 @@ public:
   void visit(std::shared_ptr<FormatStringNode> node) final;
   void visit(std::shared_ptr<FuncCallNode> node) final;
   void visit(std::shared_ptr<IndexExprNode> node) final;
-  void visit(std::shared_ptr<InitArrayNode> node) final;
+  // void visit(std::shared_ptr<InitArrayNode> node) final; // included in VarDef, no need.
   void visit(std::shared_ptr<InitObjectNode> node) final;
   void visit(std::shared_ptr<NullExprNode> node) final;
   void visit(std::shared_ptr<UnaryExprNode> node) final;
@@ -44,7 +44,7 @@ public:
   void visit(std::shared_ptr<IfStatNode> node) final;
   void visit(std::shared_ptr<ReturnStatNode> node) final;
   void visit(std::shared_ptr<WhileStatNode> node) final;
-  void visit(std::shared_ptr<LiteralNode> node) final;
+  // void visit(std::shared_ptr<LiteralNode> node) final;
   void visit(std::shared_ptr<TerminalNode> node) final;
   void visit(std::shared_ptr<ThisExprNode> node) final;
   void visit(std::shared_ptr<ParenExprNode> node) final;
@@ -59,7 +59,8 @@ public:
   std::shared_ptr<Register> ToRightVal(std::shared_ptr<Register> reg);
   std::shared_ptr<Register> FindRegister(const std::string& var_name);
   std::shared_ptr<IRFunction> FindFunction(const std::string& func_name);
-  int GetStructIndex(std::string type_name, std::string field_name);
+  std::pair<std::shared_ptr<IRType>, int> GetElementInStruct(std::string type_name, std::string field_name);
+  void InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const, int depth, int track[]);
 
 private:
   std::map<std::string, std::shared_ptr<ClassType>> types_;
@@ -74,6 +75,8 @@ private:
   std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
   std::shared_ptr<TypeType> k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
   std::shared_ptr<TypeType> k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
-
+  std::shared_ptr<IRType> k_ir_int = std::make_shared<IRType>(k_int);
+  std::shared_ptr<IRType> k_ir_bool = std::make_shared<IRType>(k_bool);
+  std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(k_string);
 
 };

@@ -70,6 +70,7 @@ public:
     return new_reg;
   }
 
+
   [[nodiscard]] std::shared_ptr<IRScope> GetScope() const {
     return func_scope_;
   }

@@ -7,6 +7,7 @@
 #include <variant>
 
 #include "expr_node.h"
+#include "backend/util/type/ir_type.h"
 #include "frontend/ast/type/type_type.h"
 #include "frontend/ast/stat_node/def_node/class_def_node.h"
 #include "parser/MxParser.h"
@@ -46,6 +47,8 @@ public:
   bool isNull() const { return is_null; }
   void accept(VisitControl* visitor) { visitor->visit(shared_from_this()); }
 
+  [[nodiscard]] std::shared_ptr<IRType> getLiteralIRType() { return literal_irtype; }
+
   [[nodiscard]] std::variant<int, bool, std::string> GetValue() const { return value_; }
 
   std::string ToString() const {
@@ -61,6 +64,7 @@ public:
 
 private:
   std::shared_ptr<TypeType> literal_type;
+  std::shared_ptr<IRType> literal_irtype;
   bool is_null = false;
 
   std::variant<int, bool, std::string> value_;

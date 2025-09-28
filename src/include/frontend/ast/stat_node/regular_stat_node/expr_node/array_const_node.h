@@ -60,6 +60,14 @@ public:
     }
   }
 
+  std::vector<std::shared_ptr<LiteralNode>> GetLiteralElements() {
+    return literal_elements;
+  }
+
+  std::vector<std::shared_ptr<ArrayConstNode>> GetArrayElements() {
+    return array_elements;
+  }
+
   //check type consistency within the array, and check how many layers are there in an array
   void accept(VisitControl* visitor) override { visitor->visit(shared_from_this()); }
 };

@@ -24,7 +24,6 @@ public:
         return regs_[var_name];
       } else {
         if (this->parent_ == nullptr) {
-
         } else {
           return this->parent_->FindRegister(var_name);
         }

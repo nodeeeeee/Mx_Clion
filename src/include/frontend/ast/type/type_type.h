@@ -50,7 +50,7 @@ public:
     }
   }
 
-  size_t getDimension() {return dimension;}
+  [[nodiscard]] int getDimension() const {return dimension;}
 
   std::string getTypeName();
 

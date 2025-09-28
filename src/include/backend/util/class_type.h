@@ -19,6 +19,10 @@ public:
     return types_[element_name].first;
   }
 
+  std::pair<std::shared_ptr<IRType>, int> GetElement(const std::string& element_name) {
+    return types_[element_name];
+  }
+
 private:
   static int index_cnt;
   std::string type_name_;

@@ -5,12 +5,18 @@
 class StoreStmt : public Stmt {
 public:
   StoreStmt() = default;
-  StoreStmt(std::shared_ptr<Register> value, std::shared_ptr<Register> addr) : value_(std::move(value)), addr_(std::move(addr)) {}
+  StoreStmt(std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> value, std::shared_ptr<Register> addr) : value_(std::move(value)), addr_(std::move(addr)) {}
 
   std::string commit() {
-    return "store " + value_->GetType()->toString() + " " + value_->GetIndex() + ", ptr " + addr_->GetIndex();
+    if (std::holds_alternative<std::shared_ptr<Register>>(value_)) {
+      auto value_reg = std::get<std::shared_ptr<Register>>(value_);
+      return "store " + value_reg->GetType()->toString() + " " + value_reg->GetIndex() + ", ptr " + addr_->GetIndex();
+    } else if (std::holds_alternative<std::shared_ptr<LiteralNode>>(value_)) {
+      auto value_literal = std::get<std::shared_ptr<LiteralNode>>(value_);
+      return "store" + value_literal->getLiteralIRType()->toString() + " " + value_literal->ToString() + ", ptr " + addr_->GetIndex();
+    }
   }
 private:
-  std::shared_ptr<Register> value_;
+  std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> value_;
   std::shared_ptr<Register> addr_;
 };

@@ -23,5 +23,25 @@ public:
     const std::shared_ptr<TypeType>& getType() { return type; }
     const std::shared_ptr<ArrayConstNode> getDefaultArray() { return default_array; }
     void accept(VisitControl *visitor) override {visitor->visit(shared_from_this());}
-
+    [[nodiscard]] std::string GetTypeForInit() {
+        std::string ret;
+        for (int i = 0; i < range_node.size(); i++) {
+            std::shared_ptr<LiteralNode> range_literal = std::dynamic_pointer_cast<LiteralNode>(range_node[i]);
+            ret += "[" + range_literal->ToString() + " x ";
+        }
+        ret += "i32";
+        for (int i = 0; i < range_node.size(); i++) {
+            ret += "]";
+        }
+        return ret;
+    }
+    [[nodiscard]] std::string GetArrayConstForInit() {
+        std::string ret;
+        ret += "[";
+        for (int i = 0; i < range_node.size(); i++) {
+            std::shared_ptr<LiteralNode> range_literal = std::dynamic_pointer_cast<LiteralNode>(range_node[i]);
+            ret += "i32 " + range_literal->ToString() + ", ";
+        }
+        ret += "]";
+    }
 };

@@ -7,6 +7,7 @@
 #include "backend/util/type/ir_type.h"
 #include "frontend/ast/stat_node/def_node/var_def_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/id_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/init_array_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/literal_node.h"
 #include "frontend/ast/type/bool_type.h"
 #include "frontend/ast/type/int_type.h"
@@ -20,6 +21,24 @@ class GlobalStmt : Stmt {
 public:
   explicit GlobalStmt(std::shared_ptr<VarDefNode> node): Stmt() {
     name_ = node->getIdNode()->getIdName();
+    if (node->getIdNode()->getType()->getDimension() != 0) {// it is an array initialization
+      auto array_type = std::make_shared<IRType> (node->getIdNode()->getType());
+      register_ = std::make_shared<Register>(name_, array_type, true);
+      if (node->getExpr() == nullptr) { // int[] a;
+        array_msg = "@" + name_ + " global " + array_type->toString() + " null";
+      } else { // have some initialization   int[] a = new int[10];     int[] a = new int[10] {1, 2, 3, 4...}
+        auto init_array = std::dynamic_pointer_cast<InitArrayNode> (node->getExpr());
+        if (init_array->getDefaultArray() == nullptr) { // int[] a = new int[10];
+          std::string array_type_for_init = init_array->GetTypeForInit();
+          array_msg =  "@" + name_ + " global " + array_type_for_init + "zeroinitializer, align 4";
+        } else { // int[] a = new int[10]{1, 2, 3, 4...}
+          std::string array_type_for_init = init_array->GetTypeForInit();
+          std::string array_const = init_array->GetArrayConstForInit();
+          array_msg =  "@" + name_ + " global " + array_type_for_init + array_const + ", align 4";
+        }
+      }
+    }
+
     if (*node->getIdNode()->getType() == IntType::Instance()) {
       register_ = std::make_shared<Register>(name_, k_int, true);
     } else if (*node->getIdNode()->getType() == BoolType::Instance()) {
@@ -46,21 +65,25 @@ public:
   }
 
   [[nodiscard]] std::string commit() const{
-    //to-do: initialize the value if rhs is literal, and type is int/bool
+    if (!array_msg.empty()) {
+      return array_msg;
+    }
+    //to-do: initialize the value if rhs is literal(array), and type is int/bool
     if (constant_value_.has_value()) {
       if (*constant_value_.value()->GetConstType() == *k_string) {
         auto string_size = name_.size();
         return "@" + name_ + " = private unnamed_addr constant [" + string_size + "x i8] c\"" + name_ + "\\00, align 1";
       }
       auto value_tmp = constant_value_.value();
-      return "@" + name_ + " global " + register_->GetType()->toString() + register_->GetType()->DefaultValue() + value_tmp->ToString() + ", align" + register_->GetType()->GetAlign();
+      return "@" + name_ + " global " + register_->GetType()->toString() + value_tmp->ToString() + ", align" + register_->GetType()->GetAlign();
     } else {
-      return "@" + name_ + " global " + register_->GetType()->toString() + register_->GetType()->DefaultValue() + "0, align" + register_->GetType()->GetAlign();
+      return "@" + name_ + " global " + register_->GetType()->toString() + register_->GetType()->DefaultValue() + ", align" + register_->GetType()->GetAlign();
     }
   }
 
 
 private:
+  std::string array_msg;
   std::string name_;
   std::shared_ptr<Register> register_;
   std::optional<std::shared_ptr<Constant>> constant_value_;

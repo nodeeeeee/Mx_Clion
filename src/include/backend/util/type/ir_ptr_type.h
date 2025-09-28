@@ -17,7 +17,7 @@ public:
   }
 
   std::string DefaultValue_() override {
-    return "0";
+    return "null";
   }
 
 private:
