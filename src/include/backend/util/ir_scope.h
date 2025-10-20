@@ -43,6 +43,10 @@ public:
     return std::make_shared<IRScope>(parent);
   }
 
+  std::shared_ptr<IRScope> GetParent() {
+    return parent_;
+  }
+
 private:
   std::shared_ptr<IRScope> parent_;
   std::map<std::string, std::shared_ptr<Register>> regs_;

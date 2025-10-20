@@ -10,11 +10,11 @@ class FormatStringNode : public ExprNode, public std::enable_shared_from_this<Fo
 private:
     std::vector<std::shared_ptr<LiteralNode>> literal_nodes; //strings
     std::vector<std::shared_ptr<ExprNode>> expr_nodes;
-    std::vector<std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<ExprNode>>> nodes_;
+    std::vector<std::variant<int, std::shared_ptr<LiteralNode>, std::shared_ptr<ExprNode>>> nodes_;
     bool literal_first;
 public:
     FormatStringNode() = delete;
-    FormatStringNode(std::vector<std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<ExprNode>>> nodes, bool literal_first, Position position)
+    FormatStringNode(std::vector<std::variant<int, std::shared_ptr<LiteralNode>, std::shared_ptr<ExprNode>>> nodes, bool literal_first, Position position)
         : nodes_(nodes), literal_first(literal_first), ExprNode(position) {
         for (const auto& node : nodes) {
             if (holds_alternative<LiteralNode>(node)) {
@@ -26,7 +26,7 @@ public:
     }
     void accept(VisitControl *visitor) override {visitor->visit(shared_from_this()); }
 
-    std::vector<std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<ExprNode>>> get_all_nodes() const {return nodes_;}
+    std::vector<std::variant<int, std::shared_ptr<LiteralNode>, std::shared_ptr<ExprNode>>> get_all_nodes() const {return nodes_;}
     std::vector<std::shared_ptr<LiteralNode>>& getLiteralNodes() { return literal_nodes; }
     std::vector<std::shared_ptr<ExprNode>>& getExprNodes() { return expr_nodes; }
 };

@@ -13,7 +13,7 @@
 //%res = getelementptr <pointee-type>, ptr <base>, <index>...
 class GEPStmt : public Stmt {
 public:
-  GEPStmt(std::shared_ptr<Register> dest_ptr, std::shared_ptr<Register> base_ptr, std::vector<std::variant<int, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices) : dest_ptr_(std::move(dest_ptr)), base_ptr_(std::move(base_ptr)), indices_(std::move(indices)) {
+  GEPStmt(std::shared_ptr<Register> dest_ptr, std::shared_ptr<Register> base_ptr, std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices) : dest_ptr_(std::move(dest_ptr)), base_ptr_(std::move(base_ptr)), indices_(std::move(indices)) {
   }
 
 
@@ -38,5 +38,5 @@ public:
 private:
   std::shared_ptr<Register> dest_ptr_;
   std::shared_ptr<Register> base_ptr_;  // pointee-type can be retrieved from base_ptr
-  std::vector<std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices_;
+  std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices_;
 };

@@ -1,4 +1,12 @@
 # ninja log v6
+1	764	1749117610834281926	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxBaseListener.cpp.o	5efe079c3848826c
+4	1224	1753889040027043826	CMakeFiles/Mx_Clion.dir/src/frontend/global_scope_extractor.cpp.o	6fb24515a495aa1f
+2	767	1753889040025497532	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxListener.cpp.o	477f47e48308b11f
+1	800	1749086581028248840	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/test.cpp.o	46fbb9a59b9544b9
+2	2281	1753889040024350559	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/main.cpp.o	45f9028c8ca5f062
+0	19	1760929249669397919	build.ninja	3d9ca3eea21a82d0
+3	2128	1753889040026575303	CMakeFiles/Mx_Clion.dir/src/frontend/semantic_check.cpp.o	629a401cd8d01c90
+3477	3602	1753889043499408528	Mx_Clion	fe8c2451e9805fd7
 3	1012	1753889040026132642	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxLexer.cpp.o	63ded7d26726d96f
 4	305	1753861325022119748	CMakeFiles/Mx_Clion.dir/src/frontend/visit_control.cpp.o	6842104d95469b3c
 3	1383	1753889040026293303	CMakeFiles/Mx_Clion.dir/src/include/frontend/ast/type/type_type.cpp.o	5d90fc67a743fba9
@@ -6,11 +14,3 @@
 3	1260	1753889040025945484	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxBaseVisitor.cpp.o	8d0f2b44c5138ecf
 3	1495	1753889040026429850	CMakeFiles/Mx_Clion.dir/src/include/frontend/ast/util/scope.cpp.o	b8b92b09c5e69e51
 4	3474	1753889040027306592	CMakeFiles/Mx_Clion.dir/src/frontend/ast_builder.cpp.o	c459dc0993a51c26
-1	800	1749086581028248840	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/test.cpp.o	46fbb9a59b9544b9
-2	767	1753889040025497532	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxListener.cpp.o	477f47e48308b11f
-4	1224	1753889040027043826	CMakeFiles/Mx_Clion.dir/src/frontend/global_scope_extractor.cpp.o	6fb24515a495aa1f
-1	764	1749117610834281926	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxBaseListener.cpp.o	5efe079c3848826c
-3477	3602	1753889043499408528	Mx_Clion	fe8c2451e9805fd7
-2	2281	1753889040024350559	CMakeFiles/Mx_Clion.dir/src/parser/antlr4/main.cpp.o	45f9028c8ca5f062
-3	2128	1753889040026575303	CMakeFiles/Mx_Clion.dir/src/frontend/semantic_check.cpp.o	629a401cd8d01c90
-0	19	1756031816141485909	build.ninja	3d9ca3eea21a82d0

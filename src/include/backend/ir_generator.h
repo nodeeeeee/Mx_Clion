@@ -33,8 +33,8 @@ public:
   void visit(std::shared_ptr<FuncCallNode> node) final;
   void visit(std::shared_ptr<IndexExprNode> node) final;
   // void visit(std::shared_ptr<InitArrayNode> node) final; // included in VarDef, no need.
-  void visit(std::shared_ptr<InitObjectNode> node) final;
-  void visit(std::shared_ptr<NullExprNode> node) final;
+  // void visit(std::shared_ptr<InitObjectNode> node) final;
+  // void visit(std::shared_ptr<NullExprNode> node) final;
   void visit(std::shared_ptr<UnaryExprNode> node) final;
   void visit(std::shared_ptr<TernaryExprNode> node) final;
   void visit(std::shared_ptr<AssignStatNode> node) final;
@@ -54,18 +54,19 @@ public:
   void visit(std::shared_ptr<ExprNode> node) override {}
 
   void InitFuncParam(std::shared_ptr<FuncDefNode> node) final;
-  std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> FetchExprReg(std::shared_ptr<ExprNode> expr);
+  std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> FetchExprReg(std::shared_ptr<ExprNode> expr);
   std::shared_ptr<Register> CreateString(std::shared_ptr<LiteralNode> string_literal);
   std::shared_ptr<Register> ToRightVal(std::shared_ptr<Register> reg);
   std::shared_ptr<Register> FindRegister(const std::string& var_name);
   std::shared_ptr<IRFunction> FindFunction(const std::string& func_name);
   std::pair<std::shared_ptr<IRType>, int> GetElementInStruct(std::string type_name, std::string field_name);
   void InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const, int depth, int track[]);
+  std::shared_ptr<ClassType> GetClassType(const std::string& type_name);
 
 private:
   std::map<std::string, std::shared_ptr<ClassType>> types_;
   // std::vector<std::shared_ptr<IRFunction>> funcs_;
-  std::map<std::string, std::shared_ptr<IRFunction>> funcs_;
+  std::map<std::string, std::shared_ptr<IRFunction>> funcs_; //a global vector that stores all functions defined
   std::shared_ptr<IRFunction> current_func_;
   std::shared_ptr<ClassType> current_class_type_;
   std::shared_ptr<Block> current_basic_block_;
@@ -78,5 +79,7 @@ private:
   std::shared_ptr<IRType> k_ir_int = std::make_shared<IRType>(k_int);
   std::shared_ptr<IRType> k_ir_bool = std::make_shared<IRType>(k_bool);
   std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(k_string);
-
 };
+
+
+//all variants support int, LiteralNode, Registers

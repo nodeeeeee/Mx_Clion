@@ -53,6 +53,7 @@ add_executable(Mx_Clion src/parser/antlr4/main.cpp
         src/include/backend/stmt/call_stmt.h
         src/include/backend/stmt/binary_stmt.h
         src/include/backend/stmt/gep_stmt.h
+        src/lib/builtin.c
         #        src/include/backend/ir_generator.h
 #        src/backend/ir_generator.cpp
 )

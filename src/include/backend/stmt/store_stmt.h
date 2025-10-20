@@ -5,7 +5,7 @@
 class StoreStmt : public Stmt {
 public:
   StoreStmt() = default;
-  StoreStmt(std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> value, std::shared_ptr<Register> addr) : value_(std::move(value)), addr_(std::move(addr)) {}
+  StoreStmt(std::variant<int, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> value, std::shared_ptr<Register> addr) : value_(std::move(value)), addr_(std::move(addr)) {}
 
   std::string commit() {
     if (std::holds_alternative<std::shared_ptr<Register>>(value_)) {
@@ -17,6 +17,6 @@ public:
     }
   }
 private:
-  std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> value_;
+  std::variant<int, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> value_;
   std::shared_ptr<Register> addr_;
 };

@@ -23,8 +23,12 @@ public:
     return types_[element_name];
   }
 
+  [[nodiscard]] int GetClassSize() {
+    return index_cnt;
+  }
+
 private:
-  static int index_cnt;
+  int index_cnt = 0;
   std::string type_name_;
   std::map<std::string, std::pair<std::shared_ptr<IRType>, int>> types_;
 };

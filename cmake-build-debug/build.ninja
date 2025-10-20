@@ -133,6 +133,13 @@ build CMakeFiles/Mx_Clion.dir/src/include/backend/util/type/ir_type.cpp.o: CXX_C
   OBJECT_DIR = CMakeFiles/Mx_Clion.dir
   OBJECT_FILE_DIR = CMakeFiles/Mx_Clion.dir/src/include/backend/util/type
 
+build CMakeFiles/Mx_Clion.dir/src/lib/builtin.c.o: C_COMPILER__Mx_Clion_unscanned_Debug /home/zhang-kai/Documents/计划/暑假/compiler/Mx_Clion/src/lib/builtin.c || cmake_object_order_depends_target_Mx_Clion
+  DEP_FILE = CMakeFiles/Mx_Clion.dir/src/lib/builtin.c.o.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -I/usr/include/antlr4-runtime -I/home/zhang-kai/Documents/计划/暑假/compiler/Mx_Clion/src/include
+  OBJECT_DIR = CMakeFiles/Mx_Clion.dir
+  OBJECT_FILE_DIR = CMakeFiles/Mx_Clion.dir/src/lib
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Mx_Clion
@@ -141,7 +148,7 @@ build CMakeFiles/Mx_Clion.dir/src/include/backend/util/type/ir_type.cpp.o: CXX_C
 #############################################
 # Link the executable Mx_Clion
 
-build Mx_Clion: CXX_EXECUTABLE_LINKER__Mx_Clion_Debug CMakeFiles/Mx_Clion.dir/src/parser/antlr4/main.cpp.o CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxListener.cpp.o CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxParser.cpp.o CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxBaseVisitor.cpp.o CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxLexer.cpp.o CMakeFiles/Mx_Clion.dir/src/include/frontend/ast/type/type_type.cpp.o CMakeFiles/Mx_Clion.dir/src/include/util/scope.cpp.o CMakeFiles/Mx_Clion.dir/src/frontend/semantic_check.cpp.o CMakeFiles/Mx_Clion.dir/src/frontend/global_scope_extractor.cpp.o CMakeFiles/Mx_Clion.dir/src/frontend/ast_builder.cpp.o CMakeFiles/Mx_Clion.dir/src/frontend/visit_control.cpp.o CMakeFiles/Mx_Clion.dir/src/include/backend/util/type/ir_type.cpp.o
+build Mx_Clion: CXX_EXECUTABLE_LINKER__Mx_Clion_Debug CMakeFiles/Mx_Clion.dir/src/parser/antlr4/main.cpp.o CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxListener.cpp.o CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxParser.cpp.o CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxBaseVisitor.cpp.o CMakeFiles/Mx_Clion.dir/src/parser/antlr4/MxLexer.cpp.o CMakeFiles/Mx_Clion.dir/src/include/frontend/ast/type/type_type.cpp.o CMakeFiles/Mx_Clion.dir/src/include/util/scope.cpp.o CMakeFiles/Mx_Clion.dir/src/frontend/semantic_check.cpp.o CMakeFiles/Mx_Clion.dir/src/frontend/global_scope_extractor.cpp.o CMakeFiles/Mx_Clion.dir/src/frontend/ast_builder.cpp.o CMakeFiles/Mx_Clion.dir/src/frontend/visit_control.cpp.o CMakeFiles/Mx_Clion.dir/src/include/backend/util/type/ir_type.cpp.o CMakeFiles/Mx_Clion.dir/src/lib/builtin.c.o
   DEP_FILE = CMakeFiles/Mx_Clion.dir/link.d
   FLAGS = -Wall -Wextra -Wpedantic -g -O0  -g
   LINK_FLAGS = -Wl,--dependency-file=CMakeFiles/Mx_Clion.dir/link.d

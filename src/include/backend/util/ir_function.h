@@ -27,7 +27,7 @@ public:
   explicit IRFunction(const std::shared_ptr<FuncDefNode>& func_def_node, std::string belong) : belong_(belong) {
     in_class_ = true;
     is_main_ = false;
-    func_name_ = func_def_node->getIdNode()->getIdName();
+    func_name_ = belong + "@" + func_def_node->getIdNode()->getIdName(); //A@ToString
     return_type_ = std::make_shared<IRType>(func_def_node->getReturnType());
     func_scope_ = std::make_shared<IRScope>();
     auto var_defs = func_def_node->getVarDefs();

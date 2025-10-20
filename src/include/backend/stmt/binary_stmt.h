@@ -16,7 +16,7 @@ public:
   enum class BinaryOp : int {
     kMUL, kDIV, kMOD, kADD, kSUB,kSRL, kSLL, kBT, kLT, kBEQ, kLEQ, kET, kNET, kAND, kXOR, kOR, kAND_AND, kOR_OR
   };
-  BinaryStmt(BinaryOp op, std::variant <std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>lhs, std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> rhs, std::shared_ptr<Register> dest)
+  BinaryStmt(BinaryOp op, std::variant <int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>lhs, std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> rhs, std::shared_ptr<Register> dest)
     : op_(op), lhs_(std::move(lhs)), rhs_(std::move(rhs)), dest_(std::move(dest)){
   }
 
@@ -79,11 +79,12 @@ public:
       case default:
         throw std::runtime_error("Unknown binary operator");
     }
+    return op_str;
   }
 
 private:
   BinaryOp op_;
-  std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> lhs_;
-  std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> rhs_;
+  std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> lhs_;
+  std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> rhs_;
   std::shared_ptr<Register> dest_;
 };
