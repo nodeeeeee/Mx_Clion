@@ -75,10 +75,16 @@ public:
     return func_scope_;
   }
 
-  std::shared_ptr<Block> CreateBlock(const std::string& block_name) {
-    auto new_block = Block::CreateBlock(block_name);
-    blocks_.push_back(new_block);
-    return new_block;
+  std::shared_ptr<Block> CreateBlock(const std::string& block_name, bool is_func_block = true) {
+    if (is_func_block) { // this is a function block
+      auto new_block = Block::CreateBlock(block_name);
+      blocks_.push_back(new_block);
+      return new_block;
+    } else { // this is a execution flow control block
+      auto new_block = Block::CreateBlock(block_name + std::to_string(block_tag_index[block_name]++));
+      blocks_.push_back(new_block);
+      return new_block;
+    }
   }
 
   [[nodiscard]] bool IsInClass() const {
@@ -110,4 +116,5 @@ private:
   std::optional<std::string> belong_;
   bool in_class_ = false; // if in class, it will automatically be assigned a first parameter as ptr
   std::shared_ptr<Register> last_reg_;
+  std::map<std::string, int> block_tag_index; // ifblock_1 ifblock_2
 };

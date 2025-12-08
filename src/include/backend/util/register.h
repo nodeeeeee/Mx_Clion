@@ -15,7 +15,9 @@ public:
   std::shared_ptr<IRType> GetType() {return type_;}
   std::string GetName() {return name_;}
   [[nodiscard]] std::string GetIndex() const {return "%" + std::to_string(index_);}
-
+  [[nodiscard]] std::string GetIndexWithType() {
+    return GetType()->toString() + " " + GetIndex();
+  }
 private:
   bool is_global_;
   std::shared_ptr<IRType> type_;

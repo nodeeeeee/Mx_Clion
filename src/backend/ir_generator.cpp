@@ -5,6 +5,7 @@
 #include "backend/stmt/call_stmt.h"
 #include "backend/stmt/gep_stmt.h"
 #include "backend/stmt/global_stmt.h"
+#include "backend/stmt/icmp_stmt.h"
 #include "backend/stmt/load_stmt.h"
 #include "backend/stmt/store_stmt.h"
 #include "frontend/ast/stat_node/def_node/func_def_node.h"
@@ -12,6 +13,7 @@
 #include "frontend/ast/stat_node/def_node/var_def_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/assign_stat_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/block_stat_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/if_stat_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/array_const_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/binary_expr_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/dot_expr_node.h"
@@ -19,6 +21,7 @@
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/func_call_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/index_expr_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/init_object_node.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/paren_expr_node.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/unary_expr_node.h"
 
 
@@ -178,6 +181,28 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
 void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
   auto lhs = node->getLhs();
   auto rhs = node->getRhs();
+  if (node->getOp() == BinaryExprNode::BinaryOp::kAND_AND) {
+    /** a && b
+     * eval(a)
+     * icmp
+     * create reg for a result
+     * br a == true b
+     * br a == false next
+     * b:
+     * eval(b) now last_reg is b.result
+     * br b == true next
+     */
+    lhs->accept(this);
+    auto a_result = current_func_->GetLastReg();
+    auto b_block = current_func_->CreateBlock("a_true", false);
+    auto end_block = current_func_->CreateBlock("end_block_for_and_and", false);
+    auto icmp_reg = current_func_->CreateRegister(k_ir_bool);
+
+    return ;
+  } else if (node->getOp() == BinaryExprNode::BinaryOp::kOR_OR) {
+
+    return ;
+  }
   lhs->accept(this);
   auto lhs_rep = FetchExprReg(lhs);
   rhs->accept(this);
@@ -307,7 +332,7 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
       std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
       std::shared_ptr<Stmt> bt_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kBT, lhs_rep, rhs_rep, dest_reg));
+        std::make_shared<IcmpStmt>(IcmpStmt::IcmpOp::kBT, lhs_rep, rhs_rep, dest_reg));
       current_basic_block_->AddStmt(bt_stmt);
       break;
     }
@@ -318,7 +343,7 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
       std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
       std::shared_ptr<Stmt> lt_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kLT, lhs_rep, rhs_rep, dest_reg));
+        std::make_shared<IcmpStmt>(IcmpStmt::IcmpOp::kLT, lhs_rep, rhs_rep, dest_reg));
       current_basic_block_->AddStmt(lt_stmt);
       break;
     }
@@ -329,7 +354,7 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
       std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
       std::shared_ptr<Stmt> beq_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kBEQ, lhs_rep, rhs_rep, dest_reg));
+        std::make_shared<IcmpStmt>(IcmpStmt::IcmpOp::kBEQ, lhs_rep, rhs_rep, dest_reg));
       current_basic_block_->AddStmt(beq_stmt);
       break;
     }
@@ -340,7 +365,7 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
       std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
       std::shared_ptr<Stmt> leq_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kLEQ, lhs_rep, rhs_rep, dest_reg));
+        std::make_shared<IcmpStmt>(IcmpStmt::IcmpOp::kLEQ, lhs_rep, rhs_rep, dest_reg));
       current_basic_block_->AddStmt(leq_stmt);
       break;
     }
@@ -348,7 +373,7 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
       std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
       std::shared_ptr<Stmt> et_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kET, lhs_rep, rhs_rep, dest_reg));
+        std::make_shared<IcmpStmt>(IcmpStmt::IcmpOp::kET, lhs_rep, rhs_rep, dest_reg));
       current_basic_block_->AddStmt(et_stmt);
       break;
     }
@@ -356,31 +381,12 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
       std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
       std::shared_ptr<Stmt> net_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kNET, lhs_rep, rhs_rep, dest_reg));
+        std::make_shared<IcmpStmt>(IcmpStmt::IcmpOp::kNET, lhs_rep, rhs_rep, dest_reg));
       current_basic_block_->AddStmt(net_stmt);
       break;
     }
-    case BinaryExprNode::BinaryOp::kAND_AND: {
-      if (*lhs_type != *k_bool) {
-        throw std::runtime_error("binary operation type mismatch");
-      }
-      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
-      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
-      std::shared_ptr<Stmt> and_and_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kAND_AND, lhs_rep, rhs_rep, dest_reg));
-      current_basic_block_->AddStmt(and_and_stmt);
-      break;
-    }
-    case BinaryExprNode::BinaryOp::kOR_OR: {
-      if (*lhs_type != *k_bool) {
-        throw std::runtime_error("binary operation type mismatch");
-      }
-      std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kBOOL);
-      std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
-      std::shared_ptr<Stmt> or_or_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kOR_OR, lhs_rep, rhs_rep, dest_reg));
-      current_basic_block_->AddStmt(or_or_stmt);
-      break;
+
+    case default: {
     }
   }
 }
@@ -683,6 +689,31 @@ void IRGenerator::visit(std::shared_ptr<BlockStatNode> node) {
 }
 
 void IRGenerator::visit(std::shared_ptr<ParenExprNode> node) {
+  auto expr = node->getInnerExpr();
+  expr->accept(this);
+}
+
+void IRGenerator::visit(std::shared_ptr<IfStatNode> node) {
+  auto pred = node->getPredicate();
+  auto then_ast_block = node->getThenBlock();
+  auto else_ast_block = node->getElseBlock();
+  auto then_block = current_func_->CreateBlock("then_block", false);
+  auto end_block = current_func_->CreateBlock("end_block", false);
+  //predicate evaluation
+  auto pred_reg = current_func_->GetLastReg();
+
+  current_basic_block_ = then_block;
+  then_ast_block->accept(this);
+  //jump end block
+  std::shared_ptr<Block> else_block;
+  if (else_ast_block != nullptr) {
+    current_basic_block_ = else_block;
+    else_block = current_func_->CreateBlock("else_block", false);
+    else_ast_block->accept(this);
+    //jump end block
+  }
+  current_basic_block_ = end_block;
+
 
 }
 

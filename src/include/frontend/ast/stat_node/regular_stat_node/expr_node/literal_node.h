@@ -62,6 +62,16 @@ public:
     }
   }
 
+  std::string ToStringWithType() const {
+    if (std::holds_alternative<int>(value_)) {
+      return "i32 " + ToString();
+    } else if (std::holds_alternative<bool>(value_)) {
+      return "i1 " + ToString();
+    } else {
+      throw std::runtime_error("types not int/bool is not allowed in ToStringWithType");
+    }
+  }
+
 private:
   std::shared_ptr<TypeType> literal_type;
   std::shared_ptr<IRType> literal_irtype;
