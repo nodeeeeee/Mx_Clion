@@ -13,7 +13,7 @@ public:
 
   TerminalNode(TerminalType node_type, Position position) : node_type(std::move(node_type)), StatNode(position) {
   }
-
+  TerminalType GetType() const { return node_type; }
   void accept(VisitControl* visitor) override { visitor->visit(shared_from_this()); }
 
 private:

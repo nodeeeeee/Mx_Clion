@@ -3,3 +3,4 @@
 
 void *malloc(size_t size);
 
+char *strcat(char *dest, const char *src);
