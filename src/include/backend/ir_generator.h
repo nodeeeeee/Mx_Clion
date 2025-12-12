@@ -10,12 +10,42 @@
 #include "util/class_type.h"
 #include "util/ir_function.h"
 #include "util/scope.h"
-
+#include "util/type/ir_type.h"
 
 
 class IRGenerator : public VisitControl {
 public:
   explicit IRGenerator(std::shared_ptr<RootNode> root_node) : root_node(root_node) {
+    // init functions
+    auto print_function_ = std::make_shared<IRFunction>("print", std::vector{k_ir_string}, k_ir_void);
+    funcs_["print"] = print_function_;
+    auto println_function = std::make_shared<IRFunction>("println", std::vector{k_ir_string}, k_ir_void);
+    funcs_["println"] = println_function;
+    auto printInt_function = std::make_shared<IRFunction>("printInt", std::vector{k_ir_int}, k_ir_void);
+    funcs_["printInt"] = printInt_function;
+    auto printlnInt_function = std::make_shared<IRFunction>("printlnInt", std::vector{k_ir_int}, k_ir_void);
+    funcs_["printlnInt"] = printlnInt_function;
+    auto getString_function = std::make_shared<IRFunction>("getString", std::vector<std::shared_ptr<IRType>>{}, k_ir_void);
+    funcs_["getString"] = getString_function;
+    auto getInt_function = std::make_shared<IRFunction>("getInt", std::vector<std::shared_ptr<IRType>>{}, k_ir_void);
+    funcs_["getInt"] = getInt_function;
+    auto toString_function = std::make_shared<IRFunction>("toString", std::vector{k_ir_int}, k_ir_string);
+    funcs_["toString"] = toString_function;
+
+    //String@length
+    auto string_length_function = std::make_shared<IRFunction>("String@length", std::vector{k_ir_string}, k_ir_int);
+    funcs_["String@length"] = string_length_function;
+    //String@substring
+    auto string_substring_function = std::make_shared<IRFunction>("String@substring", std::vector{k_ir_string, k_ir_int, k_ir_int}, k_ir_string);
+    funcs_["String@substring"] = string_substring_function;
+    //String@parseInt
+    auto string_parseInt_function = std::make_shared<IRFunction>("String@parseInt", std::vector{k_ir_string}, k_ir_int);
+    funcs_["String@parseInt"] = string_parseInt_function;
+    //string@ord
+    auto string_ord_function = std::make_shared<IRFunction>("String@ord", std::vector{k_ir_string, k_ir_int}, k_ir_int);
+    funcs_["String@ord"] = string_ord_function;
+    //Array@size
+    auto array_size_function = std::make_shared<IRFunction>("ArraySize", std::vector{k_ir_ptr}, k_ir_int);
     visit(root_node);
   }
   std::shared_ptr<RootNode> root_node;
@@ -76,9 +106,15 @@ private:
   std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
   std::shared_ptr<TypeType> k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
   std::shared_ptr<TypeType> k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
+  std::shared_ptr<TypeType> k_void = std::make_shared<TypeType>(TypeType::PrimitiveType::kVOID);
   std::shared_ptr<IRType> k_ir_int = std::make_shared<IRType>(k_int);
   std::shared_ptr<IRType> k_ir_bool = std::make_shared<IRType>(k_bool);
   std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(k_string);
+  std::shared_ptr<IRType> k_ir_void = std::make_shared<IRType>(k_void);
+  std::shared_ptr<IRType> k_ir_ptr =  std::make_shared<IRType>(IRType::BasicType::kPTR);
+
+
+
 };
 
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "block.h"
@@ -31,6 +32,7 @@ public:
     return_type_ = std::make_shared<IRType>(func_def_node->getReturnType());
     func_scope_ = std::make_shared<IRScope>();
     auto var_defs = func_def_node->getVarDefs();
+    param_types_.push_back(std::make_shared<IRType>(IRType::kPTR));
     for (const auto& var_def : var_defs) {
       param_types_.push_back(std::make_shared<IRType>(var_def->getIdNode()->getType()));
     }
@@ -49,6 +51,16 @@ public:
     func_name_ = class_func_node->getIdNode()->getIdName();
     return_type_ = std::make_shared<IRType>(IRType::kVOID);
     func_scope_ = std::make_shared<IRScope>();
+    param_types_ = std::vector{std::make_shared<IRType>(IRType::kPTR)}; //"this" as param
+  }
+
+  explicit IRFunction(std::string func_name, std::vector<std::shared_ptr<IRType>> param_types, std::shared_ptr<IRType> return_type) {
+    in_class_ = false;
+    is_main_ = false;
+    func_name_ = std::move(func_name);
+    return_type_ = std::move(return_type);
+    func_scope_ = std::make_shared<IRScope>();
+    param_types_ = std::move(param_types);
   }
 
   void AddBlock(const std::shared_ptr<Block>& block) {
@@ -101,6 +113,25 @@ public:
 
   [[nodiscard]] std::string GetName() const {
     return func_name_;
+  }
+
+  [[nodiscard]] std::string commit() {
+    std::string str;
+    str += "define " + return_type_->toString() +  " " + func_name_ + "(";
+    bool first = true;
+    for (const auto& param : param_types_) {
+      if (!first) {
+        str += ", ";
+      }
+      first = false;
+      str += param->GetTypeName();
+    }
+    str += "{\n";
+    for (const auto& block : blocks_) {
+      str += block->commit();
+    }
+    str += "}\n";
+    return str;
   }
 
 private:

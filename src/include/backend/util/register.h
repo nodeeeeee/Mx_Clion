@@ -7,20 +7,20 @@
 class Register {
 public:
   Register(int index, std::shared_ptr<IRType> type, bool is_global = false) : index_(index), type_(std::move(type)), is_global_(is_global) {}
-  Register(std::string name, std::shared_ptr<IRType> type, bool is_global) : name_(std::move(name)), index_(index), type_(std::move(type)) {
+  Register(std::string name, std::shared_ptr<IRType> type, bool is_global) : name_(std::move(name)), type_(std::move(type)) {
     assert(is_global == true);
     is_global_ = is_global;
   }
   [[nodiscard]] bool IsGlobal() const {return is_global_;}
   std::shared_ptr<IRType> GetType() {return type_;}
-  std::string GetName() {return name_;}
-  [[nodiscard]] std::string GetIndex() const {return "%" + std::to_string(index_);}
+  std::string GetName() {return is_global_ ? name_.value() : GetIndex();}
+  [[nodiscard]] std::string GetIndex() const {return "%" + std::to_string(index_.value());}
   [[nodiscard]] std::string GetIndexWithType() {
     return GetType()->toString() + " " + GetIndex();
   }
 private:
-  bool is_global_;
+  bool is_global_ = false;
   std::shared_ptr<IRType> type_;
-  std::string name_;
-  int index_;
+  std::optional<std::string> name_;
+  std::optional<int> index_;
 };

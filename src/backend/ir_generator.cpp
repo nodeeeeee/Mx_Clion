@@ -58,7 +58,16 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
       current_class_type_ = class_type;
       class_def->accept(this);
       types_[class_def->getIdNode()->getIdName()] = std::move(class_type);
+      current_class_type_ = nullptr;
     }
+  }
+  for (auto& type : types_) {
+    printf("%s\n", type.second->commit().c_str());
+  }
+  printf("%s", global_scope_->GetGlobalStmt().c_str()); // \n included in the method
+  for (auto& func : funcs_) {
+    auto func_obj = func.second;
+    
   }
 }
 
@@ -97,7 +106,7 @@ void IRGenerator::visit(std::shared_ptr<ClassDefNode> node) {
     if (auto var_def = std::dynamic_pointer_cast<VarDefNode>(stat)) {
       //add to type
       std::shared_ptr<IRType> var_type = std::make_shared<IRType>(var_def->getIdNode()->getType());
-      current_class_type_->AddElement(var_def->getIdNode()->getIdName(), var_type);
+      current_class_type_->AddElement(var_def->getIdNode()->getIdName(), var_type); // declared type in RootNode
     } else if (auto func_def = std::dynamic_pointer_cast<FuncDefNode>(stat)) {
       std::shared_ptr<IRFunction> func = std::make_shared<IRFunction>(func_def, node->getIdNode()->getIdName());
       current_func_ = func;
@@ -120,15 +129,14 @@ void IRGenerator::visit(std::shared_ptr<ClassFuncDefNode> node) {
   auto func_block = node->getBlockNode();
   auto entry_block = current_func_->CreateBlock(node->getIdNode()->getIdName() + ".entry");
   current_basic_block_ = entry_block;
-  std::shared_ptr<IRType> param_type = std::make_shared<IRType>(IRType::kPTR);;
+  // std::shared_ptr<IRType> param_type = std::make_shared<IRType>(IRType::kPTR);;
   std::shared_ptr<IRType> reg_type = std::make_shared<IRType>(IRType::kPTR);
-  std::shared_ptr<Register> reg = current_func_->CreateRegister(reg_type);
-  // to-do: initialize 'this' reg as the implicit type param
-  std::shared_ptr<Register> param_reg = current_func_->CreateRegister(param_type);
-  std::shared_ptr<Stmt> alloca_stmt = std::static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(reg));
-  std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(param_reg, reg));
-  current_basic_block_->AddStmt(alloca_stmt);
-  current_basic_block_->AddStmt(store_stmt);
+  std::shared_ptr<Register> reg = current_func_->CreateRegister(reg_type); // though it is passed in, we still need to declare this reg in scope
+  // std::shared_ptr<Register> param_reg = current_func_->CreateRegister(param_type);
+  // std::shared_ptr<Stmt> alloca_stmt = std::static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(reg));
+  // std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(param_reg, reg));
+  // current_basic_block_->AddStmt(alloca_stmt);
+  // current_basic_block_->AddStmt(store_stmt);
   current_scope_->declare("this", reg); //name the self pointer "this"
   func_block->accept(this);
 }
@@ -566,6 +574,7 @@ void IRGenerator::visit(std::shared_ptr<DotExprNode> node) {
     auto dest_reg = current_func_->CreateRegister(func->GetReturnType());
     auto args = func_call->getArgs();
     std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> arg_reps;
+    arg_reps.push_back(lhs_rep); // pass lhs as 'this' param
     for (const auto& arg : args) {
       arg->accept(this);
       auto arg_rep = FetchExprReg(arg);

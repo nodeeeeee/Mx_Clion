@@ -46,7 +46,6 @@ public:
     else return "0";
   }
 
-
   bool operator==(IRType const &other) const {
     if (this->type_ref_ != nullptr) {
       return this->type_ref_ == other.type_ref_;

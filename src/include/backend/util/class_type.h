@@ -23,10 +23,20 @@ public:
     return types_[element_name];
   }
 
-  [[nodiscard]] int GetClassSize() {
+  [[nodiscard]] int GetClassSize() const {
     return index_cnt;
   }
-
+  std::string commit() {
+    std::string str = "%struct." + type_name_ + " = type { ";
+    bool first = true;
+    for (const auto& element : types_) {
+      if (!first) str += ", ";
+      first = false;
+      str += element.second.first->GetTypeName();
+    }
+    str += "}";
+    return str;
+  }
 private:
   int index_cnt = 0;
   std::string type_name_;

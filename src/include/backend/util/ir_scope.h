@@ -14,6 +14,7 @@
 class IRScope : public std::enable_shared_from_this<IRScope> {
 public:
   IRScope() : parent_(nullptr) {
+
   }
 
   explicit IRScope(std::shared_ptr<IRScope> parent, const std::shared_ptr<Block>& loop_start, const std::shared_ptr<Block>& loop_end) : parent_(std::move(parent)) {
@@ -34,6 +35,7 @@ public:
         return regs_[var_name];
       } else {
         if (this->parent_ == nullptr) {
+          throw std::runtime_error("var not found in the scope");
         } else {
           return this->parent_->FindRegister(var_name);
         }
@@ -74,11 +76,17 @@ private:
 
 class IRGlobalScope : public IRScope {
 public:
-  explicit IRGlobalScope() : IRScope(nullptr) {}
+  explicit IRGlobalScope() = default;
   void AddGlobalStmt(std::string stmt) {
     global_stmts.push_back(std::move(stmt));
   }
-
+  std::string GetGlobalStmt() {
+    std::string str;
+    for (auto& stmt : global_stmts) {
+      str += stmt + "\n";
+    }
+    return str;
+  }
 private:
   std::vector<std::string> global_stmts;
 };

@@ -30,6 +30,15 @@ public:
   return make_shared<Block>(block_name);
   }
   [[nodiscard]] std::string getBlockName() const { return block_name_; }
+
+  [[nodiscard]] std::string commit() {
+    std::string str;
+    str += block_name_ + ": \n";
+    for (auto& stmt : stmts_) {
+      str += stmt->commit() + "\n";
+    }
+    return str;
+  }
 private:
   std::vector<std::shared_ptr<Stmt>> stmts_;
   std::string block_name_;
