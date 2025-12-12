@@ -1,7 +1,8 @@
 #pragma once
 #include "ir_type.h"
+#include "ir_type_proto.h"
 
-class IRIntType : public IRType {
+class IRIntType : public IRTypeProto {
 public:
   static IRIntType& Instance() {
     static IRIntType instance;
@@ -21,7 +22,7 @@ public:
   }
 
 private:
-  IRIntType() : IRType(){
+  IRIntType() : IRTypeProto(){
   }
 
   //Singleton

@@ -5,6 +5,7 @@
 
 #include "ir_bool_type.h"
 #include "ir_int_type.h"
+#include "ir_ptr_type.h"
 #include "ir_void_type.h"
 #include "ir_string_type.h"
 
@@ -15,6 +16,10 @@ IRType::IRType(BasicType basic_type, int dim) : basic_type_(basic_type), dim_(di
     type_ref_ = &IRBoolType::Instance();
   } else if (basic_type == BasicType::kSTRING) {
     type_ref_ = &IRStringType::Instance();
+  } else if (basic_type == BasicType::kVOID) {
+    type_ref_ = &IRVoidType::Instance();
+  } else if (basic_type == BasicType::kPTR) {
+    type_ref_ = &IRPtrType::Instance();
   }
 }
 

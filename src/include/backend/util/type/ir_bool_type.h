@@ -1,7 +1,8 @@
 #pragma once
 #include "ir_type.h"
+#include "ir_type_proto.h"
 
-class IRBoolType : public IRType {
+class IRBoolType : public IRTypeProto {
 public:
   static IRBoolType& Instance() {
     static IRBoolType instance;
@@ -20,7 +21,7 @@ public:
   }
 
 private:
-  IRBoolType() : IRType(){
+  IRBoolType() : IRTypeProto(){
   }
 
 

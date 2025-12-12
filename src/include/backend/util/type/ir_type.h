@@ -2,6 +2,7 @@
 #include <memory>
 #include <utility>
 
+#include "ir_type_proto.h"
 #include "frontend/ast/type/type_type.h"
 #include "frontend/ast/type/type_type.h"
 
@@ -17,27 +18,27 @@ public:
   explicit IRType(const std::shared_ptr<TypeType>& type_type);
   explicit IRType(const std::shared_ptr<TypeType>& type_type, int dim);
 
-  virtual std::string toString_() = 0;
-  virtual std::string GetAlign_() = 0;
-  virtual std::string DefaultValue_() = 0;
 
   std::string toString() {
+    assert(type_ref_ != nullptr, "type_ref is nullptr");
     std::string ret = type_ref_->toString_();
     ret.reserve(ret.size() + dim_);
     ret.append(dim_, '*');
     return ret;
   }
   std::string ElementToString() {
+    assert(type_ref_ != nullptr, "type_ref is nullptr");
     assert(dim_ > 0);
-    if (dim_ == 1) {return type_ref_->toString();}
+    if (dim_ == 1) {return type_ref_->toString_();}
     else {
-      std::string ret = type_ref_->toString();
+      std::string ret = type_ref_->toString_();
       ret.reserve(ret.size() + dim_ - 1);
       ret.append(dim_ - 1, '*');
       return ret;
     };
   }
   std::string GetAlign() {
+    assert(type_ref_ != nullptr, "type_ref is nullptr");
     if (dim_ == 0) return type_ref_->GetAlign_();
     else return "4";
   }
@@ -76,7 +77,7 @@ public:
 private:
   // need singleton to boost up assignment
   BasicType basic_type_;
-  IRType *type_ref_;
+  IRTypeProto *type_ref_;
   std::string customized_type_;
   int dim_ = 0;
   std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);

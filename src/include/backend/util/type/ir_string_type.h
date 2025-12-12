@@ -1,7 +1,7 @@
 #pragma once
 #include "ir_type.h"
 
-class IRStringType : public IRType {
+class IRStringType : public IRTypeProto {
 public:
   static IRStringType& Instance() {
     static IRStringType instance;
@@ -22,7 +22,7 @@ public:
 
 
 private:
-  IRStringType() : IRType(){
+  IRStringType() : IRTypeProto(){
 
   }
 
