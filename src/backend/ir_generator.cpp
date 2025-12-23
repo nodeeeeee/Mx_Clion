@@ -184,7 +184,7 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
       //store back to id_reg
       auto expr_reg = current_func_->GetLastReg();
       std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
-            std::make_shared<StoreStmt>(expr_reg, id_reg)); // store the array address into the alloca address
+            std::make_shared<StoreStmt>(expr_reg, var_reg)); // store the array address into the alloca address
       current_basic_block_->AddStmt(store_stmt);
     }
 
@@ -261,7 +261,7 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
   switch (node->getOp()) {
     case BinaryExprNode::BinaryOp::kADD: {
       if (*lhs_type == *k_string) {
-        auto concat_func = FindFunction("strcat");
+        auto concat_func = FindFunction("builtin_strcat");
         std::shared_ptr<IRType> dest_reg_type = std::make_shared<IRType>(IRType::kPTR);
         std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
         std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
@@ -432,8 +432,8 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       current_basic_block_->AddStmt(net_stmt);
       break;
     }
-
-    case default: {
+    default: {
+      break;
     }
   }
 }
@@ -563,8 +563,8 @@ void IRGenerator::visit(std::shared_ptr<DotExprNode> node) {
   lhs->accept(this);
   auto lhs_rep = FetchExprReg(lhs);
   std::shared_ptr<IRType> lhs_type;
-  if (std::holds_alternative<LiteralNode>(lhs_rep)) {
-    lhs_type = std::make_shared<IRType>(std::get<LiteralNode>(lhs_rep).getLiteralType());
+  if (std::holds_alternative<std::shared_ptr<LiteralNode>>(lhs_rep)) {
+    lhs_type = std::make_shared<IRType>(std::get<std::shared_ptr<LiteralNode>>(lhs_rep)->getLiteralType());
   } else {
     lhs_type = std::get<std::shared_ptr<Register>>(lhs_rep)->GetType();
   }
@@ -787,7 +787,7 @@ void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
       break;
     }
     case UnaryExprNode::UnaryOp::kADD:
-    case default: {
+    default: {
       break;
     }
 
@@ -805,8 +805,7 @@ void IRGenerator::visit(std::shared_ptr<AssignStatNode> node) {
       // an array def
       auto array_const = init_array->getDefaultArray();
       if (array_const != nullptr) {
-        int a[100];
-        InitializeArray(id_reg, array_const, 0, a);
+        InitializeArray(id_reg, array_const, 0);
       }
       return ;
     } else if (auto init_object = std::dynamic_pointer_cast<InitObjectNode>(expr)) {
@@ -971,30 +970,78 @@ std::pair<std::shared_ptr<IRType>, int> IRGenerator::GetElementInStruct(std::str
 /**
  * automatically generate gep and store stmt for a specific array.
  */
-void IRGenerator::InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const, int depth, int track[]) {
-  if (!array_const->GetLiteralElements().empty()) {
+
+/**
+ * for the last layer, we store the data
+ * for the previous layers, we store the addresses
+ * that means, we need to fetch address info from reg for every next-level array
+ * and store the info into current level array
+ *
+ * 1. last level array, a reg storing address
+ * 2. current level array: store the reg
+ * 3. current level array: store the reg info
+ *
+ * at runtime, the calloc will trigger a memory allocation, returning the address to the reg
+ */
+void IRGenerator::InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const, int depth) {
+  if (!array_const->GetLiteralElements().empty()) {  // there are literals, meaning this is the last layer
     auto literal_elements = array_const->GetLiteralElements();
-    std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
-    for (int i = 0; i < depth; i++) {
-      indices.push_back(track[i]);
-    }
-    for (int i = 0; i < literal_elements.size(); i++) {
-      indices[depth] = i;
-      std::shared_ptr<IRType> addr_type = std::make_shared<IRType>(literal_elements[0]->getLiteralIRType(), 1);
-      std::shared_ptr<Register> tmp_addr = current_func_->CreateRegister(addr_type);
-      std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
-      std::make_shared<GEPStmt>(tmp_addr, base, indices)
-      );
-      std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<StoreStmt>(literal_elements[i], current_func_->GetLastReg())); // last reg is where i store the result
-      current_basic_block_->AddStmt(store_stmt);
-      return ;
+    auto literal_type = literal_elements[0]->getLiteralType();
+    std::shared_ptr<Register> base_reg;
+    if (*literal_type == *k_string) { //just allocate space
+      auto addr_type = std::make_shared<IRType>(IRType::kPTR, 2);// if it is a string, then it is a 2-dimensional array
+      base_reg = current_func_->CreateRegister(addr_type);
+      auto array_alloc_func = FindFunction("array_alloc");
+      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
+      int element_length = literal_elements.size();
+      params.push_back(element_length);
+      auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, base_reg, params);
+      current_basic_block_->AddStmt(array_alloc_call_stmt);
+      /**
+     * gep
+     * store
+     */
+      for (int i = 0; i < literal_elements.size(); i++) {
+        //fetch position
+        auto reg_type = std::make_shared<IRType>(IRType::kPTR, 2);
+        auto addr_reg = current_func_->CreateRegister(reg_type);
+        std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
+        indices.push_back(i);
+        auto str = std::get<std::string>(literal_elements[i]->GetValue());
+        //find the reg that stores this str
+        std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
+          std::make_shared<GEPStmt>(addr_reg, base_reg, indices)); // fetch i_th addr    warning: how to compute offset?
+        std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
+          std::make_shared<StoreStmt>(, addr_reg));//the reg that stores this str
+      }
+    } else {
+      auto addr_type = std::make_shared<IRType>(IRType::kPTR, 1);// if it is a string, then it is a 2-dimensional array
+      base_reg = current_func_->CreateRegister(addr_type);
+      auto array_alloc_func = FindFunction("array_alloc");
+      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
+      int element_length = literal_elements.size();
+      params.push_back(element_length);
+      auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, base_reg, params);
+      current_basic_block_->AddStmt(array_alloc_call_stmt);
+      /**
+     * gep
+     * store
+     */
+      for (int i = 0; i < literal_elements.size(); i++) {
+        //fetch position
+        auto addr_reg = current_func_->CreateRegister(k_ir_ptr);
+        std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
+        indices.push_back(i);
+        std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
+          std::make_shared<GEPStmt>(addr_reg, base_reg, indices)); // fetch i_th addr    warning: how to compute offset?
+        std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
+          std::make_shared<StoreStmt>(literal_elements[i], addr_reg));
+      }
     }
 
   } else {
     for (int i = 0; i < array_const->GetArrayElements().size(); i++) {
-      track[depth] = i;
-      InitializeArray(base, array_const->GetArrayElements()[i], depth + 1, track);
+      InitializeArray(base, array_const->GetArrayElements()[i], depth + 1);
     }
   }
 }

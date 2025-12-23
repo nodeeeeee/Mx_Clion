@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <utility>
-
+#include <cassert>
 #include "ir_type_proto.h"
 #include "frontend/ast/type/type_type.h"
 #include "frontend/ast/type/type_type.h"
@@ -20,14 +20,14 @@ public:
 
 
   std::string toString() {
-    assert(type_ref_ != nullptr, "type_ref is nullptr");
+    assert(type_ref_ != nullptr && "type_ref is nullptr");
     std::string ret = type_ref_->toString_();
     ret.reserve(ret.size() + dim_);
     ret.append(dim_, '*');
     return ret;
   }
   std::string ElementToString() {
-    assert(type_ref_ != nullptr, "type_ref is nullptr");
+    assert(type_ref_ != nullptr && "type_ref is nullptr");
     assert(dim_ > 0);
     if (dim_ == 1) {return type_ref_->toString_();}
     else {
@@ -38,7 +38,7 @@ public:
     };
   }
   std::string GetAlign() {
-    assert(type_ref_ != nullptr, "type_ref is nullptr");
+    assert(type_ref_ != nullptr && "type_ref is nullptr");
     if (dim_ == 0) return type_ref_->GetAlign_();
     else return "4";
   }

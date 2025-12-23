@@ -556,7 +556,7 @@ std::any ASTBuilder::visitBreak(MxParser::BreakContext* ctx) {
 std::any ASTBuilder::visitFormatString(MxParser::FormatStringContext* ctx) {
   // std::vector<std::shared_ptr<LiteralNode>> strings;
   // std::vector<std::shared_ptr<ExprNode>> exprs;
-  std::vector<std::variant<std::shared_ptr<LiteralNode>, std::shared_ptr<ExprNode>>> nodes;
+  std::vector<std::variant<int, std::shared_ptr<LiteralNode>, std::shared_ptr<ExprNode>>> nodes;
   auto format_string_elements = ctx->FORMAT_STRING_ELEMENT();
   for (const auto& element : format_string_elements) {
     // strings.push_back(std::make_shared<LiteralNode>(element->getSymbol()));

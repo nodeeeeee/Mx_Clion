@@ -150,7 +150,7 @@ void Scope::DeclareLocal(const std::shared_ptr<DefNode>& def_node) {
 int Scope::FindVarIndex(std::string var_name) {
   while(1) {
     if (this->index_.contains(var_name)) {
-      return index[var_name];
+      return index_[var_name];
     } else {
       if (this->getParent() != nullptr) {
         return this->getParent()->FindVarIndex(var_name);

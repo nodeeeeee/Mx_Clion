@@ -42,7 +42,7 @@ public:
       case IcmpOp::kNET:
         op_str = "ne";
         break;
-      case default:
+      default:
         throw std::runtime_error("Unknown binary operator");
     }
     return dest_->GetIndex() + " = icmp " + op_str + " " + VariantRep::variant_rep(lhs_) + ", " + VariantRep::variant_rep(rhs_);

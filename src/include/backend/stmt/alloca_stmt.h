@@ -11,7 +11,7 @@ public:
   AllocaStmt() = default;
   explicit AllocaStmt(std::shared_ptr<Register> reg) : register_(std::move(reg)) {}
   [[nodiscard]] std::string commit() const {
-    return register_->GetIndex() + " = alloca " + register_->GetType()->ElementToString() + re;
+    return register_->GetIndex() + " = alloca " + register_->GetType()->ElementToString() + ",align " +register_->GetType()->GetAlign();
   }
 private:
   std::shared_ptr<Register> register_;

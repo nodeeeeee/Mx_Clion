@@ -43,5 +43,6 @@ public:
             ret += "i32 " + range_literal->ToString() + ", ";
         }
         ret += "]";
+        return ret;
     }
 };

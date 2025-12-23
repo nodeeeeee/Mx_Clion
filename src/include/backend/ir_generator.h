@@ -33,19 +33,22 @@ public:
     funcs_["toString"] = toString_function;
 
     //String@length
-    auto string_length_function = std::make_shared<IRFunction>("String@length", std::vector{k_ir_string}, k_ir_int);
+    auto string_length_function = std::make_shared<IRFunction>("String_length", std::vector{k_ir_string}, k_ir_int);
     funcs_["String@length"] = string_length_function;
     //String@substring
-    auto string_substring_function = std::make_shared<IRFunction>("String@substring", std::vector{k_ir_string, k_ir_int, k_ir_int}, k_ir_string);
+    auto string_substring_function = std::make_shared<IRFunction>("String_substring", std::vector{k_ir_string, k_ir_int, k_ir_int}, k_ir_string);
     funcs_["String@substring"] = string_substring_function;
     //String@parseInt
-    auto string_parseInt_function = std::make_shared<IRFunction>("String@parseInt", std::vector{k_ir_string}, k_ir_int);
+    auto string_parseInt_function = std::make_shared<IRFunction>("String_parseInt", std::vector{k_ir_string}, k_ir_int);
     funcs_["String@parseInt"] = string_parseInt_function;
     //string@ord
-    auto string_ord_function = std::make_shared<IRFunction>("String@ord", std::vector{k_ir_string, k_ir_int}, k_ir_int);
+    auto string_ord_function = std::make_shared<IRFunction>("String_ord", std::vector{k_ir_string, k_ir_int}, k_ir_int);
     funcs_["String@ord"] = string_ord_function;
     //Array@size
     auto array_size_function = std::make_shared<IRFunction>("ArraySize", std::vector{k_ir_ptr}, k_ir_int);
+    funcs_["ArraySize"] = array_size_function;
+    auto array_alloc_function = std::make_shared<IRFunction>("ArrayAlloc", std::vector{k_ir_int}, k_ir_ptr);  //there might be some problem about dimension
+
     visit(root_node);
   }
   std::shared_ptr<RootNode> root_node;
@@ -83,14 +86,14 @@ public:
   void visit(std::shared_ptr<RegularStatNode> node) override {}
   void visit(std::shared_ptr<ExprNode> node) override {}
 
-  void InitFuncParam(std::shared_ptr<FuncDefNode> node) final;
+  void InitFuncParam(std::shared_ptr<FuncDefNode> node);
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> FetchExprReg(std::shared_ptr<ExprNode> expr);
   std::shared_ptr<Register> CreateString(std::shared_ptr<LiteralNode> string_literal);
   std::shared_ptr<Register> ToRightVal(std::shared_ptr<Register> reg);
   std::shared_ptr<Register> FindRegister(const std::string& var_name);
   std::shared_ptr<IRFunction> FindFunction(const std::string& func_name);
   std::pair<std::shared_ptr<IRType>, int> GetElementInStruct(std::string type_name, std::string field_name);
-  void InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const, int depth, int track[]);
+  void InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const, int depth);
   std::shared_ptr<ClassType> GetClassType(const std::string& type_name);
 
 private:

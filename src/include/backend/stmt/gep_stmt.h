@@ -37,6 +37,6 @@ public:
   }
 private:
   std::shared_ptr<Register> dest_ptr_;
-  std::shared_ptr<Register> base_ptr_;  // pointee-type can be retrieved from base_ptr
+std::shared_ptr<Register> base_ptr_;  // pointee-type can be retrieved from base_ptr
   std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices_;
 };

@@ -17,7 +17,7 @@ public:
     FormatStringNode(std::vector<std::variant<int, std::shared_ptr<LiteralNode>, std::shared_ptr<ExprNode>>> nodes, bool literal_first, Position position)
         : nodes_(nodes), literal_first(literal_first), ExprNode(position) {
         for (const auto& node : nodes) {
-            if (holds_alternative<LiteralNode>(node)) {
+            if (holds_alternative<std::shared_ptr<LiteralNode>>(node)) {
                 literal_nodes.push_back(std::get<std::shared_ptr<LiteralNode>>(node));
             } else {
                 expr_nodes.push_back(std::get<std::shared_ptr<ExprNode>>(node));

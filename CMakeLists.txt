@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.31)
 project(Mx_Clion)
-
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_CXX_STANDARD 20)
 
 option(ENABLE_OJ_MODE "Enable running mode on the judger" OFF)
@@ -60,6 +60,7 @@ add_executable(Mx_Clion src/parser/antlr4/main.cpp
         src/include/backend/stmt/br_stmt/br_unconditional_stmt.h
         src/include/backend/stmt/br_stmt/ret_stmt.h
         src/include/backend/util/type/ir_type_proto.h
+        src/backend/ir_generator.cpp
         #        src/include/backend/ir_generator.h
 #        src/backend/ir_generator.cpp
 )

@@ -1,4 +1,4 @@
-# Install script for directory: /home/zhang-kai/Documents/计划/暑假/compiler/Mx_Clion
+# Install script for directory: /home/zhangkai/Documents/计划/暑假/compiler/Mx_Clion
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -29,7 +29,7 @@ endif()
 
 # Install shared libraries without execute permission?
 if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
-  set(CMAKE_INSTALL_SO_NO_EXE "1")
+  set(CMAKE_INSTALL_SO_NO_EXE "0")
 endif()
 
 # Is this installation the result of a crosscompile?
@@ -45,7 +45,7 @@ endif()
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "/home/zhang-kai/Documents/计划/暑假/compiler/Mx_Clion/cmake-build-debug/install_local_manifest.txt"
+  file(WRITE "/home/zhangkai/Documents/计划/暑假/compiler/Mx_Clion/cmake-build-debug/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()
 if(CMAKE_INSTALL_COMPONENT)
@@ -61,6 +61,6 @@ else()
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "/home/zhang-kai/Documents/计划/暑假/compiler/Mx_Clion/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+  file(WRITE "/home/zhangkai/Documents/计划/暑假/compiler/Mx_Clion/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()

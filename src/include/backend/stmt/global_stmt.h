@@ -60,6 +60,7 @@ public:
   }
 
   explicit GlobalStmt(std::string str) {
+    std::variant<int, bool, std::string> val = str;
     constant_value_ = std::make_shared<Constant>(str);
     name_ = ".str." + str;
   }
@@ -72,7 +73,7 @@ public:
     if (constant_value_.has_value()) {
       if (*constant_value_.value()->GetConstType() == *k_string) {
         auto string_size = name_.size();
-        return "@" + name_ + " = private unnamed_addr constant [" + string_size + "x i8] c\"" + name_ + "\\00, align 1";
+        return "@" + name_ + " = private unnamed_addr constant [" + std::to_string(string_size) + "x i8] c\"" + name_ + "\\00, align 1";
       }
       auto value_tmp = constant_value_.value();
       return "@" + name_ + " global " + register_->GetType()->toString() + value_tmp->ToString() + ", align" + register_->GetType()->GetAlign();
