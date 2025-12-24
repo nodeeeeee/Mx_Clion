@@ -28,8 +28,8 @@ public:
   }
   std::string ElementToString() {
     assert(type_ref_ != nullptr && "type_ref is nullptr");
-    assert(dim_ > 0);
-    if (dim_ == 1) {return type_ref_->toString_();}
+    assert(dim_ >= 0);
+    if (dim_ == 0) {return type_ref_->toString_();}
     else {
       std::string ret = type_ref_->toString_();
       ret.reserve(ret.size() + dim_ - 1);

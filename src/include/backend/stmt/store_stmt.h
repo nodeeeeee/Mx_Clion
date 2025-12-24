@@ -13,7 +13,7 @@ public:
       return "store " + value_reg->GetType()->toString() + " " + value_reg->GetIndex() + ", ptr " + addr_->GetIndex();
     } else if (std::holds_alternative<std::shared_ptr<LiteralNode>>(value_)) {
       auto value_literal = std::get<std::shared_ptr<LiteralNode>>(value_);
-      return "store" + value_literal->getLiteralIRType()->toString() + " " + value_literal->ToString() + ", ptr " + addr_->GetIndex();
+      return "store " + value_literal->getLiteralIRType()->toString() + " " + value_literal->ToString() + ", ptr " + addr_->GetIndex();
     }
   }
 private:

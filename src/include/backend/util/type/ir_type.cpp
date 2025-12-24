@@ -45,7 +45,6 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type){
   }
 }
 IRType::IRType(const std::shared_ptr<TypeType>& type_type, int dim) : dim_(dim){
-  dim_ = type_type->getDimension();
   if (*type_type == *k_int) {
     type_ref_ = &IRIntType::Instance();
     basic_type_ = BasicType::kINT;
@@ -60,7 +59,8 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type, int dim) : dim_(dim){
     type_ref_ = &IRVoidType::Instance();
     basic_type_ = BasicType::kVOID;
   } else {
-    throw std::runtime_error("invalid TypeType");
+    type_ref_ = &IRPtrType::Instance();
+    basic_type_ = BasicType::kPTR;
   }
 }
 

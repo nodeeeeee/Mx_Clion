@@ -71,7 +71,10 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
   printf("%s", global_scope_->GetGlobalStmt().c_str()); // \n included in the method
   for (auto& func : funcs_) {
     auto func_obj = func.second;
-    printf("%s\n", func_obj->commit().c_str());
+    if (!func_obj->is_builtin()) {
+      printf("%s\n", func_obj->commit().c_str());
+
+    }
   }
 }
 
@@ -445,6 +448,15 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       break;
     }
   }
+}
+
+void IRGenerator::visit(std::shared_ptr<IdNode> node) {
+  auto var_addr_reg = current_scope_->FindRegister(node->getIdName());
+  auto val_reg = current_func_->CreateRegister(var_addr_reg->GetType()->DecreaseDimension());
+  std::shared_ptr<Stmt> load_stmt = std::static_pointer_cast<Stmt>(
+            std::make_shared<LoadStmt>(val_reg, var_addr_reg));
+  current_basic_block_->AddStmt(load_stmt);
+  return ;
 }
 
 void IRGenerator::visit(std::shared_ptr<TernaryExprNode> node) {
@@ -841,10 +853,16 @@ void IRGenerator::visit(std::shared_ptr<AssignStatNode> node) {
       return ;
     } else {
       //store back to id_reg
-      auto expr_reg = current_func_->GetLastReg();
-      std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
-            std::make_shared<StoreStmt>(expr_reg, id_reg)); // store the array address into the alloca address
-      current_basic_block_->AddStmt(store_stmt);
+      if (auto literal_expr = std::dynamic_pointer_cast<LiteralNode>(expr)) {
+        std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
+            std::make_shared<StoreStmt>(literal_expr, id_reg)); // store the array address into the alloca address
+        current_basic_block_->AddStmt(store_stmt);
+      } else {
+        auto expr_reg = current_func_->GetLastReg();
+        std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
+              std::make_shared<StoreStmt>(expr_reg, id_reg)); // store the array address into the alloca address
+        current_basic_block_->AddStmt(store_stmt);
+      }
     }
   }
 }
@@ -925,9 +943,10 @@ void IRGenerator::InitFuncParam(std::shared_ptr<FuncDefNode> func_def_node) {
 std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> IRGenerator::FetchExprReg(
   std::shared_ptr<ExprNode> expr) {
   // must be directly after accept
-  if (auto id = std::dynamic_pointer_cast<IdNode>(expr)) {
-    return current_scope_->FindRegister(id->getIdName());
-  } else if (auto literal = std::dynamic_pointer_cast<LiteralNode>(expr)) {
+  // if (auto id = std::dynamic_pointer_cast<IdNode>(expr)) {
+  //   return current_scope_->FindRegister(id->getIdName());
+  // } else
+  if (auto literal = std::dynamic_pointer_cast<LiteralNode>(expr)) {
     if (*literal->getLiteralType() != *k_string) {
       return literal;
     } else {

@@ -21,18 +21,22 @@ public:
     if (auto integer_type = literal->INTEGER()) {
       auto token = integer_type->getSymbol();
       literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
+      literal_irtype = std::make_shared<IRType>(literal_type);
       value_ = std::stoi(token->getText());
     } else if (auto bool_type = literal->BOOL()) {
       auto token = bool_type->getSymbol();
       literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
+      literal_irtype = std::make_shared<IRType>(literal_type);
       value_ = token->getText() == "true" ? true : false;
     } else if (auto string_type = literal->STRING()) {
       auto token = string_type->getSymbol();
       literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
+      literal_irtype = std::make_shared<IRType>(literal_type);
       value_ = token->getText();
     } else if (auto null_type = literal->NULL_()) {
       auto token = null_type->getSymbol();
       literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kNULL);
+      literal_irtype = std::make_shared<IRType>(literal_type);
       is_null = true;
     }
   }
@@ -40,6 +44,7 @@ public:
   explicit LiteralNode(antlr4::Token* token): ExprNode(Position(token)) {
     //only for format_string
     literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
+    literal_irtype = std::make_shared<IRType>(literal_type);
     value_ = token->getText();
   }
 

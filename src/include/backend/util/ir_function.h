@@ -54,9 +54,10 @@ public:
     param_types_ = std::vector{std::make_shared<IRType>(IRType::kPTR)}; //"this" as param
   }
 
-  explicit IRFunction(std::string func_name, std::vector<std::shared_ptr<IRType>> param_types, std::shared_ptr<IRType> return_type) {
+  explicit IRFunction(std::string func_name, std::vector<std::shared_ptr<IRType>> param_types, std::shared_ptr<IRType> return_type, bool builtin = false) {
     in_class_ = false;
     is_main_ = false;
+    builtin_ = builtin;
     func_name_ = std::move(func_name);
     return_type_ = std::move(return_type);
     func_scope_ = std::make_shared<IRScope>();
@@ -73,6 +74,10 @@ public:
 
   [[nodiscard]] int GetIndex() const {
     return index_counter_;
+  }
+
+  bool is_builtin() const {
+    return builtin_;
   }
 
   std::shared_ptr<Register> CreateRegister(const std::shared_ptr<IRType>& reg_type) {
@@ -117,7 +122,7 @@ public:
 
   [[nodiscard]] std::string commit() {
     std::string str;
-    str += "define " + return_type_->toString() +  " " + func_name_ + "(";
+    str += "define " + return_type_->toString() +  " @" + func_name_ + "(";
     bool first = true;
     for (const auto& param : param_types_) {
       if (!first) {
@@ -126,7 +131,7 @@ public:
       first = false;
       str += param->GetTypeName();
     }
-    str += "{\n";
+    str += ") {\n";
     for (const auto& block : blocks_) {
       str += block->commit();
     }
@@ -148,4 +153,5 @@ private:
   bool in_class_ = false; // if in class, it will automatically be assigned a first parameter as ptr
   std::shared_ptr<Register> last_reg_;
   std::map<std::string, int> block_tag_index; // ifblock_1 ifblock_2
+  bool builtin_ = false;
 };

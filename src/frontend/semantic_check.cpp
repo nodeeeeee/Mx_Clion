@@ -609,6 +609,7 @@ std::shared_ptr<TypeType> SemanticCheck::checkType(std::shared_ptr<ExprNode> exp
   }
   if (auto expr_id = std::dynamic_pointer_cast<IdNode>(expr)) {
     expr_type = current_scope->findVar(expr_id->getIdName());
+    expr->setExprType(expr_type);
     expr->setPrvalue(false);
   } else if (auto const_array_expr = std::dynamic_pointer_cast<ArrayConstNode>(expr)) {
     expr_type = const_array_expr->getArrayType();
