@@ -45,10 +45,14 @@ public:
     auto string_ord_function = std::make_shared<IRFunction>("String_ord", std::vector{k_ir_string, k_ir_int}, k_ir_int);
     funcs_["String@ord"] = string_ord_function;
     //Array@size
-    auto array_size_function = std::make_shared<IRFunction>("ArraySize", std::vector{k_ir_ptr}, k_ir_int);
-    funcs_["ArraySize"] = array_size_function;
+    auto array_size_function = std::make_shared<IRFunction>("Array_size", std::vector{k_ir_ptr}, k_ir_int);
+    funcs_["Array@size"] = array_size_function;
+    //Array@alloc
     auto array_alloc_function = std::make_shared<IRFunction>("ArrayAlloc", std::vector{k_ir_int}, k_ir_ptr);  //there might be some problem about dimension
+    funcs_["ArrayAlloc"] = array_alloc_function;
 
+    auto strcat_function = std::make_shared<IRFunction>("builtin_strcat", std::vector{k_ir_string, k_ir_string}, k_ir_string);
+    funcs_["builtin_strcat"] = strcat_function;
     visit(root_node);
   }
   std::shared_ptr<RootNode> root_node;
@@ -65,9 +69,9 @@ public:
   void visit(std::shared_ptr<FormatStringNode> node) final;
   void visit(std::shared_ptr<FuncCallNode> node) final;
   void visit(std::shared_ptr<IndexExprNode> node) final;
-  // void visit(std::shared_ptr<InitArrayNode> node) final; // included in VarDef, no need.
-  // void visit(std::shared_ptr<InitObjectNode> node) final;
-  // void visit(std::shared_ptr<NullExprNode> node) final;
+  void visit(std::shared_ptr<InitArrayNode> node) {throw std::runtime_error("Not implemented");}// included in VarDef, no need.
+  void visit(std::shared_ptr<InitObjectNode> node) {throw std::runtime_error("Not implemented");};
+  void visit(std::shared_ptr<NullExprNode> node) {throw std::runtime_error("Not implemented");};
   void visit(std::shared_ptr<UnaryExprNode> node) final;
   void visit(std::shared_ptr<TernaryExprNode> node) final;
   void visit(std::shared_ptr<AssignStatNode> node) final;
@@ -77,7 +81,7 @@ public:
   void visit(std::shared_ptr<IfStatNode> node) final;
   void visit(std::shared_ptr<ReturnStatNode> node) final;
   void visit(std::shared_ptr<WhileStatNode> node) final;
-  // void visit(std::shared_ptr<LiteralNode> node) final;
+  void visit(std::shared_ptr<LiteralNode> node) final; // this should be implemented, creating a register for this literal
   void visit(std::shared_ptr<TerminalNode> node) final;
   void visit(std::shared_ptr<ThisExprNode> node) final;
   void visit(std::shared_ptr<ParenExprNode> node) final;
@@ -112,7 +116,7 @@ private:
   std::shared_ptr<TypeType> k_void = std::make_shared<TypeType>(TypeType::PrimitiveType::kVOID);
   std::shared_ptr<IRType> k_ir_int = std::make_shared<IRType>(k_int);
   std::shared_ptr<IRType> k_ir_bool = std::make_shared<IRType>(k_bool);
-  std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(k_string);
+  std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(k_string, 1);
   std::shared_ptr<IRType> k_ir_void = std::make_shared<IRType>(k_void);
   std::shared_ptr<IRType> k_ir_ptr =  std::make_shared<IRType>(IRType::BasicType::kPTR);
 

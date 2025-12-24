@@ -21,7 +21,7 @@ public:
     : op_(op), lhs_(std::move(lhs)), rhs_(std::move(rhs)), dest_(std::move(dest)){
   }
 
-  std::string commit() {
+  [[nodiscard]]std::string commit() const override {
     std::string op_str;
     switch (op_) {
       case IcmpOp::kBT:

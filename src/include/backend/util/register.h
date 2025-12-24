@@ -16,7 +16,11 @@ public:
   std::string GetName() {return is_global_ ? name_.value() : GetIndex();}
   [[nodiscard]] std::string GetIndex() const {return "%" + std::to_string(index_.value());}
   [[nodiscard]] std::string GetIndexWithType() {
-    return GetType()->toString() + " " + GetIndex();
+    if (index_.has_value()) {
+      return GetType()->toString() + " " + GetIndex();
+    } else {
+      return GetName();
+    }
   }
 private:
   bool is_global_ = false;

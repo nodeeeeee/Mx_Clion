@@ -18,7 +18,7 @@ public:
 
 
 
-  std::string commit() {
+  [[nodiscard]]std::string commit() const override {
     std::string ret =dest_ptr_->GetIndex() + " = getelementptr inbounds " + base_ptr_->GetType()->GetTypeName();
     for (const auto& index : indices_) {
       if (std::holds_alternative<std::shared_ptr<LiteralNode>>(index)) {

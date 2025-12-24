@@ -16,6 +16,8 @@
 #include "frontend/ast/semantic_check.h"
 #include <filesystem>
 #include <thread>      // std::this_thread::sleep_for
+
+#include "backend/ir_generator.h"
 // #include <chrono>      // std::chrono::milliseconds
 
 using namespace antlr4;
@@ -102,9 +104,6 @@ int main(int argc, const char* argv[]) {
   // std::cout << stream << std::endl;  //
 
   std::cout << "解析完成\n";
-  // }
-
-  // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  // }
+  IRGenerator ir_rep(ast_tree);
   return 0;
 }

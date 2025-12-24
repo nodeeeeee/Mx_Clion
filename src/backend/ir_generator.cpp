@@ -35,6 +35,7 @@
 
 
 void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
+  current_scope_ = global_scope_;
   auto def_nodes = root_node->getDefNodes();
   for (const auto def_node : def_nodes) {
     if (auto var_def = std::dynamic_pointer_cast<VarDefNode>(def_node)) {
@@ -47,17 +48,20 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
       current_func_ = func;
       current_scope_ = func->GetScope();
       func_def->accept(this);
-      funcs_[func->GetName()] = (std::move(func));
+      current_scope_ = current_scope_->GetParent();
+      funcs_[func->GetName()] = func;
     } else if (auto main_func_def = std::dynamic_pointer_cast<MainFuncNode>(def_node)) {
       std::shared_ptr<IRFunction> main_func = std::make_shared<IRFunction>(main_func_def);
       current_func_ = main_func;
-      func_def->accept(this);
-      funcs_["main"] = (std::move(main_func));
+      current_scope_ = main_func->GetScope();
+      main_func_def->accept(this);
+      current_scope_->GetParent();
+      funcs_["main"] = main_func;
     } else if (auto class_def = std::dynamic_pointer_cast<ClassDefNode>(def_node)) {
       std::shared_ptr<ClassType> class_type = std::make_shared<ClassType>(class_def->getIdNode()->getIdName());
       current_class_type_ = class_type;
       class_def->accept(this);
-      types_[class_def->getIdNode()->getIdName()] = std::move(class_type);
+      types_[class_def->getIdNode()->getIdName()] = class_type;
       current_class_type_ = nullptr;
     }
   }
@@ -67,7 +71,7 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
   printf("%s", global_scope_->GetGlobalStmt().c_str()); // \n included in the method
   for (auto& func : funcs_) {
     auto func_obj = func.second;
-    
+    printf("%s\n", func_obj->commit().c_str());
   }
 }
 
@@ -112,13 +116,13 @@ void IRGenerator::visit(std::shared_ptr<ClassDefNode> node) {
       current_func_ = func;
       current_scope_ = func->GetScope();
       func_def->accept(this);
-      funcs_[node->getIdNode()->getIdName() + "@" + func->GetName()] = (std::move(func));
+      funcs_[node->getIdNode()->getIdName() + "@" + func->GetName()] = func;
     } else if (auto class_func_def = std::dynamic_pointer_cast<ClassFuncDefNode>(stat)) {
       std::shared_ptr<IRFunction> func = std::make_shared<IRFunction>(class_func_def);
       current_func_ = func;
       current_scope_ = func->GetScope();
       class_func_def->accept(this);
-      funcs_[node->getIdNode()->getIdName() + "@" + func->GetName()] = (std::move(func));
+      funcs_[node->getIdNode()->getIdName() + "@" + func->GetName()] = func;
     }
   }
 }
@@ -194,6 +198,11 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
     current_basic_block_->AddStmt(store_stmt);
   }
   //store back
+}
+
+void IRGenerator::visit(std::shared_ptr<LiteralNode> node) {
+  auto literal_type = node->getLiteralType();
+  auto literal_reg = current_func_->CreateRegister(std::make_shared<IRType>(literal_type));
 }
 
 void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
@@ -622,7 +631,7 @@ void IRGenerator::visit(std::shared_ptr<FormatStringNode> node) {
       params.push_back(last_result);
       //todo
       //find func to call
-      auto add_string_func = FindFunction("String.add");
+      auto add_string_func = FindFunction("builtin_strcat");
       auto call_add_stmt = std::static_pointer_cast<Stmt>(
         std::make_shared<CallStmt>(add_string_func, result_string_reg, params));
       current_basic_block_->AddStmt(call_add_stmt);
@@ -639,7 +648,7 @@ void IRGenerator::visit(std::shared_ptr<FormatStringNode> node) {
       std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
       params.push_back(expr_result);
       params.push_back(last_result);
-      auto add_string_func = FindFunction("String.add");
+      auto add_string_func = FindFunction("builtin_strcat");
       auto call_add_stmt = std::static_pointer_cast<Stmt>(
         std::make_shared<CallStmt>(add_string_func, result_string_reg, params));
       current_basic_block_->AddStmt(call_add_stmt);

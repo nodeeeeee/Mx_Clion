@@ -61,8 +61,8 @@ add_executable(Mx_Clion src/parser/antlr4/main.cpp
         src/include/backend/stmt/br_stmt/ret_stmt.h
         src/include/backend/util/type/ir_type_proto.h
         src/backend/ir_generator.cpp
-        #        src/include/backend/ir_generator.h
-#        src/backend/ir_generator.cpp
+        src/include/backend/ir_generator.h
+        src/backend/ir_generator.cpp
 )
 
 target_link_libraries(Mx_Clion antlr4-runtime)

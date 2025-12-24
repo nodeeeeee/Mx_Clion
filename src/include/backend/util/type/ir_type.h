@@ -69,6 +69,7 @@ public:
         case kINT: return "Int";
         case kBOOL: return "Bool";
         case kSTRING: return "String";
+        case kPTR: return "Ptr";
         default: throw std::runtime_error("Unsupported type");
       }
     }
@@ -83,4 +84,5 @@ private:
   std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
   std::shared_ptr<TypeType> k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
   std::shared_ptr<TypeType> k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
+  std::shared_ptr<TypeType> k_void = std::make_shared<TypeType>(TypeType::PrimitiveType::kVOID);
 };

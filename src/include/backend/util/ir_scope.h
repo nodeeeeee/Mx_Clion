@@ -48,7 +48,7 @@ public:
     // }
   }
   void declare(const std::string& reg_name, std::shared_ptr<Register> reg) {
-    regs_[reg_name] = std::move(reg);
+    regs_[reg_name] = reg;
   }
 
   static std::shared_ptr<IRScope> CreateScope(const std::shared_ptr<IRScope>& parent, const std::shared_ptr<Block>& loop_start = nullptr, const std::shared_ptr<Block>&loop_end = nullptr) {

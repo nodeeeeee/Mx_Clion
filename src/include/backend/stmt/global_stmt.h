@@ -65,7 +65,7 @@ public:
     name_ = ".str." + str;
   }
 
-  [[nodiscard]] std::string commit() const{
+  [[nodiscard]] std::string commit() const override {
     if (!array_msg.empty()) {
       return array_msg;
     }

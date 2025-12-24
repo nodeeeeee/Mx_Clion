@@ -9,7 +9,7 @@ public:
   }
 
   std::string toString_() override {
-    throw std::runtime_error("no toString for void");
+    return "void";
   }
 
   std::string GetAlign_() override {
