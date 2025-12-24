@@ -1,7 +1,5 @@
 #define bool _Bool
 #define size_t unsigned int
-#include <stdlib.h>
-#include <c++/15.2.1/stdlib.h>
 
 void *malloc(size_t size);
 

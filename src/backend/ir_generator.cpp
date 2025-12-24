@@ -155,7 +155,7 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
       auto array_const = init_array->getDefaultArray();
       if (array_const != nullptr) {
         int a[100];
-        InitializeArray(var_reg, array_const, 0, a);
+        InitializeArray(var_reg, array_const);
       }
       return ;
     } else if (auto init_object = std::dynamic_pointer_cast<InitObjectNode>(expr)) {
@@ -805,7 +805,7 @@ void IRGenerator::visit(std::shared_ptr<AssignStatNode> node) {
       // an array def
       auto array_const = init_array->getDefaultArray();
       if (array_const != nullptr) {
-        InitializeArray(id_reg, array_const, 0);
+        InitializeArray(id_reg, array_const);
       }
       return ;
     } else if (auto init_object = std::dynamic_pointer_cast<InitObjectNode>(expr)) {
@@ -983,7 +983,7 @@ std::pair<std::shared_ptr<IRType>, int> IRGenerator::GetElementInStruct(std::str
  *
  * at runtime, the calloc will trigger a memory allocation, returning the address to the reg
  */
-void IRGenerator::InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const, int depth) {
+void IRGenerator::InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const) {
   if (!array_const->GetLiteralElements().empty()) {  // there are literals, meaning this is the last layer
     auto literal_elements = array_const->GetLiteralElements();
     auto literal_type = literal_elements[0]->getLiteralType();
@@ -1006,13 +1006,16 @@ void IRGenerator::InitializeArray(std::shared_ptr<Register> base, std::shared_pt
         auto reg_type = std::make_shared<IRType>(IRType::kPTR, 2);
         auto addr_reg = current_func_->CreateRegister(reg_type);
         std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
-        indices.push_back(i);
+        indices.emplace_back(i);
         auto str = std::get<std::string>(literal_elements[i]->GetValue());
+        auto global_str_reg = global_scope_->FindRegister(str);
         //find the reg that stores this str
         std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
           std::make_shared<GEPStmt>(addr_reg, base_reg, indices)); // fetch i_th addr    warning: how to compute offset?
         std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
-          std::make_shared<StoreStmt>(, addr_reg));//the reg that stores this str
+          std::make_shared<StoreStmt>(global_str_reg, addr_reg));//the reg that stores this str
+        current_basic_block_->AddStmt(gep_stmt);
+        current_basic_block_->AddStmt(store_stmt);
       }
     } else {
       auto addr_type = std::make_shared<IRType>(IRType::kPTR, 1);// if it is a string, then it is a 2-dimensional array
@@ -1020,7 +1023,7 @@ void IRGenerator::InitializeArray(std::shared_ptr<Register> base, std::shared_pt
       auto array_alloc_func = FindFunction("array_alloc");
       std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
       int element_length = literal_elements.size();
-      params.push_back(element_length);
+      params.emplace_back(element_length);
       auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, base_reg, params);
       current_basic_block_->AddStmt(array_alloc_call_stmt);
       /**
@@ -1031,17 +1034,50 @@ void IRGenerator::InitializeArray(std::shared_ptr<Register> base, std::shared_pt
         //fetch position
         auto addr_reg = current_func_->CreateRegister(k_ir_ptr);
         std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
-        indices.push_back(i);
+        indices.emplace_back(i);
         std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
           std::make_shared<GEPStmt>(addr_reg, base_reg, indices)); // fetch i_th addr    warning: how to compute offset?
         std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
           std::make_shared<StoreStmt>(literal_elements[i], addr_reg));
+        current_basic_block_->AddStmt(gep_stmt);
+        current_basic_block_->AddStmt(store_stmt);
+
       }
     }
 
   } else {
+
+    // for each element:
+    // fetch previous registers
+    // allocate memory (builtin_calllocArray)
+    // for each element:
+    // gep + store
+    int depth = -1;
+    std::vector<std::shared_ptr<Register>> ptr_regs;
     for (int i = 0; i < array_const->GetArrayElements().size(); i++) {
-      InitializeArray(base, array_const->GetArrayElements()[i], depth + 1);
+      InitializeArray(base, array_const->GetArrayElements()[i]);
+      ptr_regs.push_back(current_func_->GetLastReg());
+    }
+    if (!ptr_regs.empty()) {
+      depth = current_func_->GetLastReg()->GetType()->GetDim() + 1;
+    }
+    auto addr_type = std::make_shared<IRType>(IRType::kPTR, depth);
+    auto base_reg = current_func_->CreateRegister(addr_type);
+    auto array_alloc_func = FindFunction("array_alloc");
+    std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
+    int element_length = array_const->GetArrayElements().size();
+    assert(element_length == ptr_regs.size());
+    params.emplace_back(element_length);
+    auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, base_reg, params);
+    current_basic_block_->AddStmt(array_alloc_call_stmt);
+    for (int i = 0; i <element_length; i++) {
+      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
+      indices.emplace_back(i);
+      auto addr_reg = current_func_->CreateRegister(addr_type);
+      std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
+          std::make_shared<GEPStmt>(addr_reg, base_reg, indices)); // fetch i_th addr    warning: how to compute offset?
+      std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<StoreStmt>(ptr_regs[i], addr_reg));
     }
   }
 }

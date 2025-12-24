@@ -93,7 +93,7 @@ public:
   std::shared_ptr<Register> FindRegister(const std::string& var_name);
   std::shared_ptr<IRFunction> FindFunction(const std::string& func_name);
   std::pair<std::shared_ptr<IRType>, int> GetElementInStruct(std::string type_name, std::string field_name);
-  void InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const, int depth);
+  void InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const);
   std::shared_ptr<ClassType> GetClassType(const std::string& type_name);
 
 private:
