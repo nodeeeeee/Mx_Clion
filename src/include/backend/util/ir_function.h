@@ -23,18 +23,24 @@ public:
     for (const auto& var_def : var_defs) {
       param_types_.push_back(std::make_shared<IRType>(var_def->getIdNode()->getType()));
     }
+    for (auto &param_type : param_types_) {
+      param_registers_.emplace_back(this->CreateRegister(param_type));
+    }
   }
 
   explicit IRFunction(const std::shared_ptr<FuncDefNode>& func_def_node, std::string belong) : belong_(belong) {
     in_class_ = true;
     is_main_ = false;
-    func_name_ = belong + "@" + func_def_node->getIdNode()->getIdName(); //A@ToString
+    func_name_ = belong + "_" + func_def_node->getIdNode()->getIdName(); //A@ToString
     return_type_ = std::make_shared<IRType>(func_def_node->getReturnType());
     func_scope_ = std::make_shared<IRScope>();
     auto var_defs = func_def_node->getVarDefs();
-    param_types_.push_back(std::make_shared<IRType>(IRType::kPTR));
+    param_types_.push_back(std::make_shared<IRType>(belong, 1)); // 'this' is a pointer to itself
     for (const auto& var_def : var_defs) {
       param_types_.push_back(std::make_shared<IRType>(var_def->getIdNode()->getType()));
+    }
+    for (auto &param_type : param_types_) {
+      param_registers_.emplace_back(this->CreateRegister(param_type));
     }
   }
 
@@ -48,10 +54,13 @@ public:
   explicit IRFunction(const std::shared_ptr<ClassFuncDefNode>& class_func_node) {
     in_class_ = true;
     is_main_ = false;
-    func_name_ = class_func_node->getIdNode()->getIdName();
+    func_name_ = class_func_node->getIdNode()->getIdName() + "_" + class_func_node->getIdNode()->getIdName();
     return_type_ = std::make_shared<IRType>(IRType::kVOID);
     func_scope_ = std::make_shared<IRScope>();
-    param_types_ = std::vector{std::make_shared<IRType>(IRType::kPTR)}; //"this" as param
+    param_types_ = std::vector{std::make_shared<IRType>(func_name_, 1)}; //"this" as param
+    for (auto &param_type : param_types_) {
+      param_registers_.emplace_back(this->CreateRegister(param_type));
+    }
   }
 
   explicit IRFunction(std::string func_name, std::vector<std::shared_ptr<IRType>> param_types, std::shared_ptr<IRType> return_type, bool builtin = false) {
@@ -62,6 +71,22 @@ public:
     return_type_ = std::move(return_type);
     func_scope_ = std::make_shared<IRScope>();
     param_types_ = std::move(param_types);
+    for (auto &param_type : param_types_) {
+      param_registers_.emplace_back(this->CreateRegister(param_type));
+    }
+  }
+
+  explicit IRFunction(std::string func_name, std::vector<std::shared_ptr<IRType>> param_types, std::shared_ptr<IRType> return_type, std::string belong,  bool builtin = false) : belong_(belong) {
+    in_class_ = true;
+    is_main_ = false;
+    builtin_ = builtin;
+    func_name_ = belong + "_" + std::move(func_name);
+    return_type_ = std::move(return_type);
+    func_scope_ = std::make_shared<IRScope>();
+    param_types_ = std::move(param_types);
+    for (auto &param_type : param_types_) {
+      param_registers_.emplace_back(this->CreateRegister(param_type));
+    }
   }
 
   void AddBlock(const std::shared_ptr<Block>& block) {
@@ -120,16 +145,23 @@ public:
     return func_name_;
   }
 
+  [[nodiscard]] std::string GetBelong() const {
+    assert(belong_.has_value());
+    return belong_.value();
+  }
+
   [[nodiscard]] std::string commit() {
     std::string str;
     str += "define " + return_type_->toString() +  " @" + func_name_ + "(";
     bool first = true;
-    for (const auto& param : param_types_) {
+    for (int i = 0; i < param_types_.size(); i++) {
+      auto param_type = param_types_[i];
+      auto param_reg = param_registers_[i];
       if (!first) {
         str += ", ";
       }
       first = false;
-      str += param->GetTypeName();
+      str += param_type->toString() + " " + param_reg->GetIndex();
     }
     str += ") {\n";
     for (const auto& block : blocks_) {
@@ -144,6 +176,7 @@ private:
   // normal function: func_name
   // class funcs: <class_name>_<func_name>
   std::vector<std::shared_ptr<IRType>> param_types_;
+  std::vector<std::shared_ptr<Register>> param_registers_; // to store param registers in advance
   std::shared_ptr<IRType> return_type_;
   std::vector<std::shared_ptr<Block>> blocks_;// the first one is entry block
   bool is_main_;

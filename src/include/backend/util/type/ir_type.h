@@ -9,7 +9,7 @@
 class IRType {
 public:
   enum BasicType {
-    kINT, kBOOL, kSTRING, kVOID, kPTR
+    kINT, kBOOL, kSTRING, kVOID
   };
   IRType() = default;
   explicit IRType(BasicType basic_type, int dim = 0);
@@ -20,25 +20,34 @@ public:
 
 
   std::string toString() {
-    assert(type_ref_ != nullptr && "type_ref is nullptr");
-    std::string ret = type_ref_->toString_();
-    ret.reserve(ret.size() + dim_);
-    ret.append(dim_, '*');
-    return ret;
+    // assert(type_ref_ != nullptr && "type_ref is nullptr");
+    if (dim_ == 0) {
+      return type_ref_->toString_();
+    } else {
+      return "ptr";
+    }
+    // std::string ret = type_ref_->toString_();
+    // ret.reserve(ret.size() + dim_);
+    // ret.append(dim_, '*');
+    // return ret;
   }
-  std::string ElementToString() {
-    assert(type_ref_ != nullptr && "type_ref is nullptr");
-    assert(dim_ >= 0);
-    if (dim_ == 0) {return type_ref_->toString_();}
+  std::string ElementToString() { // only used in alloca
+    assert(dim_ > 0);
+    if (dim_ == 1) {
+      return type_ref_->toString_();
+    }
     else {
-      std::string ret = type_ref_->toString_();
-      ret.reserve(ret.size() + dim_ - 1);
-      ret.append(dim_ - 1, '*');
-      return ret;
+      // std::string ret = type_ref_->toString_();
+      // ret.reserve(ret.size() + dim_ - 1);
+      // ret.append(dim_ - 1, '*');
+      // return ret;
+      return "ptr";
     };
   }
   std::string GetAlign() {
-    assert(type_ref_ != nullptr && "type_ref is nullptr");
+    if (dim_ >= 1) {
+      return "8";
+    }
     if (dim_ == 0) return type_ref_->GetAlign_();
     else return "4";
   }
@@ -69,7 +78,6 @@ public:
         case kINT: return "Int";
         case kBOOL: return "Bool";
         case kSTRING: return "String";
-        case kPTR: return "Ptr";
         default: throw std::runtime_error("Unsupported type");
       }
     }

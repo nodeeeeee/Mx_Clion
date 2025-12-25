@@ -17,7 +17,17 @@ public:
     const std::vector<std::shared_ptr<DefNode>> &getDefNodes() const { return def_nodes; }
     const std::shared_ptr<MainFuncNode> &getMainNode() { return main_node; }
     void accept(VisitControl *visitor) override {visitor->visit(shared_from_this());}
-
+    void sort_def_nodes() {
+        sort(def_nodes.begin(), def_nodes.end(), [](const std::shared_ptr<DefNode>& a, const std::shared_ptr<DefNode>& b) {
+          if (a->getPosition().get_row() < b->getPosition().get_row()) {
+              return true;
+          } else if (a->getPosition().get_row() == b->getPosition().get_row() && a->getPosition().get_column() < b->getPosition().get_column()) {
+              return true;
+          } else {
+              return false;
+          }
+        });
+    }
 private:
     std::vector<std::shared_ptr<DefNode>> def_nodes;
     std::shared_ptr<MainFuncNode> main_node;

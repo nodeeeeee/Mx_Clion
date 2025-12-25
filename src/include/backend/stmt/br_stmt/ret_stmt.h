@@ -22,7 +22,18 @@ public:
     if (is_void) {
       return "ret void";
     }
-    return "ret " + VariantRep::variant_rep(ret_val_);
+    std::string ret = "ret ";
+    if (std::holds_alternative<int>(ret_val_)) {
+      ret += VariantRep::variant_rep(ret_val_);
+    } else if (std::holds_alternative<bool>(ret_val_)) {
+      ret += VariantRep::variant_rep(ret_val_);
+    } else if (std::holds_alternative<std::shared_ptr<LiteralNode>>(ret_val_)) {
+      ret += VariantRep::variant_rep(ret_val_);
+    } else if (std::holds_alternative<std::shared_ptr<Register>>(ret_val_)) {
+      ret += VariantRep::variant_rep(ret_val_);
+    }
+    return ret;
+    // return "ret " + VariantRep::variant_rep(ret_val_);
   }
 
 private:

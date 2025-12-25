@@ -45,14 +45,17 @@ public:
     auto string_ord_function = std::make_shared<IRFunction>("String_ord", std::vector{k_ir_string, k_ir_int}, k_ir_int, true);
     funcs_["String@ord"] = string_ord_function;
     //Array@size
-    auto array_size_function = std::make_shared<IRFunction>("Array_size", std::vector{k_ir_ptr}, k_ir_int, true);
+    auto array_size_function = std::make_shared<IRFunction>("Array_size", std::vector{k_ir_void_star}, k_ir_int, true);
     funcs_["Array@size"] = array_size_function;
     //Array@alloc
-    auto array_alloc_function = std::make_shared<IRFunction>("ArrayAlloc", std::vector{k_ir_int}, k_ir_ptr, true);  //there might be some problem about dimension
+    auto array_alloc_function = std::make_shared<IRFunction>("ArrayAlloc", std::vector{k_ir_int}, k_ir_void_star, true);  //there might be some problem about dimension
     funcs_["ArrayAlloc"] = array_alloc_function;
-
+    //builtin_strcat
     auto strcat_function = std::make_shared<IRFunction>("builtin_strcat", std::vector{k_ir_string, k_ir_string}, k_ir_string, true);
     funcs_["builtin_strcat"] = strcat_function;
+    auto malloc_function = std::make_shared<IRFunction>("builtin_malloc", std::vector<std::shared_ptr<IRType>>{k_ir_int}, k_ir_void_star, true);
+    funcs_["builtin_malloc"] = malloc_function;
+
     visit(root_node);
   }
   std::shared_ptr<RootNode> root_node;
@@ -118,7 +121,7 @@ private:
   std::shared_ptr<IRType> k_ir_bool = std::make_shared<IRType>(k_bool);
   std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(k_string, 1);
   std::shared_ptr<IRType> k_ir_void = std::make_shared<IRType>(k_void);
-  std::shared_ptr<IRType> k_ir_ptr =  std::make_shared<IRType>(IRType::BasicType::kPTR);
+  std::shared_ptr<IRType> k_ir_void_star = std::make_shared<IRType>(k_void, 1);
 
 
 

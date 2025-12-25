@@ -3,6 +3,10 @@
 
 void *malloc(size_t size);
 
+void *builtin_malloc(int size) {
+    return malloc(size);
+}
+
 void *calloc(size_t num, size_t size);
 
 char *strcat(char *dest, const char *src);

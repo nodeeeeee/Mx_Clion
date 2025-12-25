@@ -32,9 +32,9 @@ public:
     for (const auto& element : types_) {
       if (!first) str += ", ";
       first = false;
-      str += element.second.first->GetTypeName();
+      str += element.second.first->toString();
     }
-    str += "}";
+    str += " }";
     return str;
   }
 private:

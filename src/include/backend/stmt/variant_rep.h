@@ -13,13 +13,13 @@ public:
     auto k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
     if (std::holds_alternative<int>(var)) {
       int var_int = std::get<int>(var);
-      return std::to_string(var_int);
+      return "i32 " + std::to_string(var_int);
     } else if (std::holds_alternative<bool>(var)) {
       bool var_bool = std::get<bool>(var);
-      return std::to_string(var_bool);
+      return "i8 " + std::to_string(var_bool);
     } else if (std::holds_alternative<std::shared_ptr<LiteralNode>>(var)) {
       std::shared_ptr<LiteralNode> var_literal = std::get<std::shared_ptr<LiteralNode>>(var);
-      return var_literal->ToString();
+      return var_literal->getLiteralIRType()->toString() + " " + var_literal->ToString();
     } else if (std::holds_alternative<std::shared_ptr<Register>>(var)) {
       auto var_reg = std::get<std::shared_ptr<Register>>(var);
       return var_reg->GetIndexWithType();

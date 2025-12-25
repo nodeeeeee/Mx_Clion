@@ -28,6 +28,8 @@ public:
     ~Position() = default;
     [[nodiscard]] std::size_t get_start_token_index() const {return start_token_index;}
     [[nodiscard]] std::string get_start_token() const {return start_token->getText();}
+    [[nodiscard]] std::size_t get_column() const {return col;}
+    [[nodiscard]] std::size_t get_row() const {return row;}
 };
 
 

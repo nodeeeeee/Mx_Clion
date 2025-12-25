@@ -11,7 +11,9 @@
 
 void SemanticCheck::visit(std::shared_ptr<RootNode> node) {
   auto global_scope_extractor = std::make_shared<GlobalScopeExtractor>(current_scope, node);
+  node->sort_def_nodes();
   global_scope_extractor->extract_root_node(node);
+
   for (const auto& def_node : node->getDefNodes()) {
     def_node->accept(this);
   }
