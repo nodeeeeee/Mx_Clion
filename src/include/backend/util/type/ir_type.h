@@ -9,7 +9,7 @@
 class IRType {
 public:
   enum BasicType {
-    kINT, kBOOL, kSTRING, kVOID
+    kINT, kBOOL, kSTRING, kVOID, kNULL
   };
   IRType() = default;
   explicit IRType(BasicType basic_type, int dim = 0);
@@ -93,4 +93,5 @@ private:
   std::shared_ptr<TypeType> k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
   std::shared_ptr<TypeType> k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
   std::shared_ptr<TypeType> k_void = std::make_shared<TypeType>(TypeType::PrimitiveType::kVOID);
+  std::shared_ptr<TypeType> k_null = std::make_shared<TypeType>(TypeType::PrimitiveType::kNULL);
 };

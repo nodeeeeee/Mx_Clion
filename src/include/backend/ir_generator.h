@@ -34,22 +34,22 @@ public:
 
     //String@length
     auto string_length_function = std::make_shared<IRFunction>("String_length", std::vector{k_ir_string}, k_ir_int, true);
-    funcs_["String@length"] = string_length_function;
+    funcs_["String_length"] = string_length_function;
     //String@substring
     auto string_substring_function = std::make_shared<IRFunction>("String_substring", std::vector{k_ir_string, k_ir_int, k_ir_int}, k_ir_string, true);
-    funcs_["String@substring"] = string_substring_function;
+    funcs_["String_substring"] = string_substring_function;
     //String@parseInt
     auto string_parseInt_function = std::make_shared<IRFunction>("String_parseInt", std::vector{k_ir_string}, k_ir_int, true);
-    funcs_["String@parseInt"] = string_parseInt_function;
+    funcs_["String_parseInt"] = string_parseInt_function;
     //string@ord
     auto string_ord_function = std::make_shared<IRFunction>("String_ord", std::vector{k_ir_string, k_ir_int}, k_ir_int, true);
-    funcs_["String@ord"] = string_ord_function;
+    funcs_["String_ord"] = string_ord_function;
     //Array@size
     auto array_size_function = std::make_shared<IRFunction>("Array_size", std::vector{k_ir_void_star}, k_ir_int, true);
-    funcs_["Array@size"] = array_size_function;
+    funcs_["Array_size"] = array_size_function;
     //Array@alloc
-    auto array_alloc_function = std::make_shared<IRFunction>("ArrayAlloc", std::vector{k_ir_int}, k_ir_void_star, true);  //there might be some problem about dimension
-    funcs_["ArrayAlloc"] = array_alloc_function;
+    auto array_alloc_function = std::make_shared<IRFunction>("Array_Alloc", std::vector{k_ir_int}, k_ir_void_star, true);  //there might be some problem about dimension
+    funcs_["Array_Alloc"] = array_alloc_function;
     //builtin_strcat
     auto strcat_function = std::make_shared<IRFunction>("builtin_strcat", std::vector{k_ir_string, k_ir_string}, k_ir_string, true);
     funcs_["builtin_strcat"] = strcat_function;
@@ -72,7 +72,7 @@ public:
   void visit(std::shared_ptr<FormatStringNode> node) final;
   void visit(std::shared_ptr<FuncCallNode> node) final;
   void visit(std::shared_ptr<IndexExprNode> node) final;
-  void visit(std::shared_ptr<InitArrayNode> node) {throw std::runtime_error("Not implemented");}// included in VarDef, no need.
+  void visit(std::shared_ptr<InitArrayNode> node) final;
   void visit(std::shared_ptr<InitObjectNode> node) {throw std::runtime_error("Not implemented");};
   void visit(std::shared_ptr<NullExprNode> node) {throw std::runtime_error("Not implemented");};
   void visit(std::shared_ptr<UnaryExprNode> node) final;
@@ -102,6 +102,9 @@ public:
   std::pair<std::shared_ptr<IRType>, int> GetElementInStruct(std::string type_name, std::string field_name);
   void InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const);
   std::shared_ptr<ClassType> GetClassType(const std::string& type_name);
+  void IndexExprGEP(std::shared_ptr<IndexExprNode> expr);
+  void DotExprGEP(std::shared_ptr<DotExprNode> expr);
+  void DeclareArray(std::shared_ptr<InitArrayNode> expr);
 
 private:
   std::map<std::string, std::shared_ptr<ClassType>> types_;

@@ -8,6 +8,7 @@
 #include "ir_ptr_type.h"
 #include "ir_void_type.h"
 #include "ir_string_type.h"
+#include "ir_null_type.h"
 
 IRType::IRType(BasicType basic_type, int dim) : basic_type_(basic_type), dim_(dim) {
   if (basic_type == BasicType::kINT) {
@@ -19,6 +20,8 @@ IRType::IRType(BasicType basic_type, int dim) : basic_type_(basic_type), dim_(di
     dim_ = 1;
   } else if (basic_type == BasicType::kVOID) {
     type_ref_ = &IRVoidType::Instance();
+  } else if (basic_type == BasicType::kNULL) {
+    type_ref_ = &IRNullType::Instance();
   } else {
     throw std::runtime_error("invalid TypeType");
   }
@@ -39,6 +42,9 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type){
   } else if (*type_type == *k_void) {
     type_ref_ = &IRVoidType::Instance();
     basic_type_ = BasicType::kVOID;
+  } else if (*type_type == *k_null) {
+    type_ref_ = &IRNullType::Instance();
+    basic_type_ = BasicType::kNULL; // kNULL can be any pointer type
   }
   else {
     throw std::runtime_error("invalid TypeType");
@@ -58,7 +64,11 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type, int dim) : dim_(dim){
   } else if (*type_type == *k_void) {
     type_ref_ = &IRVoidType::Instance();
     basic_type_ = BasicType::kVOID;
-  } else if (type_type->is_customized()) {
+  } else if (*type_type == *k_null) {
+    type_ref_ = &IRNullType::Instance();
+    basic_type_ = BasicType::kNULL;
+  }
+  else if (type_type->is_customized()) {
     customized_type_ = type_type->getTypeName();
   }
 }
