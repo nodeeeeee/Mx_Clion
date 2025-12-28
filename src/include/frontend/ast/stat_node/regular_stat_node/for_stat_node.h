@@ -25,6 +25,7 @@ public:
     const std::shared_ptr<ExprNode> &getForCondExprNode() {return for_cond_expr_node;}
     const std::shared_ptr<ExprNode> &getUpdateExprNode() {return update_expr_node;}
     const std::shared_ptr<ExprNode> &getInitialExprNode() {return initial_expr_node;}
+    const std::shared_ptr<StatNode> &getInitialAssignStatNode() {return initial_assign_stat_node;}
     void accept(VisitControl *visitor) override {visitor->visit(shared_from_this());}
 
 private:

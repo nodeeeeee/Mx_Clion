@@ -6,6 +6,7 @@
 #include <variant>
 
 #include "frontend/ast/visit_control.h"
+#include "frontend/ast/stat_node/regular_stat_node/expr_node/init_array_node.h"
 #include "frontend/ast/type/type_type.h"
 #include "util/class_type.h"
 #include "util/ir_function.h"
@@ -104,7 +105,7 @@ public:
   std::shared_ptr<ClassType> GetClassType(const std::string& type_name);
   void IndexExprGEP(std::shared_ptr<IndexExprNode> expr);
   void DotExprGEP(std::shared_ptr<DotExprNode> expr);
-  void DeclareArray(std::shared_ptr<InitArrayNode> expr);
+  void DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<std::shared_ptr<ExprNode>> range_vec, int pos);
 
 private:
   std::map<std::string, std::shared_ptr<ClassType>> types_;

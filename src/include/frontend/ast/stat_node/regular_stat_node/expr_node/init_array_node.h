@@ -4,6 +4,7 @@
 
 #pragma once
 #include "expr_node.h"
+#include "literal_node.h"
 
 class TypeType;
 class TypeNode;

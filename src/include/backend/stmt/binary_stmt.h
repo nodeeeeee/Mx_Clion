@@ -51,6 +51,9 @@ public:
       case BinaryOp::kOR:
         op_str = "or";
         break;
+      case BinaryOp::kXOR:
+        op_str = "xor";
+        break;
       default:
         throw std::runtime_error("Unknown binary operator");
     }

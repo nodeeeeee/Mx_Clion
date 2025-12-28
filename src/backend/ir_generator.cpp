@@ -269,9 +269,12 @@ void IRGenerator::visit(std::shared_ptr<InitArrayNode> node) {
   if (array_const == nullptr) {
     auto array_type = node->getType();
     auto result_reg = current_func_->CreateRegister(std::make_shared<IRType>(array_type));
-    InitializeArray(result_reg, array_const);
+    auto range_vec = node->getRangeNode();
+    DeclareArray(node, range_vec, 0);
   } else if (array_const != nullptr) {
     int a[100];
+    auto result_type = std::make_shared<IRType>(array_const->getArrayType());
+    auto result_reg = current_func_->CreateRegister(result_type);
     InitializeArray(result_reg, array_const);
   }
 }
@@ -556,9 +559,21 @@ void IRGenerator::visit(std::shared_ptr<TernaryExprNode> node) {
 
 void IRGenerator::visit(std::shared_ptr<ForStatNode> node) {
 
-  auto init_stmt = node->getInitialExprNode();
+  std::shared_ptr<StatNode> init_stmt;
+  std::shared_ptr<StatNode> update_stmt;
+  if (node->getInitialExprNode() != nullptr) {
+    init_stmt = node->getInitialExprNode();
+  } else if (node->getInitialVarDefNode() != nullptr) {
+    init_stmt = std::dynamic_pointer_cast<StatNode>(node->getInitialVarDefNode());
+  } else if (node->getInitialAssignStatNode() != nullptr) {
+    init_stmt = std::dynamic_pointer_cast<StatNode>(node->getInitialAssignStatNode());
+  }
+  if (node->getUpdateAssignStatNode() != nullptr) {
+    update_stmt = node->getUpdateAssignStatNode();
+  } else if (node->getUpdateExprNode() != nullptr) {
+    update_stmt = std::dynamic_pointer_cast<StatNode>(node->getUpdateExprNode());
+  }
   auto cond_stmt = node->getForCondExprNode();
-  auto update_stmt = node->getUpdateExprNode();
   auto body_stmt = node->getBlockNode();
   auto loop_block = current_func_->CreateBlock("loop", false);
   auto loop_body_block = current_func_->CreateBlock("body", false);
@@ -1139,7 +1154,7 @@ void IRGenerator::InitializeArray(std::shared_ptr<Register> base, std::shared_pt
     if (*literal_type == *k_string) { //just allocate space
       auto addr_type = std::make_shared<IRType>(k_ir_string, 1);// if it is a string, then it is a 2-dimensional array
       base_reg = current_func_->CreateRegister(addr_type);
-      auto array_alloc_func = FindFunction("array_alloc");
+      auto array_alloc_func = FindFunction("Array_Alloc");
       std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
       int element_length = literal_elements.size();
       params.push_back(element_length);
@@ -1168,7 +1183,7 @@ void IRGenerator::InitializeArray(std::shared_ptr<Register> base, std::shared_pt
     } else { // not string
       auto addr_type = std::make_shared<IRType>(literal_type, 1);// if it is a string, then it is a 2-dimensional array
       base_reg = current_func_->CreateRegister(addr_type);
-      auto array_alloc_func = FindFunction("array_alloc");
+      auto array_alloc_func = FindFunction("Array_Alloc");
       std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
       int element_length = literal_elements.size();
       params.emplace_back(element_length);
@@ -1213,7 +1228,7 @@ void IRGenerator::InitializeArray(std::shared_ptr<Register> base, std::shared_pt
     }
     // auto addr_type = std::make_shared<IRType>();
     auto base_reg = current_func_->CreateRegister(curr_type);
-    auto array_alloc_func = FindFunction("array_alloc");
+    auto array_alloc_func = FindFunction("Array_Alloc");
     std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
     int element_length = array_const->GetArrayElements().size();
     assert(element_length == ptr_regs.size());
@@ -1232,25 +1247,112 @@ void IRGenerator::InitializeArray(std::shared_ptr<Register> base, std::shared_pt
   }
 }
 
-void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> expr) {
+void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<std::shared_ptr<ExprNode>> range_vec, int pos) {
+  //remains some problems about new int[5][5][]
+
   //recursively allocate space
-  auto array_type = expr->getType();
-  auto result_reg = current_func_->CreateRegister(std::make_shared<IRType>(array_type, array_type->getDimension() + 1));
-  auto array_alloc_func = FindFunction("array_alloc");
-  auto ranges = expr->getRangeNode();
-  for (auto& range : ranges) {
-    range->accept(this);
-    auto range_reg = current_func_->GetLastReg();
-    std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
+  auto array_alloc_func = FindFunction("Array_Alloc");
+  if (pos == static_cast<int>(range_vec.size() - 1)) {
+    if (auto range_literal = std::dynamic_pointer_cast<LiteralNode>(range_vec[pos])) {
+      range_vec.back()->accept(this);
+      auto size_reg = current_func_->GetLastReg();
+      auto base_type = std::make_shared<IRType>(node->getType(), 1);
+      auto dest_reg = current_func_->CreateRegister(base_type);
+      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
+      params.emplace_back(size_reg);
+      auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, dest_reg, params);
+      current_basic_block_->AddStmt(array_alloc_call_stmt);
+    } else {
+      const auto& curr_range = range_vec[pos];
+      curr_range->accept(this);
+      auto range_reg = current_func_->GetLastReg();
+      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
+      params.emplace_back(range_reg);
+      auto malloc_dest_type = std::make_shared<IRType>(k_ir_void, range_vec.size() - pos);
+      auto malloc_dest_reg = current_func_->CreateRegister(malloc_dest_type);
+      auto malloc_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<CallStmt>(array_alloc_func, malloc_dest_reg, params));
+      current_basic_block_->AddStmt(malloc_stmt);
+    }
 
-    params.emplace_back(range_reg);
+  } else {
+    if (auto range_literal = std::dynamic_pointer_cast<LiteralNode>(range_vec[pos])) {
+      //call, store (here we only consider cases where ranges are all constants)
+      int range_val = std::get<int>(std::dynamic_pointer_cast<LiteralNode>(range_vec[pos])->GetValue());
+      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> addr_regs;
+      for (int i = 0; i < range_val; i++) {
+        DeclareArray(node, range_vec, pos + 1);
+        addr_regs.emplace_back(current_func_->GetLastReg());
+      }
+      auto dest_type = std::make_shared<IRType>(std::get<std::shared_ptr<Register>>(addr_regs[0])->GetType(), 1);
+      auto dest_reg = current_func_->CreateRegister(dest_type);
+      auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, dest_reg, addr_regs);
+      current_basic_block_->AddStmt(array_alloc_call_stmt);
+      for (int i = 0; i < range_val; i++) {
+        std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
+        indices.emplace_back(i);
+        auto dest_addr_reg = current_func_->CreateRegister(dest_type);
+        std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
+            std::make_shared<GEPStmt>(dest_addr_reg, dest_reg, indices)); // fetch i_th addr    warning: how to compute offset?
+        std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
+          std::make_shared<StoreStmt>(std::get<std::shared_ptr<Register>>(addr_regs[i]), dest_addr_reg));
+        current_basic_block_->AddStmt(gep_stmt);
+        current_basic_block_->AddStmt(store_stmt);
+      }
+    } else {
+      //if range is a variable
+      auto range_loop_block = current_func_->CreateBlock("init_array" + std::to_string(pos), false);
+      auto end_block = current_func_->CreateBlock("end_init_array" + std::to_string(pos), false);
+      auto counter_reg_type = std::make_shared<IRType>(k_ir_int, 1);
+      auto counter_reg = current_func_->CreateRegister(counter_reg_type);
+      auto alloca_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<AllocaStmt>(counter_reg));
+      auto store_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<StoreStmt>(0, counter_reg));
+      current_basic_block_->AddStmt(alloca_stmt);
+      current_basic_block_->AddStmt(store_stmt);
+      const auto& curr_range = range_vec[pos];
+      curr_range->accept(this);
+      auto range_reg = current_func_->GetLastReg();
+      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
+      params.emplace_back(range_reg);
+      auto malloc_dest_type = std::make_shared<IRType>(k_ir_void, range_vec.size() - pos);
+      auto malloc_dest_reg = current_func_->CreateRegister(malloc_dest_type);
+      auto malloc_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<CallStmt>(array_alloc_func, malloc_dest_reg, params));
+      current_basic_block_->AddStmt(malloc_stmt);
+      //loop layer a:
+      auto tmp_block = current_basic_block_;
+      current_basic_block_ = range_loop_block;
 
+      auto cmp_reg = current_func_->CreateRegister(k_ir_bool);
+      auto cmp_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<IcmpStmt>(IcmpStmt::IcmpOp::kLT, counter_reg, range_reg, cmp_reg));
+      current_basic_block_->AddStmt(cmp_stmt);
+      auto br_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<BrConditionalStmt>(cmp_reg, range_loop_block->getBlockName(), end_block->getBlockName()));
+      current_basic_block_->AddStmt(br_stmt);
+
+
+      current_basic_block_->AddStmt(malloc_stmt);
+      DeclareArray(node, range_vec, pos + 1);
+      auto next_layer_reg = current_func_->GetLastReg();
+      auto gep_dest_reg = current_func_->CreateRegister(malloc_dest_type);
+      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> gep_params;
+      gep_params.emplace_back(counter_reg);
+      auto gep_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<GEPStmt>(gep_dest_reg, malloc_dest_reg, gep_params));
+      current_basic_block_->AddStmt(gep_stmt);
+
+      auto store_array_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<StoreStmt>(next_layer_reg, gep_dest_reg));
+      current_basic_block_->AddStmt(store_array_stmt);
+      auto add_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, counter_reg, 1, counter_reg));
+      current_basic_block_->AddStmt(add_stmt);
+      current_basic_block_ = tmp_block;
+    }
   }
-
-  auto addr_type = std::make_shared<IRType>();
-  auto base_reg = current_func_->CreateRegister(addr_type);
-  auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, base_reg, params);
-  current_basic_block_->AddStmt(array_alloc_call_stmt);
 }
 
 
