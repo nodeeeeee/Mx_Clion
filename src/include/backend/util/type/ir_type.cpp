@@ -29,20 +29,20 @@ IRType::IRType(BasicType basic_type, int dim) : basic_type_(basic_type), dim_(di
 
 IRType::IRType(const std::shared_ptr<TypeType>& type_type){
   dim_ = type_type->getDimension();
-  if (*type_type == *k_int) {
+  if (type_type->compareBase(*k_int)) {
     type_ref_ = &IRIntType::Instance();
     basic_type_ = BasicType::kINT;
-  } else if (*type_type == *k_bool) {
+  } else if (type_type->compareBase(*k_bool)) {
     type_ref_ = &IRBoolType::Instance();
     basic_type_ = BasicType::kBOOL;
-  } else if (*type_type == *k_string) {
+  } else if (type_type->compareBase(*k_string)) {
     type_ref_ = &IRStringType::Instance();
     basic_type_ = BasicType::kSTRING;
     dim_ = 1;
-  } else if (*type_type == *k_void) {
+  } else if (type_type->compareBase(*k_void)) {
     type_ref_ = &IRVoidType::Instance();
     basic_type_ = BasicType::kVOID;
-  } else if (*type_type == *k_null) {
+  } else if (type_type->compareBase(*k_null)) {
     type_ref_ = &IRNullType::Instance();
     basic_type_ = BasicType::kNULL; // kNULL can be any pointer type
   }
@@ -51,20 +51,20 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type){
   }
 }
 IRType::IRType(const std::shared_ptr<TypeType>& type_type, int dim) : dim_(dim){
-  if (*type_type == *k_int) {
+  if (type_type->compareBase(*k_int)) {
     type_ref_ = &IRIntType::Instance();
     basic_type_ = BasicType::kINT;
-  } else if (*type_type == *k_bool) {
+  } else if (type_type->compareBase(*k_bool)) {
     type_ref_ = &IRBoolType::Instance();
     basic_type_ = BasicType::kBOOL;
-  } else if (*type_type == *k_string) {
+  } else if (type_type->compareBase(*k_string)) {
     type_ref_ = &IRStringType::Instance();
     basic_type_ = BasicType::kSTRING;
     dim_ = 1;
-  } else if (*type_type == *k_void) {
+  } else if (type_type->compareBase(*k_void)) {
     type_ref_ = &IRVoidType::Instance();
     basic_type_ = BasicType::kVOID;
-  } else if (*type_type == *k_null) {
+  } else if (type_type->compareBase(*k_null)) {
     type_ref_ = &IRNullType::Instance();
     basic_type_ = BasicType::kNULL;
   }

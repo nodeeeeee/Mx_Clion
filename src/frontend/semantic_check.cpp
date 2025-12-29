@@ -435,6 +435,11 @@ void SemanticCheck::visit(std::shared_ptr<AssignStatNode> node) {
   if (*rhs_type == *k_null && (*lhs_type == *k_int || *lhs_type == *k_bool)) {
     throw std::runtime_error("rhs is null, cannot be assigned to simple primitive on the lhs");
   }
+  // if rhs == k_null,
+  // set rhs type as lhs
+  if (*rhs_type == *k_null) {
+    rhs->setExprType(lhs_type);
+  }
 }
 
 void SemanticCheck::visit(std::shared_ptr<ForStatNode> node) {

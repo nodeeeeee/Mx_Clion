@@ -85,7 +85,7 @@ public:
   void visit(std::shared_ptr<IfStatNode> node) final;
   void visit(std::shared_ptr<ReturnStatNode> node) final;
   void visit(std::shared_ptr<WhileStatNode> node) final;
-  void visit(std::shared_ptr<LiteralNode> node) final; // this should be implemented, creating a register for this literal
+  void visit(std::shared_ptr<LiteralNode> node) {throw std::runtime_error("Not implemented");}; // this should be implemented, creating a register for this literal
   void visit(std::shared_ptr<TerminalNode> node) final;
   void visit(std::shared_ptr<ThisExprNode> node) final;
   void visit(std::shared_ptr<ParenExprNode> node) final;
@@ -106,6 +106,7 @@ public:
   void IndexExprGEP(std::shared_ptr<IndexExprNode> expr);
   void DotExprGEP(std::shared_ptr<DotExprNode> expr);
   void DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<std::shared_ptr<ExprNode>> range_vec, int pos);
+  std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> LiteralResolver(std::shared_ptr<ExprNode> expr);
 
 private:
   std::map<std::string, std::shared_ptr<ClassType>> types_;

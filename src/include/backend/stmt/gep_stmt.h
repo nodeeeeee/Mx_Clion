@@ -19,15 +19,15 @@ public:
 
 
   [[nodiscard]]std::string commit() const override {
-    std::string ret =dest_ptr_->GetIndex() + " = getelementptr inbounds " + base_ptr_->GetType()->GetTypeName();
+    std::string ret =dest_ptr_->GetIndex() + " = getelementptr inbounds " + base_ptr_->GetType()->GetGEPType() + ", " + base_ptr_->GetIndexWithType() + ", ";
     for (const auto& index : indices_) {
       if (std::holds_alternative<std::shared_ptr<LiteralNode>>(index)) {
         auto literal = std::get<std::shared_ptr<LiteralNode>>(index);
-        ret += ", " + std::make_shared<IRType>(literal->getLiteralType())->toString() + " " + literal->ToString();
+        ret += std::make_shared<IRType>(literal->getLiteralType())->toString() + " " + literal->ToString();
       } else if (std::holds_alternative<std::shared_ptr<Register>>(index)) {
         auto reg = std::get<std::shared_ptr<Register>>(index);
         assert(reg->GetType()->toString() == "i32");
-        ret += ", " + reg->GetType()->toString() + " " + reg->GetIndex();
+        ret += reg->GetType()->toString() + " " + reg->GetIndex();
       } else {
         auto val = std::get<int>(index);
         ret += "i32 " + std::to_string(val);

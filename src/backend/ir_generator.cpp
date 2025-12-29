@@ -219,8 +219,12 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
       // an array def
       auto array_const = init_array->getDefaultArray();
       if (array_const != nullptr) {
-        int a[100];
         InitializeArray(var_reg, array_const);
+      } else {
+        init_array->accept(this);
+        auto array_obj_reg = current_func_->GetReturnReg();
+        auto store_stmt = std::static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(array_obj_reg, var_reg));
+        current_basic_block_->AddStmt(store_stmt);
       }
       return ;
     } else if (auto init_object = std::dynamic_pointer_cast<InitObjectNode>(expr)) {
@@ -267,22 +271,23 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
 void IRGenerator::visit(std::shared_ptr<InitArrayNode> node) {
   auto array_const = node->getDefaultArray();
   if (array_const == nullptr) {
-    auto array_type = node->getType();
-    auto result_reg = current_func_->CreateRegister(std::make_shared<IRType>(array_type));
+    // auto array_type = node->getType();
+    // auto result_reg = current_func_->CreateRegister(std::make_shared<IRType>(array_type));
     auto range_vec = node->getRangeNode();
     DeclareArray(node, range_vec, 0);
   } else if (array_const != nullptr) {
-    int a[100];
     auto result_type = std::make_shared<IRType>(array_const->getArrayType());
     auto result_reg = current_func_->CreateRegister(result_type);
     InitializeArray(result_reg, array_const);
   }
 }
-
-void IRGenerator::visit(std::shared_ptr<LiteralNode> node) {
-  auto literal_type = node->getLiteralType();
-  auto literal_reg = current_func_->CreateRegister(std::make_shared<IRType>(literal_type));
-}
+//
+// void IRGenerator::visit(std::shared_ptr<LiteralNode> node) {
+//   auto literal_type = node->getLiteralType();
+//   auto literal_reg = current_func_->CreateRegister(std::make_shared<IRType>(literal_type));
+//   auto init_stmt = std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, 0, node, literal_reg);
+//   current_basic_block_->AddStmt(init_stmt);
+// }
 
 void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
   auto lhs = node->getLhs();
@@ -340,10 +345,12 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
     current_basic_block_ = curr_block_tmp;
     return ;
   }
-  lhs->accept(this);
-  auto lhs_rep = FetchExprReg(lhs);
-  rhs->accept(this);
-  auto rhs_rep = FetchExprReg(rhs);
+  // lhs->accept(this);
+  // auto lhs_rep = FetchExprReg(lhs);
+  // rhs->accept(this);
+  // auto rhs_rep = FetchExprReg(rhs);
+  auto lhs_rep = LiteralResolver(lhs);
+  auto rhs_rep = LiteralResolver(rhs);
   auto lhs_type = lhs->getExprType();
   auto rhs_type = rhs->getExprType();
   switch (node->getOp()) {
@@ -582,6 +589,9 @@ void IRGenerator::visit(std::shared_ptr<ForStatNode> node) {
   auto new_scope = IRScope::CreateScope(current_scope_, update_block, end_block);
   current_scope_ = new_scope;
   init_stmt->accept(this);
+  auto j_loop = std::static_pointer_cast<Stmt>(
+    std::make_shared<BrUnconditionalStmt>(loop_block->getBlockName()));
+  current_basic_block_->AddStmt(j_loop);
   auto curr_block_tmp = current_basic_block_;
   //loop:
   current_basic_block_ = loop_block;
@@ -614,10 +624,11 @@ void IRGenerator::visit(std::shared_ptr<WhileStatNode> node) {
   auto curr_block_tmp = current_basic_block_;
   //loop:
   current_basic_block_ = loop_block;;
-  cond_stmt->accept(this);
-  auto cond_reg = current_func_->GetLastReg();
+  // cond_stmt->accept(this);
+  // auto cond_reg = current_func_->GetLastReg();
+  auto cond_rep = LiteralResolver(cond_stmt);
   //if reg = 0 end
-  auto cond_br = std::make_shared<BrConditionalStmt>(cond_reg, loop_body_block->getBlockName(), end_block->getBlockName());
+  auto cond_br = std::make_shared<BrConditionalStmt>(cond_rep, loop_body_block->getBlockName(), end_block->getBlockName());
   current_basic_block_->AddStmt(cond_br);
   //loop_body:
   current_basic_block_ = loop_body_block;
@@ -634,9 +645,10 @@ void IRGenerator::visit(std::shared_ptr<ReturnStatNode> node) {
   auto ret_func_call = node->getFuncCall();
   std::shared_ptr<ReturnStmt> ret_stmt;
   if (ret_expr != nullptr) {
-    ret_expr->accept(this);
-    auto ret_reg = current_func_->GetLastReg();
-    ret_stmt = std::make_shared<ReturnStmt>(ret_reg);
+    // ret_expr->accept(this);
+    // auto ret_reg = current_func_->GetLastReg();
+    auto ret_rep = LiteralResolver(ret_expr);
+    ret_stmt = std::make_shared<ReturnStmt>(ret_rep);
   } else if (ret_func_call != nullptr) {
     ret_func_call->accept(this);
     auto ret_reg = current_func_->GetLastReg();
@@ -789,23 +801,25 @@ void IRGenerator::visit(std::shared_ptr<FuncCallNode> node) {
 }
 
 void IRGenerator::visit(std::shared_ptr<IndexExprNode> node) {
-  auto base = node->getBase();
-  auto index = node->getIndex();
-  base->accept(this);
-  auto base_reg = current_func_->GetLastReg();
-  auto result_reg = current_func_->CreateRegister(base_reg->GetType()->DecreaseDimension());
-  std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
-  if (std::shared_ptr<LiteralNode> literal = std::dynamic_pointer_cast<LiteralNode>(index)) {
-    params.push_back(literal);
-    auto gep_stmt = std::static_pointer_cast<Stmt>(std::make_shared<GEPStmt>(result_reg, base_reg, params));
-    current_basic_block_->AddStmt(gep_stmt);
-  } else {
-    index->accept(this);
-    auto index_reg = current_func_->GetLastReg();
-    params.push_back(index_reg);
-    auto gep_stmt = std::static_pointer_cast<Stmt>(std::make_shared<GEPStmt>(result_reg, base_reg, params));
-    current_basic_block_->AddStmt(gep_stmt);
-  }
+  // auto base = node->getBase();
+  // auto index = node->getIndex();
+  // base->accept(this);
+  // auto base_reg = current_func_->GetLastReg();
+  // auto result_reg = current_func_->CreateRegister(base_reg->GetType()->DecreaseDimension());
+  // std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
+  // if (std::shared_ptr<LiteralNode> literal = std::dynamic_pointer_cast<LiteralNode>(index)) {
+  //   params.push_back(literal);
+  //   auto gep_stmt = std::static_pointer_cast<Stmt>(std::make_shared<GEPStmt>(result_reg, base_reg, params));
+  //   current_basic_block_->AddStmt(gep_stmt);
+  // } else {
+  //   auto index_rep = LiteralResolver(index);
+  //   // index->accept(this);
+  //   // auto index_reg = current_func_->GetLastReg();
+  //   params.push_back(index_rep);
+  //   auto gep_stmt = std::static_pointer_cast<Stmt>(std::make_shared<GEPStmt>(result_reg, base_reg, params));
+  //   current_basic_block_->AddStmt(gep_stmt);
+  // }
+  IndexExprGEP(node);
 }
 
 void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
@@ -931,6 +945,11 @@ void IRGenerator::visit(std::shared_ptr<AssignStatNode> node) {
         auto array_const = init_array->getDefaultArray();
         if (array_const != nullptr) {
           InitializeArray(id_reg, array_const);
+        } else {
+          init_array->accept(this);
+          auto array_obj_reg = current_func_->GetReturnReg();
+          auto store_stmt = std::static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(array_obj_reg, id_reg)); // there is a problem here
+          current_basic_block_->AddStmt(store_stmt);
         }
         return ;
       } else if (auto init_object = std::dynamic_pointer_cast<InitObjectNode>(expr)) {
@@ -978,10 +997,11 @@ void IRGenerator::visit(std::shared_ptr<AssignStatNode> node) {
     //compute rhs, store
     auto addr_reg = current_func_->GetLastReg();
     auto rhs_expr = node->getRhs();
-    rhs_expr->accept(this);
-    auto rhs_reg = current_func_->GetLastReg();
+    // rhs_expr->accept(this);
+    // auto rhs_reg = current_func_->GetLastReg();
+    auto rhs_rep = LiteralResolver(rhs_expr);
     std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
-      std::make_shared<StoreStmt>(rhs_reg, addr_reg));
+      std::make_shared<StoreStmt>(rhs_rep, addr_reg));
     current_basic_block_->AddStmt(store_stmt);
 
   } else if (auto lhs_dot_expr = std::dynamic_pointer_cast<DotExprNode>(node->getLhs())) {
@@ -1254,13 +1274,12 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
   auto array_alloc_func = FindFunction("Array_Alloc");
   if (pos == static_cast<int>(range_vec.size() - 1)) {
     if (auto range_literal = std::dynamic_pointer_cast<LiteralNode>(range_vec[pos])) {
-      range_vec.back()->accept(this);
-      auto size_reg = current_func_->GetLastReg();
+      int range_val = std::get<int>(std::dynamic_pointer_cast<LiteralNode>(range_vec[pos])->GetValue());
+      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> alloc_params;
+      alloc_params.emplace_back(range_val);
       auto base_type = std::make_shared<IRType>(node->getType(), 1);
       auto dest_reg = current_func_->CreateRegister(base_type);
-      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
-      params.emplace_back(size_reg);
-      auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, dest_reg, params);
+      auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, dest_reg, alloc_params);
       current_basic_block_->AddStmt(array_alloc_call_stmt);
     } else {
       const auto& curr_range = range_vec[pos];
@@ -1279,6 +1298,9 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
     if (auto range_literal = std::dynamic_pointer_cast<LiteralNode>(range_vec[pos])) {
       //call, store (here we only consider cases where ranges are all constants)
       int range_val = std::get<int>(std::dynamic_pointer_cast<LiteralNode>(range_vec[pos])->GetValue());
+      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> alloc_params;
+      alloc_params.emplace_back(range_val);
+
       std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> addr_regs;
       for (int i = 0; i < range_val; i++) {
         DeclareArray(node, range_vec, pos + 1);
@@ -1286,7 +1308,7 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
       }
       auto dest_type = std::make_shared<IRType>(std::get<std::shared_ptr<Register>>(addr_regs[0])->GetType(), 1);
       auto dest_reg = current_func_->CreateRegister(dest_type);
-      auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, dest_reg, addr_regs);
+      auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, dest_reg, alloc_params);
       current_basic_block_->AddStmt(array_alloc_call_stmt);
       for (int i = 0; i < range_val; i++) {
         std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
@@ -1299,6 +1321,7 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
         current_basic_block_->AddStmt(gep_stmt);
         current_basic_block_->AddStmt(store_stmt);
       }
+      current_func_->SetReturnReg(dest_reg);
     } else {
       //if range is a variable
       auto range_loop_block = current_func_->CreateBlock("init_array" + std::to_string(pos), false);
@@ -1361,16 +1384,22 @@ std::shared_ptr<ClassType> IRGenerator::GetClassType(const std::string& type_nam
 }
 
 void IRGenerator::IndexExprGEP(std::shared_ptr<IndexExprNode> expr) {
+  //solves recursion better than visit
   //a: int*
   //a[i]:
   std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
   while (1) {
     if (auto id_node = std::dynamic_pointer_cast<IdNode>(expr->getBase())) {
-      auto base_reg = current_scope_->FindRegister(id_node->getIdName());
+      auto base_reg_star = current_scope_->FindRegister(id_node->getIdName());
+      auto base_reg = current_func_->CreateRegister(std::make_shared<IRType>(base_reg_star->GetType(), -1));
+      auto load_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<LoadStmt>(base_reg, base_reg_star));
+      current_basic_block_->AddStmt(load_stmt);
       auto index_expr_node = expr->getIndex();
-      index_expr_node->accept(this);
-      auto index_reg = current_func_->GetLastReg();
-      indices.emplace_back(index_reg);
+      auto index_rep = LiteralResolver(index_expr_node);
+      // index_expr_node->accept(this);
+      // auto index_reg = current_func_->GetLastReg();
+      indices.emplace_back(index_rep);
       auto dest_reg = current_func_->CreateRegister(base_reg->GetType());
       //gep
       reverse(indices.begin(), indices.end());
@@ -1380,9 +1409,10 @@ void IRGenerator::IndexExprGEP(std::shared_ptr<IndexExprNode> expr) {
       break;
     } else {
       auto index_expr_node = expr->getIndex();
-      index_expr_node->accept(this);
-      auto index_reg = current_func_->GetLastReg();
-      indices.emplace_back(index_reg);
+      // index_expr_node->accept(this);
+      // auto index_reg = current_func_->GetLastReg();
+      auto index_rep = LiteralResolver(index_expr_node);
+      indices.emplace_back(index_rep);
       expr = std::dynamic_pointer_cast<IndexExprNode>(expr->getBase());
     }
   }
@@ -1415,3 +1445,13 @@ void IRGenerator::DotExprGEP(std::shared_ptr<DotExprNode> expr) {
     }
   }
 }
+
+std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register> > IRGenerator::LiteralResolver(std::shared_ptr<ExprNode> expr) {
+  if (auto literal_node = std::dynamic_pointer_cast<LiteralNode>(expr)) {
+    return literal_node;
+  } else {
+    expr->accept(this);
+    return current_func_->GetLastReg();
+  }
+}
+

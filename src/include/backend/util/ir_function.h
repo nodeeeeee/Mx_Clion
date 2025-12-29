@@ -145,6 +145,14 @@ public:
     return func_name_;
   }
 
+  [[nodiscard]] std::shared_ptr<Register> GetReturnReg() const {
+    return ret_reg_;
+  }
+
+  void SetReturnReg(std::shared_ptr<Register> reg) {
+    ret_reg_ = reg;
+  }
+
   [[nodiscard]] std::string GetBelong() const {
     assert(belong_.has_value());
     return belong_.value();
@@ -171,6 +179,7 @@ public:
     return str;
   }
 
+
 private:
   std::string func_name_;
   // normal function: func_name
@@ -187,4 +196,5 @@ private:
   std::shared_ptr<Register> last_reg_;
   std::map<std::string, int> block_tag_index; // ifblock_1 ifblock_2
   bool builtin_ = false;
+  std::shared_ptr<Register> ret_reg_;
 };

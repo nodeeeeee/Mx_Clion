@@ -44,6 +44,12 @@ public:
       return "ptr";
     };
   }
+
+  std::string GetGEPType() {
+    if (type_ref_ == nullptr) return "%" + customized_type_;
+    else return type_ref_->toString_();
+  }
+
   std::string GetAlign() {
     if (dim_ >= 1) {
       return "8";
