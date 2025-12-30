@@ -13,6 +13,7 @@
 #include "frontend/ast/type/int_type.h"
 #include "frontend/ast/type/null_type.h"
 #include "frontend/ast/type/string_type.h"
+#include <string_view>
 
 
 class Constant;
@@ -30,39 +31,39 @@ public:
         auto init_array = std::dynamic_pointer_cast<InitArrayNode> (node->getExpr());
         if (init_array->getDefaultArray() == nullptr) { // int[] a = new int[10];
           std::string array_type_for_init = init_array->GetTypeForInit();
-          array_msg =  "@" + name_ + " global " + array_type_for_init + "zeroinitializer, align 4";
+          array_msg =  "@" + name_ + " global " + array_type_for_init + " zeroinitializer, align 4";
         } else { // int[] a = new int[10]{1, 2, 3, 4...}
           std::string array_type_for_init = init_array->GetTypeForInit();
           std::string array_const = init_array->GetArrayConstForInit();
-          array_msg =  "@" + name_ + " global " + array_type_for_init + array_const + ", align 4";
+          array_msg =  "@" + name_ + " global " + array_type_for_init + " " + array_const + ", align 4";
         }
       }
     }
-
-    if (*node->getIdNode()->getType() == IntType::Instance()) {
-      register_ = std::make_shared<Register>(name_, k_int, true);
-    } else if (*node->getIdNode()->getType() == BoolType::Instance()) {
-      register_ = std::make_shared<Register>(name_, k_bool, true);
-    } else if (*node->getIdNode()->getType() == StringType::Instance()) {
-      register_ = std::make_shared<Register>(name_, k_string, true);
+    bool is_int_type = node->getIdNode()->getType()->compareBase(IntType::Instance());
+    if (node->getIdNode()->getType()->compareBase(*k_int)) {
+      register_ = std::make_shared<Register>(name_, k_ir_int, true);
+    } else if (node->getIdNode()->getType()->compareBase(*k_bool)) {
+      register_ = std::make_shared<Register>(name_, k_ir_bool, true);
+    } else if (node->getIdNode()->getType()->compareBase(*k_string)) {
+      register_ = std::make_shared<Register>(name_, k_ir_string, true);
     } else {
       std::shared_ptr<IRType> customized_type = std::make_shared<IRType>(node->getIdNode()->getType()->getTypeName());
       register_ = std::make_shared<Register>(name_, customized_type, true);
     }
     if (node->getExpr() != nullptr) {
       if (auto literal = std::dynamic_pointer_cast<LiteralNode>(node->getExpr())) {
-        if (*literal->getLiteralType() == IntType::Instance() || *literal->getLiteralType() == BoolType::Instance() || *
-          literal->getLiteralType() == NullType::Instance()) {
+        if (literal->getLiteralType()->compareBase(IntType::Instance()) || literal->getLiteralType()->compareBase(BoolType::Instance()) ||
+          literal->getLiteralType()->compareBase(NullType::Instance())) {
           constant_value_ = std::make_shared<Constant>(literal);
         }
       }
     }
   }
 
-  explicit GlobalStmt(std::string str) {
-    std::variant<int, bool, std::string> val = str;
-    constant_value_ = std::make_shared<Constant>(str);
-    name_ = ".str." + str;
+  explicit GlobalStmt(std::string name_str, std::string val_str) {
+    std::variant<int, bool, std::string> val = val_str;
+    constant_value_ = std::make_shared<Constant>(val_str);
+    name_ = name_str;
   }
 
   [[nodiscard]] std::string commit() const override {
@@ -71,14 +72,14 @@ public:
     }
     //to-do: initialize the value if rhs is literal(array), and type is int/bool
     if (constant_value_.has_value()) {
-      if (*constant_value_.value()->GetConstType() == *k_string) {
-        auto string_size = name_.size();
-        return "@" + name_ + " = private unnamed_addr constant [" + std::to_string(string_size) + "x i8] c\"" + name_ + "\\00, align 1";
+      if (*constant_value_.value()->GetConstType() == *k_ir_string) {
+        auto string_size = constant_value_.value()->ToString().size() - 1;
+        return "@" + name_ + " = private unnamed_addr constant [" + std::to_string(string_size) + "x i8] c\"" + constant_value_.value()->ToString().substr(1, string_size - 1) + "\\00\", align 1";
       }
       auto value_tmp = constant_value_.value();
-      return "@" + name_ + " global " + register_->GetType()->toString() + value_tmp->ToString() + ", align" + register_->GetType()->GetAlign();
+      return "@" + name_ + " global " + register_->GetType()->toString() + " " + value_tmp->ToString() + ", align" + register_->GetType()->GetAlign();
     } else {
-      return "@" + name_ + " global " + register_->GetType()->toString() + register_->GetType()->DefaultValue() + ", align" + register_->GetType()->GetAlign();
+      return "@" + name_ + " global " + register_->GetType()->toString() + " " + register_->GetType()->DefaultValue() + ", align" + register_->GetType()->GetAlign();
     }
   }
 
@@ -88,7 +89,11 @@ private:
   std::string name_;
   std::shared_ptr<Register> register_;
   std::optional<std::shared_ptr<Constant>> constant_value_;
-  const std::shared_ptr<IRType> k_int = std::make_shared<IRType>(IRType::BasicType::kINT);
-  const std::shared_ptr<IRType> k_bool = std::make_shared<IRType>(IRType::BasicType::kBOOL);
-  const std::shared_ptr<IRType> k_string = std::make_shared<IRType>(IRType::BasicType::kSTRING);
+  const std::shared_ptr<IRType> k_ir_int = std::make_shared<IRType>(IRType::BasicType::kINT);
+  const std::shared_ptr<IRType> k_ir_bool = std::make_shared<IRType>(IRType::BasicType::kBOOL);
+  const std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(IRType::BasicType::kSTRING);
+  const std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
+  const std::shared_ptr<TypeType> k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
+  const std::shared_ptr<TypeType> k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
+
 };

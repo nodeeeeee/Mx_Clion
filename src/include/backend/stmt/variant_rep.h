@@ -16,7 +16,7 @@ public:
       return "i32 " + std::to_string(var_int);
     } else if (std::holds_alternative<bool>(var)) {
       bool var_bool = std::get<bool>(var);
-      return "i8 " + std::to_string(var_bool);
+      return "i1 " + std::to_string(var_bool);
     } else if (std::holds_alternative<std::shared_ptr<LiteralNode>>(var)) {
       std::shared_ptr<LiteralNode> var_literal = std::get<std::shared_ptr<LiteralNode>>(var);
       return var_literal->getLiteralIRType()->toString() + " " + var_literal->ToString();

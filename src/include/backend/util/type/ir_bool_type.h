@@ -10,7 +10,7 @@ public:
   }
 
   std::string toString_() {
-    return "i8";
+    return "i1";
   }
   std::string GetAlign_() {
     return "1";

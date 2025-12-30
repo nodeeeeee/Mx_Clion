@@ -47,6 +47,9 @@ public:
     //   throw std::runtime_error("var not found exception");
     // }
   }
+
+
+
   void declare(const std::string& reg_name, std::shared_ptr<Register> reg) {
     regs_[reg_name] = reg;
   }
@@ -59,11 +62,22 @@ public:
     return parent_;
   }
 
+  void SetParent(std::shared_ptr<IRScope> parent) {
+    parent_ = std::move(parent);
+  }
+
   std::shared_ptr<Block> GetLoopStart() {
     return loop_start_;
   }
   std::shared_ptr<Block> GetLoopEnd() {
     return loop_end_;
+  }
+  std::shared_ptr<Register> FindStringReg(const std::string& str) {
+    if (regs_.contains(".str." + str)) {
+      return regs_[str];
+    } else {
+      return nullptr;
+    }
   }
 
 private:
@@ -87,6 +101,7 @@ public:
     }
     return str;
   }
+
 private:
   std::vector<std::string> global_stmts;
 };

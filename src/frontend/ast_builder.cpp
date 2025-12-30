@@ -112,11 +112,11 @@ std::any ASTBuilder::visitFuncDef(MxParser::FuncDefContext* ctx) {
   int varId_cnt = 1;
   for (const auto& type_name : type_names | std::views::drop(1)) {
     auto type = std::make_shared<TypeType>(type_name);
-    auto id_node = std::make_shared<IdNode>(std::move(type), varIds.at(varId_cnt++));
+    auto id_node = std::make_shared<IdNode>(type, varIds.at(varId_cnt++));
     var_defs.push_back(std::make_shared<VarDefNode>(id_node,
                                                     Position(ctx)));
   }
-  auto return_id_node = std::make_shared<IdNode>(std::move(return_type), varIds.at(0));
+  auto return_id_node = std::make_shared<IdNode>(return_type, varIds.at(0));
   auto func_block = std::any_cast<std::shared_ptr<BlockNode>>(ctx->block()->accept(this));
   return std::make_shared<FuncDefNode>(std::move(return_id_node), std::move(var_defs),
                                        std::move(func_block), Position(ctx));
@@ -614,7 +614,7 @@ std::any ASTBuilder::visitIdExpr(MxParser::IdExprContext* ctx) {
 
 std::any ASTBuilder::visitID(antlr4::Token* id) {
   auto id_node = id->getText();
-  return std::dynamic_pointer_cast<ExprNode>(std::make_shared<IdNode>(std::move(id_node), Position(id)));
+  return std::dynamic_pointer_cast<ExprNode>(std::make_shared<IdNode>(id_node, Position(id)));
 }
 
 std::any ASTBuilder::visitExprstat(MxParser::ExprstatContext* ctx) {

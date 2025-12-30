@@ -176,13 +176,10 @@ fi
 
 # 5. Execute the code
 echo "Executing the code..." >&2
-if [ $HAS_BUILTIN -eq 1 ]; then
-    ravel --input-file="$TEMPDIR/test.in" --output-file="$TEMPDIR/test.out" "$TEMPDIR/builtin.s" "$TEMPDIR/output.s" > "$TEMPDIR/ravel_output.txt"
+
+    reimu -i="$TEMPDIR/test.in" -o="$TEMPDIR/test.out" > "$TEMPDIR/ravel_output.txt"
     RAVEL_EXIT_CODE=$?
-else
-    ravel --input-file="$TEMPDIR/test.in" --output-file="$TEMPDIR/test.out" "$TEMPDIR/output.s" > "$TEMPDIR/ravel_output.txt"
-    RAVEL_EXIT_CODE=$?
-fi
+
 if [ $RAVEL_EXIT_CODE -ne 0 ]; then
     if [ $HAS_BUILTIN -eq 1 ]; then
         cat << EOF >&2

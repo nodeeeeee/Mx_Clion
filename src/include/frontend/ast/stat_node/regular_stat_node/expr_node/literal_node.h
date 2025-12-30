@@ -37,6 +37,7 @@ public:
       auto token = null_type->getSymbol();
       literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kNULL);
       literal_irtype = std::make_shared<IRType>(literal_type);
+      value_ = "null";
       is_null = true;
     }
   }
@@ -60,7 +61,7 @@ public:
     if (auto int_value = std::get_if<int>(&value_)) {
       return std::to_string(*int_value);
     } else if (auto bool_value = std::get_if<bool>(&value_)) {
-      return *bool_value ? "1" : "0";
+      return *bool_value ? "true" : "false";
     } else {
       auto string_value = std::get_if<std::string>(&value_);
       return *string_value;

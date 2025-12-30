@@ -46,6 +46,9 @@ public:
   }
 
   std::string GetGEPType() {
+    if (dim_ > 1) {
+      return "ptr";
+    }
     if (type_ref_ == nullptr) return "%" + customized_type_;
     else return type_ref_->toString_();
   }
@@ -59,14 +62,17 @@ public:
   }
   std::string DefaultValue() {
     if (dim_ == 0) return type_ref_->DefaultValue_();
+    else if (basic_type_ == kNULL) {
+      return type_ref_->DefaultValue_();
+    }
     else return "0";
   }
 
   bool operator==(IRType const &other) const {
     if (this->type_ref_ != nullptr) {
-      return this->type_ref_ == other.type_ref_;
+      return this->type_ref_ == other.type_ref_ && this->dim_ == other.dim_;
     } else {
-      return this->customized_type_ == other.customized_type_;
+      return this->customized_type_ == other.customized_type_ && this->dim_ == other.dim_;
     }
   }
 

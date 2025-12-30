@@ -4,6 +4,7 @@
 
 #pragma once
 #include <variant>
+#include <functional>
 
 #include "frontend/ast/visit_control.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/init_array_node.h"
@@ -12,6 +13,7 @@
 #include "util/ir_function.h"
 #include "util/scope.h"
 #include "util/type/ir_type.h"
+
 
 
 class IRGenerator : public VisitControl {
@@ -26,9 +28,9 @@ public:
     funcs_["printInt"] = printInt_function;
     auto printlnInt_function = std::make_shared<IRFunction>("printlnInt", std::vector{k_ir_int}, k_ir_void, true);
     funcs_["printlnInt"] = printlnInt_function;
-    auto getString_function = std::make_shared<IRFunction>("getString", std::vector<std::shared_ptr<IRType>>{}, k_ir_void, true);
+    auto getString_function = std::make_shared<IRFunction>("getString", std::vector<std::shared_ptr<IRType>>{}, k_ir_string, true);
     funcs_["getString"] = getString_function;
-    auto getInt_function = std::make_shared<IRFunction>("getInt", std::vector<std::shared_ptr<IRType>>{}, k_ir_void, true);
+    auto getInt_function = std::make_shared<IRFunction>("getInt", std::vector<std::shared_ptr<IRType>>{}, k_ir_int, true);
     funcs_["getInt"] = getInt_function;
     auto toString_function = std::make_shared<IRFunction>("toString", std::vector{k_ir_int}, k_ir_string, true);
     funcs_["toString"] = toString_function;
@@ -103,10 +105,11 @@ public:
   std::pair<std::shared_ptr<IRType>, int> GetElementInStruct(std::string type_name, std::string field_name);
   void InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const);
   std::shared_ptr<ClassType> GetClassType(const std::string& type_name);
-  void IndexExprGEP(std::shared_ptr<IndexExprNode> expr);
+  void IndexExprGEP(std::shared_ptr<IndexExprNode> expr, bool is_lval = false);
   void DotExprGEP(std::shared_ptr<DotExprNode> expr);
   void DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<std::shared_ptr<ExprNode>> range_vec, int pos);
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> LiteralResolver(std::shared_ptr<ExprNode> expr);
+  std::shared_ptr<IRType> GetVariantType(std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> var);
 
 private:
   std::map<std::string, std::shared_ptr<ClassType>> types_;
@@ -127,7 +130,8 @@ private:
   std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(k_string, 1);
   std::shared_ptr<IRType> k_ir_void = std::make_shared<IRType>(k_void);
   std::shared_ptr<IRType> k_ir_void_star = std::make_shared<IRType>(k_void, 1);
-
+  std::map<unsigned int, int> str_reg_counter;
+  // int str_reg_counter = 0;
 
 
 };

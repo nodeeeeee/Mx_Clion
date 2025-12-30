@@ -16,7 +16,7 @@ public:
 
   }
   [[nodiscard]] std::string commit() const {
-    return "br i1 " + VariantRep::variant_rep(br_reg_) + ", label " + true_label_ + ", label" + false_label_;
+    return "br " + VariantRep::variant_rep(br_reg_) + ", label " + true_label_ + ", label " + false_label_;
   }
   std::variant <int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> br_reg_;
   std::string true_label_;

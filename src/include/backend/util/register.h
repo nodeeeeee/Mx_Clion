@@ -14,14 +14,18 @@ public:
   [[nodiscard]] bool IsGlobal() const {return is_global_;}
   std::shared_ptr<IRType> GetType() {return type_;}
   std::string GetName() {return is_global_ ? name_.value() : GetIndex();}
-  [[nodiscard]] std::string GetIndex() const {return "%" + std::to_string(index_.value());}
+  [[nodiscard]] std::string GetIndex() const {return is_global_ ? "@" + name_.value() : "%" + std::to_string(index_.value());}
   [[nodiscard]] std::string GetIndexWithType() {
-    if (index_.has_value()) {
-      return GetType()->toString() + " " + GetIndex();
-    } else {
-      return GetName();
-    }
+    // if (index_.has_value()) {
+    //   return GetType()->toString() + " " + GetIndex();
+    // } else {
+    //   return GetType()->toString() + " " GetName();
+    // }
+    return GetType()->toString() + " " + GetIndex();
   }
+  // std::string GetOutputRep() {return is_global_ ? "%" + name_.value() : GetIndex();}
+
+
 private:
   bool is_global_ = false;
   std::shared_ptr<IRType> type_;
