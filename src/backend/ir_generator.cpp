@@ -298,40 +298,58 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
   auto rhs = node->getRhs();
   if (node->getOp() == BinaryExprNode::BinaryOp::kAND_AND) {
     /** a && b
+     * create reg for a result, save_reg = result_reg
      * eval(a)
-     * create reg for a result
-     * br a == true b
-     * br a == false next
+     * br a == true b : false
      * b:
-     * eval(b) now last_reg is b.result
-     * br next
-     * next:
+     * eval(b)
+     * result = last_reg
+     * br end
+     * false:
+     * result = false
+     * br end
+     * end:
      */
+    auto res_reg = current_func_->CreateRegister(std::make_shared<IRType>(k_ir_bool, 1));
+    auto alloca_res = std::make_shared<AllocaStmt>(res_reg);
+    current_func_->SetReturnReg(res_reg);
+    current_basic_block_->AddStmt(alloca_res);
     lhs->accept(this);
-    auto a_result = current_func_->GetLastReg();
-
+    auto a_result = current_func_->GetReturnReg();
     auto b_block = current_func_->CreateBlock("a_true", false);
+    auto a_false_block = current_func_->CreateBlock("a_false", false);
     auto end_block = current_func_->CreateBlock("end_block_for_and_and", false);
-    auto to_end = std::make_shared<BrUnconditionalStmt>(end_block->getBlockName());
-    auto br_a = std::make_shared<BrConditionalStmt>(a_result, b_block->getBlockName(), end_block->getBlockName());
+    auto br_a = std::make_shared<BrConditionalStmt>(a_result, b_block->getBlockName(), a_false_block->getBlockName());
     current_basic_block_->AddStmt(br_a);
+    auto to_end = std::make_shared<BrUnconditionalStmt>(end_block->getBlockName());
+
     //b:
-    auto curr_block_tmp = current_basic_block_;
     current_basic_block_ = b_block;
     rhs->accept(this);
-    auto b_result = current_func_->GetLastReg();
+    auto b_result = current_func_->GetReturnReg();
+    auto store_b_stmt = std::static_pointer_cast<Stmt>(
+      std::make_shared<StoreStmt>(b_result, res_reg));
+    current_basic_block_->AddStmt(store_b_stmt);
     current_basic_block_->AddStmt(to_end);
-    current_basic_block_ = curr_block_tmp;
+    //false:
+    current_basic_block_ = a_false_block;
+    auto store_false_stmt = std::static_pointer_cast<Stmt>(
+      std::make_shared<StoreStmt>(false, res_reg));
+    current_basic_block_->AddStmt(store_false_stmt);
+    current_basic_block_ = end_block;
     return ;
   } else if (node->getOp() == BinaryExprNode::BinaryOp::kOR_OR) {
     /** a || b
       * eval(a)
       * create reg for a result
-      * br a == false b
-      * br a == true next
+      * br a == false b : a_true
       * b:
-      * eval(b)now last reg is b.result)
-      * br b == true next
+      * eval(b)
+      * result_reg = ret
+      * br end
+      * a_true:
+      * result_reg = true
+      * end:
       * next take last reg
       */
     auto a_result = current_func_->GetLastReg();
@@ -1068,7 +1086,7 @@ void IRGenerator::visit(std::shared_ptr<ParenExprNode> node) {
 void IRGenerator::visit(std::shared_ptr<IfStatNode> node) {
   auto pred = node->getPredicate();
   pred->accept(this);
-  auto pred_reg = current_func_->GetLastReg();
+  auto pred_reg = current_func_->GetReturnReg();
 
   auto then_ast_block = node->getThenBlock();
   auto else_ast_block = node->getElseBlock();
