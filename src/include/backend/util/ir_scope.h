@@ -17,8 +17,8 @@ public:
 
   }
 
-  explicit IRScope(std::shared_ptr<IRScope> parent, const std::shared_ptr<Block>& loop_start, const std::shared_ptr<Block>& loop_end) : parent_(std::move(parent)) {
-    if (loop_start != nullptr) {
+  explicit IRScope(std::shared_ptr<IRScope> parent, const std::string loop_start, const std::string loop_end) : parent_(std::move(parent)) {
+    if (!loop_start.empty()) {
       loop_start_ = loop_start;
       loop_end_ = loop_end;
     } else {
@@ -54,7 +54,7 @@ public:
     regs_[reg_name] = reg;
   }
 
-  static std::shared_ptr<IRScope> CreateScope(const std::shared_ptr<IRScope>& parent, const std::shared_ptr<Block>& loop_start = nullptr, const std::shared_ptr<Block>&loop_end = nullptr) {
+  static std::shared_ptr<IRScope> CreateScope(const std::shared_ptr<IRScope>& parent, const std::string& loop_start = "", const std::string& loop_end = "") {
     return std::make_shared<IRScope>(parent, loop_start, loop_end);
   }
 
@@ -66,10 +66,10 @@ public:
     parent_ = std::move(parent);
   }
 
-  std::shared_ptr<Block> GetLoopStart() {
+  std::string GetLoopStart() {
     return loop_start_;
   }
-  std::shared_ptr<Block> GetLoopEnd() {
+  std::string GetLoopEnd() {
     return loop_end_;
   }
   std::shared_ptr<Register> FindStringReg(const std::string& str) {
@@ -83,8 +83,8 @@ public:
 private:
   std::shared_ptr<IRScope> parent_;
   std::map<std::string, std::shared_ptr<Register>> regs_;
-  std::shared_ptr<Block> loop_end_;
-  std::shared_ptr<Block> loop_start_;
+  std::string loop_end_;
+  std::string loop_start_;
 
 };
 

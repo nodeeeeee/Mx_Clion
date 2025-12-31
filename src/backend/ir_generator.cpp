@@ -312,18 +312,19 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
      */
     auto res_reg = current_func_->CreateRegister(std::make_shared<IRType>(k_ir_bool, 1));
     auto alloca_res = std::make_shared<AllocaStmt>(res_reg);
-    current_func_->SetReturnReg(res_reg);
     current_basic_block_->AddStmt(alloca_res);
     lhs->accept(this);
     auto a_result = current_func_->GetReturnReg();
-    auto b_block = current_func_->CreateBlock("a_true", false);
-    auto a_false_block = current_func_->CreateBlock("a_false", false);
-    auto end_block = current_func_->CreateBlock("end_block_for_and_and", false);
-    auto br_a = std::make_shared<BrConditionalStmt>(a_result, b_block->getBlockName(), a_false_block->getBlockName());
+    auto b_block_name = current_func_->CreateBlockName("a_true", false);
+    auto a_false_block_name = current_func_->CreateBlockName("a_false", false);
+    auto end_block_name = current_func_->CreateBlockName("end_block_for_and_and", false);
+
+    auto br_a = std::make_shared<BrConditionalStmt>(a_result, b_block_name, a_false_block_name);
     current_basic_block_->AddStmt(br_a);
-    auto to_end = std::make_shared<BrUnconditionalStmt>(end_block->getBlockName());
+    auto to_end = std::make_shared<BrUnconditionalStmt>(end_block_name);
 
     //b:
+    auto b_block = current_func_->CreateBlock(b_block_name);
     current_basic_block_ = b_block;
     rhs->accept(this);
     auto b_result = current_func_->GetReturnReg();
@@ -332,11 +333,19 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
     current_basic_block_->AddStmt(store_b_stmt);
     current_basic_block_->AddStmt(to_end);
     //false:
+    auto a_false_block = current_func_->CreateBlock(a_false_block_name);
     current_basic_block_ = a_false_block;
     auto store_false_stmt = std::static_pointer_cast<Stmt>(
       std::make_shared<StoreStmt>(false, res_reg));
     current_basic_block_->AddStmt(store_false_stmt);
+    current_basic_block_->AddStmt(to_end);
+    auto end_block = current_func_->CreateBlock(end_block_name);
     current_basic_block_ = end_block;
+    auto res_val_reg = current_func_->CreateRegister(std::make_shared<IRType>(res_reg->GetType(), -1));
+    auto load_stmt = std::static_pointer_cast<Stmt>(
+      std::make_shared<LoadStmt>(res_val_reg, res_reg));
+    current_basic_block_->AddStmt(load_stmt);
+    current_func_->SetReturnReg(res_val_reg);
     return ;
   } else if (node->getOp() == BinaryExprNode::BinaryOp::kOR_OR) {
     /** a || b
@@ -352,20 +361,38 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       * end:
       * next take last reg
       */
-    auto a_result = current_func_->GetLastReg();
-
-    auto b_block = current_func_->CreateBlock("a_false", false);
-    auto end_block = current_func_->CreateBlock("end_block_for_and_and", false);
-    auto br_a = std::make_shared<BrConditionalStmt>(a_result, end_block->getBlockName(), b_block->getBlockName());
-    auto to_end = std::make_shared<BrUnconditionalStmt>(end_block->getBlockName());
+    auto res_reg = current_func_->CreateRegister(std::make_shared<IRType>(k_ir_bool, 1));
+    auto alloca_res = std::make_shared<AllocaStmt>(res_reg);
+    auto a_result = current_func_->GetReturnReg();
+    auto b_block_name = current_func_->CreateBlockName("a_false", false);
+    auto a_true_block_name = current_func_->CreateBlockName("a_true", false);
+    auto end_block_name = current_func_->CreateBlockName("end_block_for_and_and", false);
+    auto br_a = std::make_shared<BrConditionalStmt>(a_result, a_true_block_name, b_block_name);
+    auto to_end = std::make_shared<BrUnconditionalStmt>(end_block_name);
     current_basic_block_->AddStmt(br_a);
-    //b:
-    auto curr_block_tmp = current_basic_block_;
+    //a_false:
+    auto b_block = current_func_->CreateBlock(b_block_name);
     current_basic_block_ = b_block;
     rhs->accept(this);
-    auto b_result = current_func_->GetLastReg();
+    auto b_result = current_func_->GetReturnReg();
+    auto store_b_stmt = std::static_pointer_cast<Stmt>(
+      std::make_shared<StoreStmt>(b_result, res_reg));
+    current_basic_block_->AddStmt(store_b_stmt);
     current_basic_block_->AddStmt(to_end);
-    current_basic_block_ = curr_block_tmp;
+    // a_true:
+    auto a_true_block = current_func_->CreateBlock(a_true_block_name);
+    current_basic_block_ = a_true_block;
+    auto store_true_stmt = std::static_pointer_cast<Stmt>(
+     std::make_shared<StoreStmt>(true, res_reg));
+    current_basic_block_->AddStmt(store_true_stmt);
+    current_basic_block_->AddStmt(to_end);
+    auto end_block = current_func_->CreateBlock(end_block_name);
+    current_basic_block_ = end_block;
+    auto res_val_reg = current_func_->CreateRegister(std::make_shared<IRType>(res_reg->GetType(), -1));
+    auto load_stmt = std::static_pointer_cast<Stmt>(
+      std::make_shared<LoadStmt>(res_val_reg, res_reg));
+    current_basic_block_->AddStmt(load_stmt);
+    current_func_->SetReturnReg(res_val_reg);
     return ;
   }
   // lhs->accept(this);
@@ -564,6 +591,7 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       break;
     }
   }
+  current_func_->SetReturnReg(current_func_->GetLastReg());
 }
 
 void IRGenerator::visit(std::shared_ptr<IdNode> node) {
@@ -572,6 +600,7 @@ void IRGenerator::visit(std::shared_ptr<IdNode> node) {
   std::shared_ptr<Stmt> load_stmt = std::static_pointer_cast<Stmt>(
             std::make_shared<LoadStmt>(val_reg, var_addr_reg));
   current_basic_block_->AddStmt(load_stmt);
+  current_func_->SetReturnReg(val_reg);
   return ;
 }
 
@@ -580,25 +609,42 @@ void IRGenerator::visit(std::shared_ptr<TernaryExprNode> node) {
   auto if_node = node->getThenExprNode();
   auto else_node = node->getElseExprNode();
   pred->accept(this);
-  auto pred_reg = current_func_->GetLastReg();
-  auto br_then = current_func_->CreateBlock("a_then", false);
-  auto br_else = current_func_->CreateBlock("a_else", false);
-  auto br_end = current_func_->CreateBlock("end", false);
-  auto to_end = std::make_shared<BrUnconditionalStmt>(br_end->getBlockName());
+  auto pred_reg = current_func_->GetReturnReg();
+  auto result_type = node->getThenExprNode()->getExprType();
+  auto result_reg = current_func_->CreateRegister(std::make_shared<IRType>(result_type, result_type->getDimension() + 1)); // a ptr
+  auto alloca_stmt = std::static_pointer_cast<Stmt>(
+    std::make_shared<AllocaStmt>(result_reg));
+  current_basic_block_->AddStmt(alloca_stmt);
+  auto br_then_name = current_func_->CreateBlockName("a_then", false);
+  auto br_else_name = current_func_->CreateBlockName("a_else", false);
+  auto br_end_name = current_func_->CreateBlockName("end", false);
+  auto to_end = std::make_shared<BrUnconditionalStmt>(br_end_name);
   auto curr_block_tmp = current_basic_block_;
+  //a_then:
+  auto br_then = current_func_->CreateBlock(br_then_name);
   current_basic_block_ = br_then;
   if_node->accept(this);
+  auto if_ret_reg = current_func_->GetReturnReg();
+  auto store_if_stmt = std::static_pointer_cast<Stmt>(
+    std::make_shared<StoreStmt>(if_ret_reg, result_reg));
   current_basic_block_->AddStmt(to_end);
-  //last reg is the last reg in br_then
+  //a_else:
+  auto br_else = current_func_->CreateBlock(br_else_name);
   current_basic_block_ = br_else;
   else_node->accept(this);
+  auto else_ret_reg = current_func_->GetReturnReg();
+  auto store_else_stmt = std::static_pointer_cast<Stmt>(
+    std::make_shared<StoreStmt>(else_ret_reg, result_reg));
   current_basic_block_->AddStmt(to_end);
-  current_basic_block_ = curr_block_tmp;
-  return ;
+  auto br_end = current_func_->CreateBlock(br_end_name);
+  current_basic_block_ = br_end;
+  auto ternary_val_reg = current_func_->CreateRegister(std::make_shared<IRType>(result_reg->GetType(), -1));
+  auto load_result_stmt = std::static_pointer_cast<Stmt>(
+    std::make_shared<LoadStmt>(ternary_val_reg, result_reg));
+  current_func_->SetReturnReg(ternary_val_reg);
 }
 
 void IRGenerator::visit(std::shared_ptr<ForStatNode> node) {
-
   std::shared_ptr<StatNode> init_stmt;
   std::shared_ptr<StatNode> update_stmt;
   if (node->getInitialExprNode() != nullptr) {
@@ -615,31 +661,35 @@ void IRGenerator::visit(std::shared_ptr<ForStatNode> node) {
   }
   auto cond_stmt = node->getForCondExprNode();
   auto body_stmt = node->getBlockNode();
-  auto loop_block = current_func_->CreateBlock("loop", false);
-  auto loop_body_block = current_func_->CreateBlock("body", false);
-  auto update_block = current_func_->CreateBlock("update", false);
-  auto end_block = current_func_->CreateBlock("end_loop", false);
-  auto new_scope = IRScope::CreateScope(current_scope_, update_block, end_block);
+
+  auto loop_block_name = current_func_->CreateBlockName("loop", false);
+  auto loop_body_block_name = current_func_->CreateBlockName("body", false);
+  auto update_block_name = current_func_->CreateBlockName("update", false);
+  auto end_block_name = current_func_->CreateBlockName("end_loop", false);
+  auto new_scope = IRScope::CreateScope(current_scope_, update_block_name, end_block_name);
   current_scope_ = new_scope;
   init_stmt->accept(this);
   auto j_loop = std::static_pointer_cast<Stmt>(
-    std::make_shared<BrUnconditionalStmt>(loop_block->getBlockName()));
+    std::make_shared<BrUnconditionalStmt>(loop_block_name));
   current_basic_block_->AddStmt(j_loop);
   auto curr_block_tmp = current_basic_block_;
   //loop:
+  auto loop_block = current_func_->CreateBlock(loop_block_name);
   current_basic_block_ = loop_block;
   cond_stmt->accept(this);
-  auto cond_reg = current_func_->GetLastReg();
+  auto cond_reg = current_func_->GetReturnReg();
   //if reg = 0 end
-  auto cond_br = std::make_shared<BrConditionalStmt>(cond_reg, loop_body_block->getBlockName(), end_block->getBlockName());
+  auto cond_br = std::make_shared<BrConditionalStmt>(cond_reg, loop_body_block_name, end_block_name);
   current_basic_block_->AddStmt(cond_br);
   //loop_body:
+  auto loop_body_block = current_func_->CreateBlock(loop_body_block_name);
   current_basic_block_ = loop_body_block;
   body_stmt->accept(this);
   auto br_update_stmt = std::static_pointer_cast<Stmt>(
-    std::make_shared<BrUnconditionalStmt>(update_block->getBlockName()));
+    std::make_shared<BrUnconditionalStmt>(update_block_name));
   current_basic_block_->AddStmt(br_update_stmt);
   //update:
+  auto update_block = current_func_->CreateBlock(update_block_name);
   current_basic_block_ = update_block;
   update_stmt->accept(this);
   auto loop_back = std::make_shared<BrUnconditionalStmt>(loop_block->getBlockName());
@@ -648,6 +698,7 @@ void IRGenerator::visit(std::shared_ptr<ForStatNode> node) {
   // auto br_end_stmt = std::static_pointer_cast<Stmt>(
   //   std::make_shared<BrUnconditionalStmt>(end_block->getBlockName()));
   // current_basic_block_->AddStmt(br_end_stmt);
+  auto end_block = current_func_->CreateBlock(end_block_name);
   current_basic_block_ = end_block;
 
 }
@@ -655,21 +706,23 @@ void IRGenerator::visit(std::shared_ptr<ForStatNode> node) {
 void IRGenerator::visit(std::shared_ptr<WhileStatNode> node) {
   auto cond_stmt = node->getWhileCondExprNode();
   auto body_stmt = node->getBlockNode();
-  auto loop_block = current_func_->CreateBlock("loop", false);
-  auto loop_body_block = current_func_->CreateBlock("body", false);
-  auto end_block = current_func_->CreateBlock("end_loop", false);
-  auto new_scope = IRScope::CreateScope(current_scope_, loop_block, end_block);
+  auto loop_block_name = current_func_->CreateBlockName("loop", false);
+  auto loop_body_block_name = current_func_->CreateBlockName("body", false);
+  auto end_block_name = current_func_->CreateBlockName("end_loop", false);
+  auto new_scope = IRScope::CreateScope(current_scope_, loop_block_name, end_block_name);
   current_scope_ = new_scope;
   auto curr_block_tmp = current_basic_block_;
   //loop:
+  auto loop_block = current_func_->CreateBlock(loop_block_name);
   current_basic_block_ = loop_block;;
   // cond_stmt->accept(this);
   // auto cond_reg = current_func_->GetLastReg();
   auto cond_rep = LiteralResolver(cond_stmt);
   //if reg = 0 end
-  auto cond_br = std::make_shared<BrConditionalStmt>(cond_rep, loop_body_block->getBlockName(), end_block->getBlockName());
+  auto cond_br = std::make_shared<BrConditionalStmt>(cond_rep, loop_body_block_name, end_block_name);
   current_basic_block_->AddStmt(cond_br);
   //loop_body:
+  auto loop_body_block = current_func_->CreateBlock(loop_body_block_name);
   current_basic_block_ = loop_body_block;
   body_stmt->accept(this);
   auto loop_back = std::make_shared<BrUnconditionalStmt>(loop_block->getBlockName());
@@ -678,6 +731,7 @@ void IRGenerator::visit(std::shared_ptr<WhileStatNode> node) {
   // auto br_end_stmt = std::static_pointer_cast<Stmt>(
   // std::make_shared<BrUnconditionalStmt>(end_block->getBlockName()));
   // current_basic_block_->AddStmt(br_end_stmt);
+  auto end_block = current_func_->CreateBlock(end_block_name);
   current_basic_block_ = end_block;
 }
 
@@ -694,7 +748,7 @@ void IRGenerator::visit(std::shared_ptr<ReturnStatNode> node) {
     ret_stmt = std::make_shared<ReturnStmt>(ret_rep);
   } else if (ret_func_call != nullptr) {
     ret_func_call->accept(this);
-    auto ret_reg = current_func_->GetLastReg();
+    auto ret_reg = current_func_->GetReturnReg();
     ret_stmt = std::make_shared<ReturnStmt>(ret_reg);
   } else {
     ret_stmt = std::make_shared<ReturnStmt>();
@@ -703,13 +757,13 @@ void IRGenerator::visit(std::shared_ptr<ReturnStatNode> node) {
 }
 
 void IRGenerator::visit(std::shared_ptr<TerminalNode> node) {
-  std::shared_ptr<Block> jump_block;
+  std::string jump_block_name;
   if (node->GetType() == TerminalNode::TerminalType::kCONTINUE) {
-    jump_block = current_scope_->GetLoopStart();
+    jump_block_name = current_scope_->GetLoopStart();
   } else {
-    jump_block = current_scope_->GetLoopEnd();
+    jump_block_name = current_scope_->GetLoopEnd();
   }
-  auto jump_stmt = std::make_shared<BrUnconditionalStmt>(jump_block->getBlockName());
+  auto jump_stmt = std::make_shared<BrUnconditionalStmt>(jump_block_name);
   current_basic_block_->AddStmt(jump_stmt);
 }
 
@@ -799,7 +853,7 @@ void IRGenerator::visit(std::shared_ptr<FormatStringNode> node) {
     } else {
       auto expr = std::get<std::shared_ptr<ExprNode>>(child_node);
       expr->accept(this);
-      auto expr_result = current_func_->GetLastReg(); // by doing this, we need to ensure that the result of expr is stored at the last reg it creates.
+      auto expr_result = current_func_->GetReturnReg(); // by doing this, we need to ensure that the result of expr is stored at the last reg it creates.
       if (result_string_reg == nullptr) {
         result_string_reg = expr_result;
         continue;
@@ -815,6 +869,7 @@ void IRGenerator::visit(std::shared_ptr<FormatStringNode> node) {
       current_basic_block_->AddStmt(call_add_stmt);
     }
   }
+  current_func_->SetReturnReg(result_string_reg);
 }
 
 void IRGenerator::visit(std::shared_ptr<FuncCallNode> node) {
@@ -841,6 +896,7 @@ void IRGenerator::visit(std::shared_ptr<FuncCallNode> node) {
     auto func_call_stmt = std::static_pointer_cast<Stmt>(
           std::make_shared<CallStmt>(func, result_reg, params));
     current_basic_block_->AddStmt(func_call_stmt);
+    current_func_->SetReturnReg(result_reg);
   }
 }
 
@@ -869,22 +925,26 @@ void IRGenerator::visit(std::shared_ptr<IndexExprNode> node) {
 void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
   auto expr = node->getExpr();
   auto op = node->getOp();
-  expr->accept(this);
-  auto operand = current_func_->GetLastReg();
+  auto operand_rep = LiteralResolver(expr);
+  // expr->accept(this);
+  // auto operand = current_func_->GetLastReg();
   switch (op) {
     case UnaryExprNode::UnaryOp::kSUB: {
       auto dest_reg = current_func_->CreateRegister(k_ir_int);
-      auto binary_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kSUB, 0, operand, dest_reg));
+      auto binary_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kSUB, 0, operand_rep, dest_reg));
+      current_func_->SetReturnReg(dest_reg);
       break;
     }
     case UnaryExprNode::UnaryOp::kWAVE: {
       auto dest_reg = current_func_->CreateRegister(k_ir_int);
-      auto binary_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kXOR, -1, operand, dest_reg));
+      auto binary_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kXOR, -1, operand_rep, dest_reg));
+      current_func_->SetReturnReg(dest_reg);
       break;
     }
     case UnaryExprNode::UnaryOp::kEXCLAIMER: {
       auto dest_reg = current_func_->CreateRegister(k_ir_bool);
-      auto binary_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kXOR, false, operand, dest_reg));
+      auto binary_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kXOR, false, operand_rep, dest_reg));
+      current_func_->SetReturnReg(dest_reg);
       break;
     }
     case UnaryExprNode::UnaryOp::kPOST_PP: {
@@ -897,20 +957,21 @@ void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
        * create reg2
        * reg2 = i
        */
-
+      auto operand_reg = std::get<std::shared_ptr<Register>>(operand_rep);
       auto id_node = std::dynamic_pointer_cast<IdNode>(expr);
-      auto id_reg = FindRegister(id_node->getIdName());
+      auto id_reg = FindRegister(id_node->getIdName()); // get ptr
       // auto load_dest = current_func_->CreateRegister(k_ir_int);
       // auto load_stmt = std::static_pointer_cast<Stmt>(std::make_shared<LoadStmt>(load_dest, id_reg));
       auto reg1 = current_func_->CreateRegister(k_ir_int);
-      auto binary_stmt1 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, operand, 1, reg1));
+      auto binary_stmt1 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, operand_rep, 1, reg1));
       auto store_stmt = std::static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(reg1, id_reg));
-      auto reg2 = current_func_->CreateRegister(k_ir_int);
-      auto binary_stmt2 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, operand, 0, reg2));
+      // auto reg2 = current_func_->CreateRegister(k_ir_int);
+      // auto binary_stmt2 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, operand_rep, 0, reg2));
       // current_basic_block_->AddStmt(load_stmt);
       current_basic_block_->AddStmt(binary_stmt1);
       current_basic_block_->AddStmt(store_stmt);
-      current_basic_block_->AddStmt(binary_stmt2);
+      // current_basic_block_->AddStmt(binary_stmt2);
+      current_func_->SetReturnReg(operand_reg);
       break;
     }
     case UnaryExprNode::UnaryOp::kPRE_PP: {
@@ -926,27 +987,30 @@ void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
       // auto load_dest = current_func_->CreateRegister(k_ir_int);
       // auto load_stmt = std::static_pointer_cast<Stmt>(std::make_shared<LoadStmt>(load_dest, id_reg));
       auto reg1 = current_func_->CreateRegister(k_ir_int);
-      auto binary_stmt1 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, operand, 1, reg1));
+      auto binary_stmt1 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, operand_rep, 1, reg1));
       auto store_stmt = std::static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(reg1, id_reg));
       // current_basic_block_->AddStmt(load_stmt);
       current_basic_block_->AddStmt(binary_stmt1);
       current_basic_block_->AddStmt(store_stmt);
+      current_func_->SetReturnReg(reg1);
       break;
     }
     case UnaryExprNode::UnaryOp::kPOST_MM: {
       auto id_node = std::dynamic_pointer_cast<IdNode>(expr);
       auto id_reg = FindRegister(id_node->getIdName());
+      auto operand_reg = std::get<std::shared_ptr<Register>>(operand_rep);
       // auto load_dest = current_func_->CreateRegister(k_ir_int);
       // auto load_stmt = std::static_pointer_cast<Stmt>(std::make_shared<LoadStmt>(load_dest, id_reg));
       auto reg1 = current_func_->CreateRegister(k_ir_int);
-      auto binary_stmt1 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kSUB, operand, 1, reg1));
+      auto binary_stmt1 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kSUB, operand_rep, 1, reg1));
       auto store_stmt = std::static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(reg1, id_reg));
-      auto reg2 = current_func_->CreateRegister(k_ir_int);
-      auto binary_stmt2 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, operand, 0, reg2));
+      // auto reg2 = current_func_->CreateRegister(k_ir_int);
+      // auto binary_stmt2 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, operand_rep, 0, reg2));
       // current_basic_block_->AddStmt(load_stmt);
       current_basic_block_->AddStmt(binary_stmt1);
       current_basic_block_->AddStmt(store_stmt);
-      current_basic_block_->AddStmt(binary_stmt2);
+      // current_basic_block_->AddStmt(binary_stmt2);
+      current_func_->SetReturnReg(operand_reg);
       break;
     }
     case UnaryExprNode::UnaryOp::kPRE_MM: {
@@ -962,14 +1026,22 @@ void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
       // auto load_dest = current_func_->CreateRegister(k_ir_int);
       // auto load_stmt = std::static_pointer_cast<Stmt>(std::make_shared<LoadStmt>(load_dest, id_reg));
       auto reg1 = current_func_->CreateRegister(k_ir_int);
-      auto binary_stmt1 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kSUB, operand, 1, reg1));
+      auto binary_stmt1 = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kSUB, operand_rep, 1, reg1));
       auto store_stmt = std::static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(reg1, id_reg));
       // current_basic_block_->AddStmt(load_stmt);
       current_basic_block_->AddStmt(binary_stmt1);
       current_basic_block_->AddStmt(store_stmt);
+      current_func_->SetReturnReg(reg1);
       break;
     }
-    case UnaryExprNode::UnaryOp::kADD:
+    case UnaryExprNode::UnaryOp::kADD: {
+      auto dest_reg = current_func_->CreateRegister(k_ir_int);
+      auto binary_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, operand_rep, 0, dest_reg));
+      current_basic_block_->AddStmt(binary_stmt);
+      current_func_->SetReturnReg(dest_reg);
+      break;
+    }
     default: {
       break;
     }
@@ -1090,34 +1162,40 @@ void IRGenerator::visit(std::shared_ptr<IfStatNode> node) {
 
   auto then_ast_block = node->getThenBlock();
   auto else_ast_block = node->getElseBlock();
-  auto then_block = current_func_->CreateBlock("then_block", false);
-  auto end_block = current_func_->CreateBlock("end_block", false);
+
+  auto then_block_name = current_func_->CreateBlockName("then_block", false);
+  auto end_block_name = current_func_->CreateBlockName("end_block", false);
   // auto to_then = std::make_shared<BrUnconditionalStmt>(then_block->getBlockName());
   // current_basic_block_->AddStmt(to_then);
-  auto to_end = std::make_shared<BrUnconditionalStmt>(end_block->getBlockName());
+  auto to_end = std::make_shared<BrUnconditionalStmt>(end_block_name);
   //predicate evaluation
   auto curr_block_tmp = current_basic_block_;
   if (else_ast_block == nullptr) {
     auto if_stmt = std::static_pointer_cast<Stmt>(
-    std::make_shared<BrConditionalStmt>(pred_reg, then_block->getBlockName(), end_block->getBlockName()));
+    std::make_shared<BrConditionalStmt>(pred_reg, then_block_name, end_block_name));
     current_basic_block_->AddStmt(if_stmt);
+    auto then_block = current_func_->CreateBlock(then_block_name);
     current_basic_block_ = then_block;
     then_ast_block->accept(this);
     current_basic_block_->AddStmt(to_end);
+    auto end_block = current_func_->CreateBlock(end_block_name);
     current_basic_block_ = end_block;
   } else {
-    auto else_block = current_func_->CreateBlock("else_block", false);
-
+    auto else_block_name = current_func_->CreateBlockName("else_block", false);
     auto if_stmt = std::static_pointer_cast<Stmt>(
-    std::make_shared<BrConditionalStmt>(pred_reg, then_block->getBlockName(), else_block->getBlockName()));
+    std::make_shared<BrConditionalStmt>(pred_reg, then_block_name, else_block_name));
     current_basic_block_->AddStmt(if_stmt);
+    auto then_block = current_func_->CreateBlock(then_block_name);
     current_basic_block_ = then_block;
     then_ast_block->accept(this);
     current_basic_block_->AddStmt(to_end);
     current_basic_block_ = curr_block_tmp;
+    auto else_block = current_func_->CreateBlock(else_block_name);
     current_basic_block_ = else_block;
     else_ast_block->accept(this);
     current_basic_block_->AddStmt(to_end);
+    auto end_block = current_func_->CreateBlock(end_block_name);
+
     current_basic_block_ = end_block;
     //jump end block
   }
@@ -1361,6 +1439,7 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
       auto dest_reg = current_func_->CreateRegister(base_type);
       auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, dest_reg, alloc_params);
       current_basic_block_->AddStmt(array_alloc_call_stmt);
+      current_func_->SetReturnReg(dest_reg);
     } else {
       const auto& curr_range = range_vec[pos];
       curr_range->accept(this);
@@ -1376,8 +1455,8 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
       auto malloc_stmt = std::static_pointer_cast<Stmt>(
         std::make_shared<CallStmt>(array_alloc_func, malloc_dest_reg, params));
       current_basic_block_->AddStmt(malloc_stmt);
+      current_func_->SetReturnReg(malloc_dest_reg);
     }
-
   } else {
     if (auto range_literal = std::dynamic_pointer_cast<LiteralNode>(range_vec[pos])) {
       //call, store (here we only consider cases where ranges are all constants)
@@ -1388,7 +1467,7 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
       std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> addr_regs;
       for (int i = 0; i < range_val; i++) {
         DeclareArray(node, range_vec, pos + 1);
-        addr_regs.emplace_back(current_func_->GetLastReg());
+        addr_regs.emplace_back(current_func_->GetReturnReg());
       }
       auto dest_type = std::make_shared<IRType>(std::get<std::shared_ptr<Register>>(addr_regs[0])->GetType(), 1);
       auto dest_reg = current_func_->CreateRegister(dest_type);
@@ -1408,8 +1487,8 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
       current_func_->SetReturnReg(dest_reg);
     } else {
       //if range is a variable
-      auto range_loop_block = current_func_->CreateBlock("init_array" + std::to_string(pos), false);
-      auto end_block = current_func_->CreateBlock("end_init_array" + std::to_string(pos), false);
+      auto range_loop_block_name = current_func_->CreateBlockName("init_array" + std::to_string(pos), false);
+      auto end_block_name = current_func_->CreateBlockName("end_init_array" + std::to_string(pos), false);
       auto counter_reg_type = std::make_shared<IRType>(k_ir_int, 1);
       auto counter_reg = current_func_->CreateRegister(counter_reg_type);
       auto alloca_stmt = std::static_pointer_cast<Stmt>(
@@ -1434,6 +1513,7 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
       current_basic_block_->AddStmt(malloc_stmt);
       //loop layer a:
       auto tmp_block = current_basic_block_;
+      auto range_loop_block = current_func_->CreateBlock(range_loop_block_name);
       current_basic_block_ = range_loop_block;
 
       auto cmp_reg = current_func_->CreateRegister(k_ir_bool);
@@ -1441,7 +1521,7 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
         std::make_shared<IcmpStmt>(IcmpStmt::IcmpOp::kLT, counter_reg, range_reg, cmp_reg));
       current_basic_block_->AddStmt(cmp_stmt);
       auto br_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<BrConditionalStmt>(cmp_reg, range_loop_block->getBlockName(), end_block->getBlockName()));
+        std::make_shared<BrConditionalStmt>(cmp_reg, range_loop_block->getBlockName(), end_block_name));
       current_basic_block_->AddStmt(br_stmt);
 
 
@@ -1462,9 +1542,11 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
         std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kADD, counter_reg, 1, counter_reg));
       current_basic_block_->AddStmt(add_stmt);
       auto br_end_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<BrUnconditionalStmt>(end_block->getBlockName()));
+        std::make_shared<BrUnconditionalStmt>(end_block_name));
       current_basic_block_->AddStmt(br_stmt);
+      auto end_block = current_func_->CreateBlock(end_block_name);
       current_basic_block_ = end_block;
+      current_func_->SetReturnReg(malloc_dest_reg);
     }
   }
 }
@@ -1564,7 +1646,7 @@ std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register> 
     }
   } else {
     expr->accept(this);
-    return current_func_->GetLastReg();
+    return current_func_->GetReturnReg();
   }
 }
 

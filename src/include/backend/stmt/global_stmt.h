@@ -77,9 +77,9 @@ public:
         return "@" + name_ + " = private unnamed_addr constant [" + std::to_string(string_size) + "x i8] c\"" + constant_value_.value()->ToString().substr(1, string_size - 1) + "\\00\", align 1";
       }
       auto value_tmp = constant_value_.value();
-      return "@" + name_ + " global " + register_->GetType()->toString() + " " + value_tmp->ToString() + ", align" + register_->GetType()->GetAlign();
+      return "@" + name_ + " = global " + register_->GetType()->toString() + " " + value_tmp->ToString() + ", align " + register_->GetType()->GetAlign();
     } else {
-      return "@" + name_ + " global " + register_->GetType()->toString() + " " + register_->GetType()->DefaultValue() + ", align" + register_->GetType()->GetAlign();
+      return "@" + name_ + " = global " + register_->GetType()->toString() + " " + register_->GetType()->DefaultValue() + ", align " + register_->GetType()->GetAlign();
     }
   }
 

@@ -87,9 +87,9 @@ int main(int argc, const char* argv[]) {
   lexer.addErrorListener(&error_listener);
   CommonTokenStream tokens(&lexer);
   tokens.fill();
-  for (auto token : tokens.getTokens()) {
-    std::cout << token->toString() << std::endl;
-  }
+  // for (auto token : tokens.getTokens()) {
+  //   std::cout << token->toString() << std::endl;
+  // }
   // 生成 Parser
 
   MxParser parser(&tokens);
@@ -98,12 +98,12 @@ int main(int argc, const char* argv[]) {
   // 调用起始规则
   auto tree = parser.prog();
   ASTBuilder ast_builder;
-  std::cout << tree->toStringTree(&parser) << std::endl << std::endl;
+  // std::cout << tree->toStringTree(&parser) << std::endl << std::endl;
   auto ast_tree = std::any_cast<std::shared_ptr<RootNode>>(ast_builder.visitProg(tree));
   SemanticCheck semantic_check(ast_tree);
   // std::cout << stream << std::endl;  //
 
-  std::cout << "解析完成\n";
+  // std::cout << "解析完成\n";
   IRGenerator ir_rep(ast_tree);
   return 0;
 }

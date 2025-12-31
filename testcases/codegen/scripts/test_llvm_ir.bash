@@ -70,7 +70,7 @@ source $(dirname $0)/utils.bash
 # Note: If you just follow the steps in the README, you need to put the last
 # line (export PATH="/usr/local/opt/bin:$PATH") in your .bashrc or .zshrc
 # (depending on which shell you are using).
-test_bin ravel
+test_bin reimu
 
 # 1. Make temp directory
 if [ $# -eq 4 ]; then

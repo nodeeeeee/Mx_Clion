@@ -117,15 +117,18 @@ public:
     return func_scope_;
   }
 
-  std::shared_ptr<Block> CreateBlock(const std::string& block_name, bool is_func_block = true) {
-    if (is_func_block) { // this is a function block
+  std::shared_ptr<Block> CreateBlock(std::string block_name) {
       auto new_block = Block::CreateBlock(block_name);
       blocks_.push_back(new_block);
       return new_block;
-    } else { // this is a execution flow control block
-      auto new_block = Block::CreateBlock(block_name + std::to_string(block_tag_index[block_name]++));
-      blocks_.push_back(new_block);
-      return new_block;
+
+  }
+
+  std::string CreateBlockName(const std::string& block_name, bool is_func_block = true) {
+    if (is_func_block) {
+      return block_name;
+    } else {
+      return block_name + std::to_string(block_tag_index[block_name]++);
     }
   }
 
