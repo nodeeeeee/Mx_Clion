@@ -26,16 +26,16 @@ public:
       auto array_type = std::make_shared<IRType> (node->getIdNode()->getType());
       register_ = std::make_shared<Register>(name_, array_type, true);
       if (node->getExpr() == nullptr) { // int[] a;
-        array_msg = "@" + name_ + " global " + array_type->toString() + " null";
+        array_msg = "@" + name_ + " = global " + array_type->toString() + " null";
       } else { // have some initialization   int[] a = new int[10];     int[] a = new int[10] {1, 2, 3, 4...}
         auto init_array = std::dynamic_pointer_cast<InitArrayNode> (node->getExpr());
         if (init_array->getDefaultArray() == nullptr) { // int[] a = new int[10];
           std::string array_type_for_init = init_array->GetTypeForInit();
-          array_msg =  "@" + name_ + " global " + array_type_for_init + " zeroinitializer, align 4";
+          array_msg =  "@" + name_ + " = global " + array_type_for_init + " zeroinitializer, align 4";
         } else { // int[] a = new int[10]{1, 2, 3, 4...}
           std::string array_type_for_init = init_array->GetTypeForInit();
           std::string array_const = init_array->GetArrayConstForInit();
-          array_msg =  "@" + name_ + " global " + array_type_for_init + " " + array_const + ", align 4";
+          array_msg =  "@" + name_ + " = global " + array_type_for_init + " " + array_const + ", align 4";
         }
       }
     }

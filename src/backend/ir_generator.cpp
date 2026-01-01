@@ -39,7 +39,8 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
   auto def_nodes = root_node->getDefNodes();
   for (const auto def_node : def_nodes) {
     if (auto var_def = std::dynamic_pointer_cast<VarDefNode>(def_node)) {
-      auto reg_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), 1);
+      auto var_type = var_def->getIdNode()->getType();
+      auto reg_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), var_type->getDimension() + 1);
       std::shared_ptr<Register> reg = std::make_shared<Register>(var_def->getIdNode()->getIdName(), reg_type, true);
       global_scope_->declare(reg->GetName(), reg);
       global_scope_->AddGlobalStmt(std::make_shared<GlobalStmt>(var_def)->commit());
@@ -71,11 +72,16 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
     printf("%s\n", type.second->commit().c_str());
   }
   printf("%s", global_scope_->GetGlobalStmt().c_str()); // \n included in the method
-  for (auto& func : funcs_) {
+  for (auto& func : funcs_) { // first declare
+    auto func_obj = func.second;
+    if (func_obj->is_builtin()) {
+      printf("%s\n", func_obj->commit().c_str());
+    }
+  }
+  for (auto& func : funcs_) { // then define
     auto func_obj = func.second;
     if (!func_obj->is_builtin()) {
       printf("%s\n", func_obj->commit().c_str());
-
     }
   }
 }
@@ -258,15 +264,15 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
       return ;
     } else {
       //store back to id_reg
-      auto expr_reg = current_func_->GetLastReg();
+      auto expr_reg = current_func_->GetReturnReg();
       std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
             std::make_shared<StoreStmt>(expr_reg, var_reg)); // store the array address into the alloca address
       current_basic_block_->AddStmt(store_stmt);
     }
 
-    expr->accept(this);
+    auto store_val = LiteralResolver(expr);
     std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
-      std::make_shared<StoreStmt>(current_func_->GetLastReg(), var_reg)); // last reg is where i store the result
+      std::make_shared<StoreStmt>(store_val, var_reg)); // last reg is where i store the result
     current_basic_block_->AddStmt(store_stmt);
   }
   //store back
@@ -932,18 +938,21 @@ void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
     case UnaryExprNode::UnaryOp::kSUB: {
       auto dest_reg = current_func_->CreateRegister(k_ir_int);
       auto binary_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kSUB, 0, operand_rep, dest_reg));
+      current_basic_block_->AddStmt(binary_stmt);
       current_func_->SetReturnReg(dest_reg);
       break;
     }
     case UnaryExprNode::UnaryOp::kWAVE: {
       auto dest_reg = current_func_->CreateRegister(k_ir_int);
       auto binary_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kXOR, -1, operand_rep, dest_reg));
+      current_basic_block_->AddStmt(binary_stmt);
       current_func_->SetReturnReg(dest_reg);
       break;
     }
     case UnaryExprNode::UnaryOp::kEXCLAIMER: {
       auto dest_reg = current_func_->CreateRegister(k_ir_bool);
       auto binary_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kXOR, false, operand_rep, dest_reg));
+      current_basic_block_->AddStmt(binary_stmt);
       current_func_->SetReturnReg(dest_reg);
       break;
     }
@@ -1203,11 +1212,12 @@ void IRGenerator::visit(std::shared_ptr<IfStatNode> node) {
 
 void IRGenerator::InitFuncParam(std::shared_ptr<FuncDefNode> func_def_node) {
   //store all params to corresponding address
+  int param_count = 0;
   if (current_func_->IsInClass()) { // store "this" reg
-    std::shared_ptr<IRType> param_type = std::make_shared<IRType>(current_func_->GetBelong(), 1); //'this' is passed as a param
+    // std::shared_ptr<IRType> param_type = std::make_shared<IRType>(current_func_->GetBelong(), 1); //'this' is passed as a param
     std::shared_ptr<IRType> reg_type = std::make_shared<IRType>(current_func_->GetBelong(), 1); // 'this' is stored as a reg
     std::shared_ptr<Register> reg = current_func_->CreateRegister(reg_type);
-    std::shared_ptr<Register> param_reg = current_func_->CreateRegister(param_type);
+    std::shared_ptr<Register> param_reg = current_func_->GetParamReg(param_count++);
     std::shared_ptr<Stmt> alloca_stmt = static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(reg));
     std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(param_reg, reg));
     current_basic_block_->AddStmt(alloca_stmt);
@@ -1216,9 +1226,9 @@ void IRGenerator::InitFuncParam(std::shared_ptr<FuncDefNode> func_def_node) {
   }
   for (auto param : func_def_node->getVarDefs()) {
     std::shared_ptr<IRType> reg_type = std::make_shared<IRType>(param->getIdNode()->getType(), 1);
-    std::shared_ptr<IRType> param_type = std::make_shared<IRType>(param->getIdNode()->getType(), 0);
+    // std::shared_ptr<IRType> param_type = std::make_shared<IRType>(param->getIdNode()->getType(), 0);
     std::shared_ptr<Register> reg = current_func_->CreateRegister(reg_type);
-    std::shared_ptr<Register> param_reg = current_func_->CreateRegister(param_type);
+    std::shared_ptr<Register> param_reg = current_func_->GetParamReg(param_count++);
     std::shared_ptr<Stmt> alloca_stmt = static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(reg));
     std::shared_ptr<Stmt> store_stmt = static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(param_reg, reg));
     current_basic_block_->AddStmt(alloca_stmt);

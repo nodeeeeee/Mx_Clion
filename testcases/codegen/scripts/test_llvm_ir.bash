@@ -35,7 +35,7 @@ get_clang() {
     (which clang > /dev/null 2> /dev/null && echo clang) || \
     (echo "clang not found" >&2 && exit 1)
 }
-CLANG=$(get_clang)
+CLANG=/usr/lib/llvm18/bin/clang-18
 
 # Usage
 if [ $# -ne 3 ] && [ $# -ne 4 ]; then
@@ -150,7 +150,7 @@ EXPECTED_EXIT_CODE=$(grep "ExitCode:" $TESTCASE | awk '{print $2}')
 
 # 4. Compile the LLVM IR code with clang into RISC-V assembly
 echo "Compiling your output '$TEMPDIR/output.ll' with clang..." >&2
-$CLANG -S --target=riscv32-unknown-elf "$TEMPDIR/output.ll" -o "$TEMPDIR/output.s.source" >&2
+$CLANG -S --target=riscv32-unknown-elf -O2 -fno-builtin-printf -fno-builtin-memcpy "$TEMPDIR/output.ll" -o "$TEMPDIR/output.s.source" >&2
 if [ $? -ne 0 ]; then
     echo "Error: Failed to compile '$TEMPDIR/output.ll'." >&2
     print_temp_dir
@@ -158,7 +158,7 @@ if [ $? -ne 0 ]; then
 fi
 if [ $HAS_BUILTIN -eq 1 ]; then
     echo "Compiling your builtin '$BUILTIN' with clang..." >&2
-    $CLANG -S --target=riscv32-unknown-elf "$BUILTIN" -o "$TEMPDIR/builtin.s.source" >&2
+    $CLANG -S --target=riscv32-unknown-elf -O2 -fno-builtin-printf -fno-builtin-memcpy "$BUILTIN" -o "$TEMPDIR/builtin.s.source" >&2
     if [ $? -ne 0 ]; then
         echo "Error: Failed to compile '$TEMPDIR/builtin.ll'." >&2
         print_temp_dir
@@ -177,7 +177,7 @@ fi
 # 5. Execute the code
 echo "Executing the code..." >&2
 
-    reimu -i="$TEMPDIR/test.in" -o="$TEMPDIR/test.out" > "$TEMPDIR/ravel_output.txt"
+    reimu -i="$TEMPDIR/test.in" -o="$TEMPDIR/test.out" -f="$TEMPDIR/builtin.s","$TEMPDIR/output.s" > "$TEMPDIR/ravel_output.txt"
     RAVEL_EXIT_CODE=$?
 
 if [ $RAVEL_EXIT_CODE -ne 0 ]; then

@@ -161,26 +161,48 @@ public:
     return belong_.value();
   }
 
+  std::shared_ptr<Register> GetParamReg(int i) {
+    return param_registers_[i];
+  }
+
   [[nodiscard]] std::string commit() {
     std::string str;
-    str += "define " + return_type_->toString() +  " @" + func_name_ + "(";
-    bool first = true;
-    for (int i = 0; i < param_types_.size(); i++) {
-      auto param_type = param_types_[i];
-      auto param_reg = param_registers_[i];
-      if (!first) {
-        str += ", ";
+    if (!is_builtin()) {
+      str += "define " + return_type_->toString() +  " @" + func_name_ + "(";
+      bool first = true;
+      for (int i = 0; i < param_types_.size(); i++) {
+        auto param_type = param_types_[i];
+        auto param_reg = param_registers_[i];
+        if (!first) {
+          str += ", ";
+        }
+        first = false;
+        str += param_type->toString() + " " + param_reg->GetIndex();
       }
-      first = false;
-      str += param_type->toString() + " " + param_reg->GetIndex();
+      str += ") {\n";
+      for (const auto& block : blocks_) {
+        str += block->commit();
+      }
+      str += "}\n";
+    } else {
+      str += "declare " + return_type_->toString() + " @" + func_name_ + "(";
+      bool first = true;
+      for (int i = 0; i < param_types_.size(); i++) {
+        auto param_type = param_types_[i];
+        if (!first) {
+          str += ", ";
+        }
+        first = false;
+        str += param_type->toString();
+      }
+      str += ")";
     }
-    str += ") {\n";
-    for (const auto& block : blocks_) {
-      str += block->commit();
-    }
-    str += "}\n";
     return str;
   }
+
+
+
+
 
 
 private:
