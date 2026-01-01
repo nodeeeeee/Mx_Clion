@@ -57,10 +57,11 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
       std::shared_ptr<IRFunction> func = std::make_shared<IRFunction>(func_def);
       current_func_ = func;
       current_scope_ = func->GetScope();
+      funcs_[func->GetName()] = func;
       current_scope_->SetParent(global_scope_);
       func_def->accept(this);
       current_scope_ = current_scope_->GetParent();
-      funcs_[func->GetName()] = func;
+
     } else if (auto main_func_def = std::dynamic_pointer_cast<MainFuncNode>(def_node)) {
       std::shared_ptr<IRFunction> main_func = std::make_shared<IRFunction>(main_func_def);
       current_func_ = main_func;
@@ -735,6 +736,8 @@ void IRGenerator::visit(std::shared_ptr<WhileStatNode> node) {
   current_scope_ = new_scope;
   auto curr_block_tmp = current_basic_block_;
   //loop:
+  auto enter_loop = std::make_shared<BrUnconditionalStmt>(loop_block_name);
+  current_basic_block_->AddStmt(enter_loop);
   auto loop_block = current_func_->CreateBlock(loop_block_name);
   current_basic_block_ = loop_block;;
   // cond_stmt->accept(this);
@@ -747,8 +750,7 @@ void IRGenerator::visit(std::shared_ptr<WhileStatNode> node) {
   auto loop_body_block = current_func_->CreateBlock(loop_body_block_name);
   current_basic_block_ = loop_body_block;
   body_stmt->accept(this);
-  auto loop_back = std::make_shared<BrUnconditionalStmt>(loop_block->getBlockName());
-  current_basic_block_->AddStmt(loop_back);
+  current_basic_block_->AddStmt(enter_loop);
   // current_basic_block_ = curr_block_tmp;
   // auto br_end_stmt = std::static_pointer_cast<Stmt>(
   // std::make_shared<BrUnconditionalStmt>(end_block->getBlockName()));
@@ -1292,18 +1294,18 @@ std::shared_ptr<Register> IRGenerator::CreateString(std::shared_ptr<LiteralNode>
   std::hash<std::string> hasher;
   auto hashed_val = static_cast<unsigned int>(hasher(string_val));
   if (!str_reg_counter.contains(hashed_val)) {
-    str_reg_counter[hashed_val] = 0;
+    str_reg_counter[hashed_val];
   } else {
-    for (int i = 0; i <= str_reg_counter[hashed_val]; i++) {
-      auto reg = global_scope_->FindRegister(".str." + std::to_string(str_reg_counter[hashed_val]) + std::to_string(i));
+    for (int i = 0; i < str_reg_counter[hashed_val].size(); i++) {
+      auto reg = global_scope_->FindRegister(".str." + str_reg_counter[hashed_val][i]);
       if (global_scope_->FindStringReg(string_val) != nullptr) {
         //load
         return global_scope_->FindStringReg(string_val);
       }
     }
-    str_reg_counter[hashed_val]++;
+    str_reg_counter[hashed_val].emplace_back(string_val);
   }
-  auto reg_name = ".str." + std::to_string(hashed_val) + "." + std::to_string(str_reg_counter[hashed_val]);
+  auto reg_name = ".str." + std::to_string(hashed_val) + "." + std::to_string(str_reg_counter[hashed_val].size());
   auto string_reg = std::make_shared<Register>(reg_name, k_ir_string, true);
   global_scope_->declare(".str." + string_val, string_reg);
   auto str_declare_stmt = std::make_shared<GlobalStmt>(reg_name, string_val);
@@ -1460,12 +1462,12 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
 
   //recursively allocate space
   auto array_alloc_func = FindFunction("Array_Alloc");
-  if (pos == static_cast<int>(range_vec.size() - 1)) {
+  if (pos == static_cast<int>(range_vec.size() - 1) || range_vec[pos + 1] == nullptr) {
     if (auto range_literal = std::dynamic_pointer_cast<LiteralNode>(range_vec[pos])) {
       int range_val = std::get<int>(std::dynamic_pointer_cast<LiteralNode>(range_vec[pos])->GetValue());
       std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> alloc_params;
       alloc_params.emplace_back(range_val * 4);
-      auto base_type = std::make_shared<IRType>(node->getType(), 1);
+      auto base_type = std::make_shared<IRType>(node->getType(), range_vec.size() - pos);
       auto dest_reg = current_func_->CreateRegister(base_type);
       auto array_alloc_call_stmt = std::make_shared<CallStmt>(array_alloc_func, dest_reg, alloc_params);
       current_basic_block_->AddStmt(array_alloc_call_stmt);
@@ -1476,7 +1478,7 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
       auto range_reg = current_func_->GetLastReg();
       auto size_reg = current_func_->CreateRegister(range_reg->GetType());
       auto mul_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kMUL, size_reg, 4, size_reg));
+        std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kMUL, range_reg, 4, size_reg));
       current_basic_block_->AddStmt(mul_stmt);
       std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
       params.emplace_back(range_reg);
@@ -1529,7 +1531,7 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
       current_basic_block_->AddStmt(store_stmt);
       const auto& curr_range = range_vec[pos];
       curr_range->accept(this);
-      auto range_reg = current_func_->GetLastReg();
+      auto range_reg = current_func_->GetReturnReg();
       auto size_reg = current_func_->CreateRegister(range_reg->GetType());
       auto mul_stmt = std::static_pointer_cast<Stmt>(
         std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kMUL, range_reg, 4, size_reg));

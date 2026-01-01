@@ -25,6 +25,7 @@ public:
     if (node->getIdNode()->getType()->getDimension() != 0) {// it is an array initialization
       auto array_type = std::make_shared<IRType> (node->getIdNode()->getType());
       register_ = std::make_shared<Register>(name_, array_type, true);
+
       if (node->getExpr() == nullptr) { // int[] a;
         array_msg = "@" + name_ + " = global " + array_type->toString() + " null";
       } else { // have some initialization   int[] a = new int[10];     int[] a = new int[10] {1, 2, 3, 4...}
@@ -40,7 +41,6 @@ public:
         }
       }
     }
-    bool is_int_type = node->getIdNode()->getType()->compareBase(IntType::Instance());
     if (node->getIdNode()->getType()->compareBase(*k_int)) {
       register_ = std::make_shared<Register>(name_, k_ir_int, true);
     } else if (node->getIdNode()->getType()->compareBase(*k_bool)) {
@@ -53,8 +53,8 @@ public:
     }
     if (node->getExpr() != nullptr) {
       if (auto literal = std::dynamic_pointer_cast<LiteralNode>(node->getExpr())) {
-        if (literal->getLiteralType()->compareBase(IntType::Instance()) || literal->getLiteralType()->compareBase(BoolType::Instance()) ||
-          literal->getLiteralType()->compareBase(NullType::Instance())) {
+        if (literal->getLiteralType()->compareBase(*k_int) || literal->getLiteralType()->compareBase(*k_bool) ||
+          literal->getLiteralType()->compareBase(*k_null)) {
           constant_value_ = std::make_shared<Constant>(literal);
         }
       }
@@ -97,5 +97,5 @@ private:
   const std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
   const std::shared_ptr<TypeType> k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
   const std::shared_ptr<TypeType> k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
-
+  const std::shared_ptr<TypeType> k_null = std::make_shared<TypeType>(TypeType::PrimitiveType::kNULL);
 };

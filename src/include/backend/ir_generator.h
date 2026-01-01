@@ -133,7 +133,7 @@ private:
   std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(k_string, 1);
   std::shared_ptr<IRType> k_ir_void = std::make_shared<IRType>(k_void);
   std::shared_ptr<IRType> k_ir_void_star = std::make_shared<IRType>(k_void, 1);
-  std::map<unsigned int, int> str_reg_counter;
+  std::map<unsigned int, std::vector<std::string>> str_reg_counter;
   // int str_reg_counter = 0;
 
 

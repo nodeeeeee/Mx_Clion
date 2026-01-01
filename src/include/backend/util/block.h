@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "backend/stmt/stmt.h"
+#include "backend/stmt/br_stmt/br_unconditional_stmt.h"
 #include "backend/stmt/br_stmt/ret_stmt.h"
 
 class Block : public std::enable_shared_from_this<Block> {
@@ -38,6 +39,8 @@ public:
     for (auto& stmt : stmts_) {
       str += stmt->commit() + "\n";
       if (auto ret_stmt = std::dynamic_pointer_cast<ReturnStmt>(stmt)) {
+        return str;
+      } else if (auto br_uncond_stmt = std::dynamic_pointer_cast<BrUnconditionalStmt>(stmt)) {
         return str;
       }
     }
