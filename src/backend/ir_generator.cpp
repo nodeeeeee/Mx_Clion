@@ -40,7 +40,16 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
   for (const auto def_node : def_nodes) {
     if (auto var_def = std::dynamic_pointer_cast<VarDefNode>(def_node)) {
       auto var_type = var_def->getIdNode()->getType();
-      auto reg_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), var_type->getDimension() + 1);
+      if (var_type->getDimension() != 0 || var_type->is_customized()) {
+        global_var_def_.emplace_back(var_def);
+      }
+      std::shared_ptr<IRType> reg_type;
+      if (var_type->compareBase(*k_string)) {
+        reg_type = std::make_shared<IRType>(k_string, var_type->getDimension() + 2);
+      } else {
+        reg_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), var_type->getDimension() + 1);
+      }
+      // auto reg_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), var_type->getDimension() + 1);
       std::shared_ptr<Register> reg = std::make_shared<Register>(var_def->getIdNode()->getIdName(), reg_type, true);
       global_scope_->declare(reg->GetName(), reg);
       global_scope_->AddGlobalStmt(std::make_shared<GlobalStmt>(var_def)->commit());
@@ -121,6 +130,10 @@ void IRGenerator::visit(std::shared_ptr<MainFuncNode> node) {
   auto main_block = node->getBody();
   auto entry_block = current_func_->CreateBlock("main.entry");
   current_basic_block_ = entry_block;
+  //assign_stat_node  global vardef
+  for (auto &global_var_def : global_var_def_) {
+    GlobalVarDefInit(global_var_def);
+  }
   main_block->accept(this);
   bool has_return = false;
   for (auto& stat_node : main_block->getStatNodes()) {
@@ -241,7 +254,7 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
       //malloc, save the pointer to a reg
       //call ClassFuncDefNode with the reg
       std::string type_name = node_type->GetTypeName();
-      auto malloc_func = FindFunction("builtin_malloc");
+      auto malloc_func = FindFunction("Builtin_malloc");
       auto pointer_reg = current_func_->CreateRegister(k_ir_void_star);
       std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> malloc_params;
       auto type_size = GetClassType(type_name)->GetClassSize();
@@ -369,7 +382,8 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       */
     auto res_reg = current_func_->CreateRegister(std::make_shared<IRType>(k_ir_bool, 1));
     auto alloca_res = std::make_shared<AllocaStmt>(res_reg);
-    auto a_result = current_func_->GetReturnReg();
+    current_basic_block_->AddStmt(alloca_res);
+    auto a_result = LiteralResolver(lhs);
     auto b_block_name = current_func_->CreateBlockName("a_false", false);
     auto a_true_block_name = current_func_->CreateBlockName("a_true", false);
     auto end_block_name = current_func_->CreateBlockName("end_block_for_and_and", false);
@@ -379,8 +393,9 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
     //a_false:
     auto b_block = current_func_->CreateBlock(b_block_name);
     current_basic_block_ = b_block;
-    rhs->accept(this);
-    auto b_result = current_func_->GetReturnReg();
+    // rhs->accept(this);
+    // auto b_result = current_func_->GetReturnReg();
+    auto b_result = LiteralResolver(rhs);
     auto store_b_stmt = std::static_pointer_cast<Stmt>(
       std::make_shared<StoreStmt>(b_result, res_reg));
     current_basic_block_->AddStmt(store_b_stmt);
@@ -414,7 +429,7 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
   switch (node->getOp()) {
     case BinaryExprNode::BinaryOp::kADD: {
       if (*lhs_ir_type == *k_ir_string) {
-        auto concat_func = FindFunction("builtin_strcat");
+        auto concat_func = FindFunction("Builtin_strcat");
         std::shared_ptr<IRType> dest_reg_type = k_ir_string;
         std::shared_ptr<Register> dest_reg = current_func_->CreateRegister(dest_reg_type);
         std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
@@ -594,6 +609,7 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       break;
     }
     default: {
+      throw std::runtime_error("unknown binary operation type");
       break;
     }
   }
@@ -784,8 +800,9 @@ void IRGenerator::visit(std::shared_ptr<ArrayConstNode> node) {
 void IRGenerator::visit(std::shared_ptr<DotExprNode> node) {
   auto lhs = node->getLhs();
   auto rhs = node->getRhs();
-  lhs->accept(this);
-  auto lhs_rep = FetchExprReg(lhs);
+  // lhs->accept(this);
+  // auto lhs_rep = FetchExprReg(lhs);
+  auto lhs_rep = LiteralResolver(lhs);
   std::shared_ptr<IRType> lhs_type;
   if (std::holds_alternative<std::shared_ptr<LiteralNode>>(lhs_rep)) {
     lhs_type = std::make_shared<IRType>(std::get<std::shared_ptr<LiteralNode>>(lhs_rep)->getLiteralType());
@@ -801,18 +818,20 @@ void IRGenerator::visit(std::shared_ptr<DotExprNode> node) {
       func_name = "Array_" + func_call->getName();
     }
     std::shared_ptr<IRFunction> func = FindFunction(func_name);
-    auto dest_reg = current_func_->CreateRegister(func->GetReturnType());
     auto args = func_call->getArgs();
     std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> arg_reps;
     arg_reps.push_back(lhs_rep); // pass lhs as 'this' param
     for (const auto& arg : args) {
-      arg->accept(this);
-      auto arg_rep = FetchExprReg(arg);
+      // arg->accept(this);
+      // auto arg_rep = FetchExprReg(arg);
+      auto arg_rep = LiteralResolver(arg);
       arg_reps.push_back(arg_rep);
     }
+    auto dest_reg = current_func_->CreateRegister(func->GetReturnType());
     std::shared_ptr<Stmt> call_stmt = std::static_pointer_cast<Stmt>(
       std::make_shared<CallStmt>(func, dest_reg, arg_reps));
     current_basic_block_->AddStmt(call_stmt);
+    current_func_->SetReturnReg(dest_reg);
   } else if (auto field = std::dynamic_pointer_cast<IdNode>(rhs)) {
     /* store address of the class in a reg(Type**)
      * load on use
@@ -827,6 +846,7 @@ void IRGenerator::visit(std::shared_ptr<DotExprNode> node) {
     offsets.push_back(element.second);
     std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
       std::make_shared<GEPStmt>(dest_reg, base_reg, offsets));
+    current_func_->SetReturnReg(dest_reg);
   }
 }
 
@@ -852,7 +872,7 @@ void IRGenerator::visit(std::shared_ptr<FormatStringNode> node) {
       params.push_back(last_result);
       //todo
       //find func to call
-      auto add_string_func = FindFunction("builtin_strcat");
+      auto add_string_func = FindFunction("Builtin_strcat");
       auto call_add_stmt = std::static_pointer_cast<Stmt>(
         std::make_shared<CallStmt>(add_string_func, result_string_reg, params));
       current_basic_block_->AddStmt(call_add_stmt);
@@ -869,7 +889,7 @@ void IRGenerator::visit(std::shared_ptr<FormatStringNode> node) {
       std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
       params.push_back(expr_result);
       params.push_back(last_result);
-      auto add_string_func = FindFunction("builtin_strcat");
+      auto add_string_func = FindFunction("Builtin_strcat");
       auto call_add_stmt = std::static_pointer_cast<Stmt>(
         std::make_shared<CallStmt>(add_string_func, result_string_reg, params));
       current_basic_block_->AddStmt(call_add_stmt);
@@ -951,7 +971,7 @@ void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
     }
     case UnaryExprNode::UnaryOp::kEXCLAIMER: {
       auto dest_reg = current_func_->CreateRegister(k_ir_bool);
-      auto binary_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kXOR, false, operand_rep, dest_reg));
+      auto binary_stmt = std::static_pointer_cast<Stmt>(std::make_shared<BinaryStmt>(BinaryStmt::BinaryOp::kXOR, true, operand_rep, dest_reg));
       current_basic_block_->AddStmt(binary_stmt);
       current_func_->SetReturnReg(dest_reg);
       break;
@@ -1596,13 +1616,16 @@ void IRGenerator::IndexExprGEP(std::shared_ptr<IndexExprNode> expr, bool is_lval
         auto gep_stmt = std::static_pointer_cast<Stmt>(
           std::make_shared<GEPStmt>(gep_dest_reg, base_reg, params));
         current_basic_block_->AddStmt(gep_stmt);
+        current_func_->SetReturnReg(gep_dest_reg);
         if (i != indices.size() - 1 || !is_lval) {
           auto dest_reg = current_func_->CreateRegister(std::make_shared<IRType>(base_reg->GetType(), -1));
           auto load_stmt = std::static_pointer_cast<Stmt>(
           std::make_shared<LoadStmt>(dest_reg, gep_dest_reg));
           current_basic_block_->AddStmt(load_stmt);
           base_reg = dest_reg;
+          current_func_->SetReturnReg(dest_reg);
         }
+
 
       }
       break;
@@ -1672,4 +1695,11 @@ std::shared_ptr<IRType> IRGenerator::GetVariantType(std::variant<int, bool, std:
     auto reg_var = std::get<std::shared_ptr<Register>>(var);
     return reg_var->GetType();
   }
+}
+
+void IRGenerator::GlobalVarDefInit(std::shared_ptr<VarDefNode> var_def_node) {
+  auto lhs = var_def_node->getIdNode();
+  auto rhs = var_def_node->getExpr();
+  auto assign_node = std::make_shared<AssignStatNode>(lhs, rhs, var_def_node->getPosition());
+  assign_node->accept(this);
 }

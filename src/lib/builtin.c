@@ -3,17 +3,15 @@
 
 void *malloc(size_t size);
 
-void *builtin_malloc(int size) {
+void *Builtin_malloc(int size) {
     return malloc(size);
 }
 
 void *calloc(size_t num, size_t size);
 
-char *strcat(char *dest, const char *src);
+//char *strcat(char *dest, const char *src);
 
-char *builtin_strcat(char *dest, const char *src) {
-    return strcat(dest, src);
-}
+
 
 size_t strlen(const char *str);
 
@@ -27,7 +25,22 @@ int sprintf(char *str, const char *fmt, ...);
 
 int scanf(const char *fmt, ...);
 
-void *builtin_callocArray(size_t len) {
+char *Builtin_strcat(char *dest, char *src) {
+    if (!dest) return src;
+    if (!src) return dest;
+
+    size_t len1 = strlen(dest);
+    size_t len2 = strlen(src);
+
+    char *ret = malloc(len1 + len2 + 1);
+
+    memcpy(ret, dest, len1);
+    memcpy(ret + len1, src, len2);
+    ret[len1 + len2] = '\0';
+    return ret;
+}
+
+void *Builtin_callocArray(size_t len) {
     int *ptr = calloc(len + 1, sizeof(int));
     ptr[0] = len;
     return ptr + 1;
@@ -64,9 +77,10 @@ void printlnInt(int num) {
     putchar('\n');
 }
 
-void getString() {
-    char str[1024];
+char* getString() {
+    char* str = malloc(1024);
     scanf("%s", str);
+    return str;
 }
 
 int getInt() {

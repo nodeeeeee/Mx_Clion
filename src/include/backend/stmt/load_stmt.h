@@ -13,7 +13,7 @@ public:
   }
 
   [[nodiscard]]std::string commit() const override{
-    return dest_reg_->GetIndex() + " = load " + dest_reg_->GetType()->toString() + ", ptr " + addr_reg_->GetIndex() + ", align " + dest_reg_->GetType()->GetAlign();
+    return dest_reg_->GetIndex() + " = load " + dest_reg_->GetType()->toString() + ", ptr " + addr_reg_->GetIndex();
   }
 
 private:

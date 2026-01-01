@@ -51,13 +51,14 @@ public:
     auto array_size_function = std::make_shared<IRFunction>("Array_size", std::vector{k_ir_void_star}, k_ir_int, true);
     funcs_["Array_size"] = array_size_function;
     //Array@alloc
-    auto array_alloc_function = std::make_shared<IRFunction>("Array_Alloc", std::vector{k_ir_int}, k_ir_void_star, true);  //there might be some problem about dimension
+    auto array_alloc_function = std::make_shared<IRFunction>("Builtin_callocArray", std::vector{k_ir_int}, k_ir_void_star, true);  //there might be some problem about dimension
     funcs_["Array_Alloc"] = array_alloc_function;
     //builtin_strcat
-    auto strcat_function = std::make_shared<IRFunction>("builtin_strcat", std::vector{k_ir_string, k_ir_string}, k_ir_string, true);
-    funcs_["builtin_strcat"] = strcat_function;
-    auto malloc_function = std::make_shared<IRFunction>("builtin_malloc", std::vector<std::shared_ptr<IRType>>{k_ir_int}, k_ir_void_star, true);
-    funcs_["builtin_malloc"] = malloc_function;
+    auto strcat_function = std::make_shared<IRFunction>("Builtin_strcat", std::vector{k_ir_string, k_ir_string}, k_ir_string, true);
+    funcs_["Builtin_strcat"] = strcat_function;
+    auto malloc_function = std::make_shared<IRFunction>("Builtin_malloc", std::vector<std::shared_ptr<IRType>>{k_ir_int}, k_ir_void_star, true);
+    funcs_["Builtin_malloc"] = malloc_function;
+
 
     visit(root_node);
   }
@@ -77,7 +78,7 @@ public:
   void visit(std::shared_ptr<IndexExprNode> node) final;
   void visit(std::shared_ptr<InitArrayNode> node) final;
   void visit(std::shared_ptr<InitObjectNode> node) {throw std::runtime_error("Not implemented");};
-  void visit(std::shared_ptr<NullExprNode> node) {throw std::runtime_error("Not implemented");};
+  void visit(std::shared_ptr<NullExprNode> node) {return ;}
   void visit(std::shared_ptr<UnaryExprNode> node) final;
   void visit(std::shared_ptr<TernaryExprNode> node) final;
   void visit(std::shared_ptr<AssignStatNode> node) final;
@@ -110,8 +111,10 @@ public:
   void DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<std::shared_ptr<ExprNode>> range_vec, int pos);
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> LiteralResolver(std::shared_ptr<ExprNode> expr);
   std::shared_ptr<IRType> GetVariantType(std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> var);
+  void GlobalVarDefInit(std::shared_ptr<VarDefNode> var_def_node);
 
 private:
+  std::vector<std::shared_ptr<VarDefNode>> global_var_def_;
   std::map<std::string, std::shared_ptr<ClassType>> types_;
   // std::vector<std::shared_ptr<IRFunction>> funcs_;
   std::map<std::string, std::shared_ptr<IRFunction>> funcs_; //a global vector that stores all functions defined

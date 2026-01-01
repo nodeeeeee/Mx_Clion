@@ -30,8 +30,9 @@ public:
       } else { // have some initialization   int[] a = new int[10];     int[] a = new int[10] {1, 2, 3, 4...}
         auto init_array = std::dynamic_pointer_cast<InitArrayNode> (node->getExpr());
         if (init_array->getDefaultArray() == nullptr) { // int[] a = new int[10];
-          std::string array_type_for_init = init_array->GetTypeForInit();
-          array_msg =  "@" + name_ + " = global " + array_type_for_init + " zeroinitializer, align 4";
+          // std::string array_type_for_init = init_array->GetTypeForInit();
+          // array_msg =  "@" + name_ + " = global " + array_type_for_init + " zeroinitializer, align 4";
+          array_msg = "@" + name_ + " = global ptr null";
         } else { // int[] a = new int[10]{1, 2, 3, 4...}
           std::string array_type_for_init = init_array->GetTypeForInit();
           std::string array_const = init_array->GetArrayConstForInit();
@@ -45,7 +46,7 @@ public:
     } else if (node->getIdNode()->getType()->compareBase(*k_bool)) {
       register_ = std::make_shared<Register>(name_, k_ir_bool, true);
     } else if (node->getIdNode()->getType()->compareBase(*k_string)) {
-      register_ = std::make_shared<Register>(name_, k_ir_string, true);
+      register_ = std::make_shared<Register>(name_, std::make_shared<IRType>(k_ir_string, 1), true);
     } else {
       std::shared_ptr<IRType> customized_type = std::make_shared<IRType>(node->getIdNode()->getType()->getTypeName());
       register_ = std::make_shared<Register>(name_, customized_type, true);
@@ -75,11 +76,12 @@ public:
       if (*constant_value_.value()->GetConstType() == *k_ir_string) {
         auto string_size = constant_value_.value()->ToString().size() - 1;
         return "@" + name_ + " = private unnamed_addr constant [" + std::to_string(string_size) + "x i8] c\"" + constant_value_.value()->ToString().substr(1, string_size - 1) + "\\00\", align 1";
+        // return "@" + name_ + " = global ptr null";
       }
       auto value_tmp = constant_value_.value();
-      return "@" + name_ + " = global " + register_->GetType()->toString() + " " + value_tmp->ToString() + ", align " + register_->GetType()->GetAlign();
+      return "@" + name_ + " = global " + register_->GetType()->toString() + " " + value_tmp->ToString();
     } else {
-      return "@" + name_ + " = global " + register_->GetType()->toString() + " " + register_->GetType()->DefaultValue() + ", align " + register_->GetType()->GetAlign();
+      return "@" + name_ + " = global " + register_->GetType()->toString() + " " + register_->GetType()->DefaultValue();
     }
   }
 

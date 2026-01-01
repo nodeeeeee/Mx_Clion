@@ -53,19 +53,19 @@ public:
     else return type_ref_->toString_();
   }
 
-  std::string GetAlign() {
-    if (dim_ >= 1) {
-      return "8";
-    }
-    if (dim_ == 0) return type_ref_->GetAlign_();
-    else return "4";
-  }
+  // std::string GetAlign() {
+  //   if (dim_ >= 1) {
+  //     return "8";
+  //   }
+  //   if (dim_ == 0) return type_ref_->GetAlign_();
+  //   else return "4";
+  // }
   std::string DefaultValue() {
     if (dim_ == 0) return type_ref_->DefaultValue_();
     else if (basic_type_ == kNULL) {
       return type_ref_->DefaultValue_();
     }
-    else return "0";
+    else return "null";
   }
 
   bool operator==(IRType const &other) const {

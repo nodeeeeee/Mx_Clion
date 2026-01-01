@@ -17,7 +17,7 @@ IRType::IRType(BasicType basic_type, int dim) : basic_type_(basic_type), dim_(di
     type_ref_ = &IRBoolType::Instance();
   } else if (basic_type == BasicType::kSTRING) {
     type_ref_ = &IRStringType::Instance();
-    dim_ = 1;
+    // dim_ = 1;
   } else if (basic_type == BasicType::kVOID) {
     type_ref_ = &IRVoidType::Instance();
   } else if (basic_type == BasicType::kNULL) {
@@ -38,7 +38,7 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type){
   } else if (type_type->compareBase(*k_string)) {
     type_ref_ = &IRStringType::Instance();
     basic_type_ = BasicType::kSTRING;
-    dim_ = 1;
+    // dim_ = 1;
   } else if (type_type->compareBase(*k_void)) {
     type_ref_ = &IRVoidType::Instance();
     basic_type_ = BasicType::kVOID;
@@ -60,7 +60,7 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type, int dim) : dim_(dim){
   } else if (type_type->compareBase(*k_string)) {
     type_ref_ = &IRStringType::Instance();
     basic_type_ = BasicType::kSTRING;
-    dim_ = 1;
+    // dim_ = 1;
   } else if (type_type->compareBase(*k_void)) {
     type_ref_ = &IRVoidType::Instance();
     basic_type_ = BasicType::kVOID;
