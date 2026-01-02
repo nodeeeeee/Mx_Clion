@@ -17,7 +17,7 @@ IRType::IRType(BasicType basic_type, int dim) : basic_type_(basic_type), dim_(di
     type_ref_ = &IRBoolType::Instance();
   } else if (basic_type == BasicType::kSTRING) {
     type_ref_ = &IRStringType::Instance();
-    // dim_ = 1;
+    dim_++;
   } else if (basic_type == BasicType::kVOID) {
     type_ref_ = &IRVoidType::Instance();
   } else if (basic_type == BasicType::kNULL) {
@@ -38,13 +38,16 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type){
   } else if (type_type->compareBase(*k_string)) {
     type_ref_ = &IRStringType::Instance();
     basic_type_ = BasicType::kSTRING;
-    // dim_ = 1;
+    dim_++;
   } else if (type_type->compareBase(*k_void)) {
     type_ref_ = &IRVoidType::Instance();
     basic_type_ = BasicType::kVOID;
   } else if (type_type->compareBase(*k_null)) {
     type_ref_ = &IRNullType::Instance();
     basic_type_ = BasicType::kNULL; // kNULL can be any pointer type
+  } else if (type_type->is_customized()) {
+    customized_type_ = type_type->getTypeName();
+    dim_ = 1;
   }
   else {
     throw std::runtime_error("invalid TypeType");
@@ -70,6 +73,7 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type, int dim) : dim_(dim){
   }
   else if (type_type->is_customized()) {
     customized_type_ = type_type->getTypeName();
+    dim_++;
   }
 }
 
@@ -82,6 +86,9 @@ IRType::IRType(const std::shared_ptr<IRType>& base_ir_type, int increment) {
 
 
 std::shared_ptr<IRType> IRType::DecreaseDimension() {
+  if (!customized_type_.empty()) {
+    return std::make_shared<IRType>(customized_type_, dim_ - 1);
+  }
   return std::make_shared<IRType>(basic_type_, dim_ - 1);
 }
 

@@ -22,6 +22,9 @@ public:
   std::string toString() {
     // assert(type_ref_ != nullptr && "type_ref is nullptr");
     if (dim_ == 0) {
+      if (!customized_type_.empty()) {
+        return "%class." + customized_type_;
+      }
       return type_ref_->toString_();
     } else {
       return "ptr";
@@ -34,6 +37,9 @@ public:
   std::string ElementToString() { // only used in alloca
     assert(dim_ > 0);
     if (dim_ == 1) {
+      if (!customized_type_.empty()) {
+        return "%class." + customized_type_;
+      }
       return type_ref_->toString_();
     }
     else {

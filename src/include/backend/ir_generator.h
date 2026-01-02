@@ -107,11 +107,12 @@ public:
   void InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const);
   std::shared_ptr<ClassType> GetClassType(const std::string& type_name);
   void IndexExprGEP(std::shared_ptr<IndexExprNode> expr, bool is_lval = false);
-  void DotExprGEP(std::shared_ptr<DotExprNode> expr);
+  void DotExprGEP(std::shared_ptr<DotExprNode> expr, bool is_lval = false);
   void DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<std::shared_ptr<ExprNode>> range_vec, int pos);
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> LiteralResolver(std::shared_ptr<ExprNode> expr);
   std::shared_ptr<IRType> GetVariantType(std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> var);
   void GlobalVarDefInit(std::shared_ptr<VarDefNode> var_def_node);
+  void ForwardDeclare(std::shared_ptr<RootNode> root_node);
 
 private:
   std::vector<std::shared_ptr<VarDefNode>> global_var_def_;

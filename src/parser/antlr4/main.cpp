@@ -75,7 +75,7 @@ int main(int argc, const char* argv[]) {
 
 #ifndef testall
   std::ifstream stream;
-  stream.open("testcases/codegen/t2.mx");
+  stream.open("testcases/codegen/t14.mx");
   ANTLRInputStream input(stream);
 #endif
   MxErrorListener error_listener;

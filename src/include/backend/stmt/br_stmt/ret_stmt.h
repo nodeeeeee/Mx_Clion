@@ -16,13 +16,22 @@ public:
   explicit ReturnStmt(std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> ret_val) : ret_val_(std::move(ret_val)) {
   }
   explicit ReturnStmt() {
-    is_void = true;
+    // is_void = true;
+    ret_str = "void";
+  }
+  explicit ReturnStmt(std::shared_ptr<IRType> ret_type) {
+    ret_str = ret_type->toString() + " " + ret_type->DefaultValue();
   }
   [[nodiscard]] std::string commit() const {
-    if (is_void) {
-      return "ret void";
-    }
+    // if (is_void) {
+    //   return "ret void";
+    // }
+
     std::string ret = "ret ";
+    if (!ret_str.empty()) {
+      ret += ret_str;
+      return ret;
+    }
     if (std::holds_alternative<int>(ret_val_)) {
       ret += VariantRep::variant_rep(ret_val_);
     } else if (std::holds_alternative<bool>(ret_val_)) {
@@ -39,4 +48,5 @@ public:
 private:
   bool is_void = false;
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> ret_val_;
+  std::string ret_str;
 };

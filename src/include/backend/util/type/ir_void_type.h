@@ -17,7 +17,7 @@ public:
   }
 
   std::string DefaultValue_() override {
-    throw std::runtime_error("no default value for void");
+    return "";
   }
 
 private:

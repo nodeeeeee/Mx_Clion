@@ -90,7 +90,7 @@ int getInt() {
 }
 
 char* toString(int num) {
-    char *str = malloc(16);
+    char *str = malloc(128);
     sprintf(str, "%d", num);
     return str;
 }
