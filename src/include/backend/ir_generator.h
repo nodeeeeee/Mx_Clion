@@ -77,7 +77,7 @@ public:
   void visit(std::shared_ptr<FuncCallNode> node) final;
   void visit(std::shared_ptr<IndexExprNode> node) final;
   void visit(std::shared_ptr<InitArrayNode> node) final;
-  void visit(std::shared_ptr<InitObjectNode> node) {throw std::runtime_error("Not implemented");};
+  void visit(std::shared_ptr<InitObjectNode> node) final;
   void visit(std::shared_ptr<NullExprNode> node) {return ;}
   void visit(std::shared_ptr<UnaryExprNode> node) final;
   void visit(std::shared_ptr<TernaryExprNode> node) final;
@@ -107,12 +107,14 @@ public:
   void InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const);
   std::shared_ptr<ClassType> GetClassType(const std::string& type_name);
   void IndexExprGEP(std::shared_ptr<IndexExprNode> expr, bool is_lval = false);
-  void DotExprGEP(std::shared_ptr<DotExprNode> expr, bool is_lval = false);
+  // void DotExprGEP(std::shared_ptr<DotExprNode> expr, bool is_lval = false);
   void DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<std::shared_ptr<ExprNode>> range_vec, int pos);
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> LiteralResolver(std::shared_ptr<ExprNode> expr);
   std::shared_ptr<IRType> GetVariantType(std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> var);
   void GlobalVarDefInit(std::shared_ptr<VarDefNode> var_def_node);
   void ForwardDeclare(std::shared_ptr<RootNode> root_node);
+  void LhsDotExpr(std::shared_ptr<DotExprNode> expr);
+  void LvalVisit(std::shared_ptr<ExprNode> expr);
 
 private:
   std::vector<std::shared_ptr<VarDefNode>> global_var_def_;

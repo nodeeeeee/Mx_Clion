@@ -105,7 +105,10 @@ int TypeType::countBracket(MxParser::TypeContext *ctx, TypeType** type_ref_ptr, 
 }
 
 std::string TypeType::getTypeName() {
-  if (type_ref != nullptr) {
+  if (is_customized()) {
+    return customized_type;
+  }
+  else {
     if (type_ref == &StringType::Instance()) {
       if (dimension == 0) {return "String";}
       else {return "0Array";}
@@ -117,10 +120,5 @@ std::string TypeType::getTypeName() {
     else {
       throw std::runtime_error("Pre-built functions are only available for String or Array");
     }
-  } else if (dimension != 0) {
-    return "0Array";
-  }
-  else {
-    return customized_type;
   }
 }

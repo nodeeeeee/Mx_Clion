@@ -27,7 +27,7 @@ public:
     return index_cnt;
   }
   std::string commit() {
-    std::string str = "%struct." + type_name_ + " = type { ";
+    std::string str = "%class." + type_name_ + " = type { ";
     bool first = true;
     for (const auto& element : types_) {
       if (!first) str += ", ";

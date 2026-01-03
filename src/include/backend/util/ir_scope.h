@@ -35,7 +35,8 @@ public:
         return regs_[var_name];
       } else {
         if (this->parent_ == nullptr) {
-          throw std::runtime_error("var not found in the scope");
+          // throw std::runtime_error("var not found in the scope");
+          return nullptr;
         } else {
           return this->parent_->FindRegister(var_name);
         }

@@ -13,14 +13,16 @@
 //%res = getelementptr <pointee-type>, ptr <base>, <index>...
 class GEPStmt : public Stmt {
 public:
-  GEPStmt(std::shared_ptr<Register> dest_ptr, std::shared_ptr<Register> base_ptr, std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices) : dest_ptr_(std::move(dest_ptr)), base_ptr_(std::move(base_ptr)), indices_(std::move(indices)) {
+  GEPStmt(std::shared_ptr<Register> dest_ptr, std::shared_ptr<Register> base_ptr, std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices, bool is_dot = false) : dest_ptr_(std::move(dest_ptr)), base_ptr_(std::move(base_ptr)), indices_(std::move(indices)) {
+    is_dot_ = is_dot;
   }
 
 
 
   [[nodiscard]]std::string commit() const override {
-    std::string ret =dest_ptr_->GetIndex() + " = getelementptr inbounds " + base_ptr_->GetType()->GetGEPType() + ", " + base_ptr_->GetIndexWithType() + ", ";
+    std::string ret =dest_ptr_->GetIndex() + " = getelementptr inbounds " + base_ptr_->GetType()->GetGEPType(is_dot_) + ", " + base_ptr_->GetIndexWithType();
     for (const auto& index : indices_) {
+      ret += ", ";
       if (std::holds_alternative<std::shared_ptr<LiteralNode>>(index)) {
         auto literal = std::get<std::shared_ptr<LiteralNode>>(index);
         ret += std::make_shared<IRType>(literal->getLiteralType())->toString() + " " + literal->ToString();
@@ -37,6 +39,7 @@ public:
   }
 private:
   std::shared_ptr<Register> dest_ptr_;
-std::shared_ptr<Register> base_ptr_;  // pointee-type can be retrieved from base_ptr
+  std::shared_ptr<Register> base_ptr_;  // pointee-type can be retrieved from base_ptr
   std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices_;
+  bool is_dot_;
 };

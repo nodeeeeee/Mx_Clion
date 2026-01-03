@@ -159,13 +159,13 @@ void IRGenerator::visit(std::shared_ptr<ClassDefNode> node) {
       // std::shared_ptr<IRType> var_type = std::make_shared<IRType>(var_def->getIdNode()->getType());
       // current_class_type_->AddElement(var_def->getIdNode()->getIdName(), var_type); // declared type in RootNode
     } else if (auto func_def = std::dynamic_pointer_cast<FuncDefNode>(stat)) {
-      std::shared_ptr<IRFunction> func = FindFunction(node->getIdNode()->getIdName() + "_" + func->GetName());
+      std::shared_ptr<IRFunction> func = FindFunction(node->getIdNode()->getIdName() + "_" + func_def->getIdNode()->getIdName());
       current_func_ = func;
       current_scope_ = func->GetScope();
       current_scope_->SetParent(global_scope_);
       func_def->accept(this);
     } else if (auto class_func_def = std::dynamic_pointer_cast<ClassFuncDefNode>(stat)) {
-      std::shared_ptr<IRFunction> func = FindFunction(node->getIdNode()->getIdName() + "_" + func->GetName());
+      std::shared_ptr<IRFunction> func = FindFunction(node->getIdNode()->getIdName() + "_" + func_def->getIdNode()->getIdName());
       current_func_ = func;
       current_scope_ = func->GetScope();
       current_scope_->SetParent(global_scope_);
@@ -182,7 +182,7 @@ void IRGenerator::visit(std::shared_ptr<ClassFuncDefNode> node) {
   auto entry_block = current_func_->CreateBlock(node->getIdNode()->getIdName() + ".entry");
   current_basic_block_ = entry_block;
   // std::shared_ptr<IRType> param_type = std::make_shared<IRType>(IRType::kPTR);;
-  std::shared_ptr<IRType> reg_type = std::make_shared<IRType>(node->getIdNode()->getIdName(), 1);
+  std::shared_ptr<IRType> reg_type = std::make_shared<IRType>(node->getIdNode()->getIdName(), 2);
   std::shared_ptr<Register> reg = current_func_->CreateRegister(reg_type); // though it is passed in, we still need to declare this reg in scope
   // std::shared_ptr<Register> param_reg = current_func_->CreateRegister(param_type);
   // std::shared_ptr<Stmt> alloca_stmt = std::static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(reg));
@@ -262,10 +262,10 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
       current_basic_block_->AddStmt(store_stmt);
     }
 
-    auto store_val = LiteralResolver(expr);
-    std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
-      std::make_shared<StoreStmt>(store_val, var_reg)); // last reg is where i store the result
-    current_basic_block_->AddStmt(store_stmt);
+    // auto store_val = LiteralResolver(expr);
+    // std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
+    //   std::make_shared<StoreStmt>(store_val, var_reg)); // last reg is where i store the result
+    // current_basic_block_->AddStmt(store_stmt);
   }
   //store back
 }
@@ -596,7 +596,7 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
 }
 
 void IRGenerator::visit(std::shared_ptr<IdNode> node) {
-  auto var_addr_reg = current_scope_->FindRegister(node->getIdName());
+  auto var_addr_reg = FindRegister(node->getIdName());
   auto val_reg = current_func_->CreateRegister(var_addr_reg->GetType()->DecreaseDimension());
   std::shared_ptr<Stmt> load_stmt = std::static_pointer_cast<Stmt>(
             std::make_shared<LoadStmt>(val_reg, var_addr_reg));
@@ -646,22 +646,22 @@ void IRGenerator::visit(std::shared_ptr<TernaryExprNode> node) {
 }
 
 void IRGenerator::visit(std::shared_ptr<ForStatNode> node) {
-  std::shared_ptr<StatNode> init_stmt;
-  std::shared_ptr<StatNode> update_stmt;
+  std::shared_ptr<StatNode> init_stat;
+  std::shared_ptr<StatNode> update_stat;
   if (node->getInitialExprNode() != nullptr) {
-    init_stmt = node->getInitialExprNode();
+    init_stat = node->getInitialExprNode();
   } else if (node->getInitialVarDefNode() != nullptr) {
-    init_stmt = std::dynamic_pointer_cast<StatNode>(node->getInitialVarDefNode());
+    init_stat = std::dynamic_pointer_cast<StatNode>(node->getInitialVarDefNode());
   } else if (node->getInitialAssignStatNode() != nullptr) {
-    init_stmt = std::dynamic_pointer_cast<StatNode>(node->getInitialAssignStatNode());
+    init_stat = std::dynamic_pointer_cast<StatNode>(node->getInitialAssignStatNode());
   }
   if (node->getUpdateAssignStatNode() != nullptr) {
-    update_stmt = node->getUpdateAssignStatNode();
+    update_stat = node->getUpdateAssignStatNode();
   } else if (node->getUpdateExprNode() != nullptr) {
-    update_stmt = std::dynamic_pointer_cast<StatNode>(node->getUpdateExprNode());
+    update_stat = std::dynamic_pointer_cast<StatNode>(node->getUpdateExprNode());
   }
-  auto cond_stmt = node->getForCondExprNode();
-  auto body_stmt = node->getBlockNode();
+  auto cond_stat = node->getForCondExprNode();
+  auto body_stat = node->getBlockNode();
 
   auto loop_block_name = current_func_->CreateBlockName("loop", false);
   auto loop_body_block_name = current_func_->CreateBlockName("body", false);
@@ -669,7 +669,9 @@ void IRGenerator::visit(std::shared_ptr<ForStatNode> node) {
   auto end_block_name = current_func_->CreateBlockName("end_loop", false);
   auto new_scope = IRScope::CreateScope(current_scope_, update_block_name, end_block_name);
   current_scope_ = new_scope;
-  init_stmt->accept(this);
+  if (init_stat != nullptr) { // otherwise we don't need init_stmt
+    init_stat->accept(this);
+  }
   auto j_loop = std::static_pointer_cast<Stmt>(
     std::make_shared<BrUnconditionalStmt>(loop_block_name));
   current_basic_block_->AddStmt(j_loop);
@@ -677,22 +679,31 @@ void IRGenerator::visit(std::shared_ptr<ForStatNode> node) {
   //loop:
   auto loop_block = current_func_->CreateBlock(loop_block_name);
   current_basic_block_ = loop_block;
-  cond_stmt->accept(this);
-  auto cond_reg = current_func_->GetReturnReg();
+  // cond_stmt->accept(this);
+  // auto cond_reg = current_func_->GetReturnReg();
+
   //if reg = 0 end
-  auto cond_br = std::make_shared<BrConditionalStmt>(cond_reg, loop_body_block_name, end_block_name);
-  current_basic_block_->AddStmt(cond_br);
+  if (cond_stat != nullptr) {
+    auto cond_rep = LiteralResolver(cond_stat);
+    auto cond_br = std::make_shared<BrConditionalStmt>(cond_rep, loop_body_block_name, end_block_name);
+    current_basic_block_->AddStmt(cond_br);
+  } else {
+    auto cond_br = std::make_shared<BrUnconditionalStmt>(loop_body_block_name);
+    current_basic_block_->AddStmt(cond_br);
+  }
   //loop_body:
   auto loop_body_block = current_func_->CreateBlock(loop_body_block_name);
   current_basic_block_ = loop_body_block;
-  body_stmt->accept(this);
+  body_stat->accept(this);
   auto br_update_stmt = std::static_pointer_cast<Stmt>(
     std::make_shared<BrUnconditionalStmt>(update_block_name));
   current_basic_block_->AddStmt(br_update_stmt);
   //update:
   auto update_block = current_func_->CreateBlock(update_block_name);
   current_basic_block_ = update_block;
-  update_stmt->accept(this);
+  if (update_stat != nullptr) {
+    update_stat->accept(this);
+  }
   auto loop_back = std::make_shared<BrUnconditionalStmt>(loop_block->getBlockName());
   current_basic_block_->AddStmt(loop_back);
   current_scope_ = current_scope_->GetParent();// back to previous scope
@@ -792,9 +803,9 @@ void IRGenerator::visit(std::shared_ptr<DotExprNode> node) {
   if (auto func_call = std::dynamic_pointer_cast<FuncCallNode>(rhs)) {
 
     std::string func_name;
-    if (lhs_type->GetDim() == 0 || *lhs_type == *k_ir_string) {
+    if (lhs_type->GetDim() == 0 || (lhs_type->GetDim() == 1 && lhs_type->is_customized()) || *lhs_type == *k_ir_string) {
       func_name = lhs_type->GetTypeName() + "_" + func_call->getName();
-    } else if (lhs_type->GetDim() >= 1) {
+    } else { // var is dim 1
       func_name = "Array_" + func_call->getName();
     }
     std::shared_ptr<IRFunction> func = FindFunction(func_name);
@@ -807,30 +818,41 @@ void IRGenerator::visit(std::shared_ptr<DotExprNode> node) {
       auto arg_rep = LiteralResolver(arg);
       arg_reps.push_back(arg_rep);
     }
-    auto dest_reg = current_func_->CreateRegister(func->GetReturnType());
-    std::shared_ptr<Stmt> call_stmt = std::static_pointer_cast<Stmt>(
-      std::make_shared<CallStmt>(func, dest_reg, arg_reps));
-    current_basic_block_->AddStmt(call_stmt);
-    current_func_->SetReturnReg(dest_reg);
+    auto return_type = func->GetReturnType();
+    if (*return_type != *k_ir_void) {
+      auto dest_reg = current_func_->CreateRegister(func->GetReturnType());
+      std::shared_ptr<Stmt> call_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<CallStmt>(func, dest_reg, arg_reps));
+      current_basic_block_->AddStmt(call_stmt);
+      current_func_->SetReturnReg(dest_reg);
+    } else {
+      std::shared_ptr<Stmt> call_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<CallStmt>(func, arg_reps));
+      current_basic_block_->AddStmt(call_stmt);
+    }
   } else if (auto field = std::dynamic_pointer_cast<IdNode>(rhs)) {
     /* store address of the class in a reg(Type**)
      * load on use
      */
-    // std::string var_name = field->getIdName();
-    // std::pair<std::shared_ptr<IRType>, int> element = GetElementInStruct(lhs_type->GetTypeName(), var_name);
-    // auto dest_reg = current_func_->CreateRegister(element.first);
-    // // auto base_reg_type = types_[lhs_type->GetTypeName()]->GetElementType();
-    // // auto base_reg = current_func_->CreateRegister(base_reg_type);
-    // //gep
-    // auto base_reg = std::get<std::shared_ptr<Register>>(lhs_rep);
-    // std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> offsets;
-    // // offsets.push_back(0);
-    // offsets.push_back(element.second);
-    // std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
-    //   std::make_shared<GEPStmt>(dest_reg, base_reg, offsets));
-    // current_basic_block_->AddStmt(gep_stmt);
-    // current_func_->SetReturnReg(dest_reg);
-    DotExprGEP(node);
+    std::string var_name = field->getIdName();
+    std::pair<std::shared_ptr<IRType>, int> element = GetElementInStruct(lhs_type->GetTypeName(), var_name);
+    auto gep_dest_reg = current_func_->CreateRegister(element.first);
+    // auto base_reg_type = types_[lhs_type->GetTypeName()]->GetElementType();
+    // auto base_reg = current_func_->CreateRegister(base_reg_type);
+    //gep
+    auto base_reg = std::get<std::shared_ptr<Register>>(lhs_rep);
+    std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> offsets;
+    offsets.push_back(0);
+    offsets.push_back(element.second);
+    std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
+      std::make_shared<GEPStmt>(gep_dest_reg, base_reg, offsets, true));
+    current_basic_block_->AddStmt(gep_stmt);
+    auto dest_reg_type = std::make_shared<IRType>(gep_dest_reg->GetType(), -1);
+    auto dest_reg = current_func_->CreateRegister(dest_reg_type);
+    auto load_stmt = std::static_pointer_cast<Stmt>(
+      std::make_shared<LoadStmt>(dest_reg, gep_dest_reg));
+    current_basic_block_->AddStmt(load_stmt);
+    current_func_->SetReturnReg(dest_reg);
   }
 }
 
@@ -932,6 +954,26 @@ void IRGenerator::visit(std::shared_ptr<IndexExprNode> node) {
   IndexExprGEP(node);
 }
 
+void IRGenerator::visit(std::shared_ptr<InitObjectNode> node) {
+  std::string type_name = node->getType()->getTypeName();
+  auto malloc_func = FindFunction("Builtin_malloc");
+  auto pointer_reg = current_func_->CreateRegister(std::make_shared<IRType>(type_name, 1));
+  std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> malloc_params;
+  auto type_size = GetClassType(type_name)->GetClassSize();
+  malloc_params.emplace_back(type_size);
+  std::shared_ptr<Stmt> malloc_call = std::static_pointer_cast<Stmt>(std::make_shared<CallStmt>(malloc_func, pointer_reg, malloc_params));
+
+  std::string class_func_name = type_name + "_" + type_name;
+  auto class_func = FindFunction(class_func_name);
+  // auto return_reg = current_func_->CreateRegister(std::make_shared<IRType>(IRType::BasicType::kVOID));
+  std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> class_func_params;
+  class_func_params.emplace_back(pointer_reg);
+  std::shared_ptr<Stmt> class_func_call = std::static_pointer_cast<Stmt>(std::make_shared<CallStmt>(class_func, class_func_params));
+  current_basic_block_->AddStmt(malloc_call);
+  current_basic_block_->AddStmt(class_func_call);
+  current_func_->SetReturnReg(pointer_reg);
+}
+
 void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
   auto expr = node->getExpr();
   auto op = node->getOp();
@@ -971,8 +1013,10 @@ void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
        * reg2 = i
        */
       auto operand_reg = std::get<std::shared_ptr<Register>>(operand_rep);
-      auto id_node = std::dynamic_pointer_cast<IdNode>(expr);
-      auto id_reg = FindRegister(id_node->getIdName()); // get ptr
+      // auto id_node = std::dynamic_pointer_cast<IdNode>(expr);
+      // auto id_reg = FindRegister(id_node->getIdName()); // get ptr
+      LvalVisit(expr);
+      auto id_reg = current_func_->GetReturnReg();
       // auto load_dest = current_func_->CreateRegister(k_ir_int);
       // auto load_stmt = std::static_pointer_cast<Stmt>(std::make_shared<LoadStmt>(load_dest, id_reg));
       auto reg1 = current_func_->CreateRegister(k_ir_int);
@@ -995,8 +1039,10 @@ void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
        * reg1 = i + 1
        * store back
        */
-      auto id_node = std::dynamic_pointer_cast<IdNode>(expr);
-      auto id_reg = FindRegister(id_node->getIdName());
+      // auto id_node = std::dynamic_pointer_cast<IdNode>(expr);
+      // auto id_reg = FindRegister(id_node->getIdName());
+      LvalVisit(expr);
+      auto id_reg = current_func_->GetReturnReg();
       // auto load_dest = current_func_->CreateRegister(k_ir_int);
       // auto load_stmt = std::static_pointer_cast<Stmt>(std::make_shared<LoadStmt>(load_dest, id_reg));
       auto reg1 = current_func_->CreateRegister(k_ir_int);
@@ -1009,8 +1055,10 @@ void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
       break;
     }
     case UnaryExprNode::UnaryOp::kPOST_MM: {
-      auto id_node = std::dynamic_pointer_cast<IdNode>(expr);
-      auto id_reg = FindRegister(id_node->getIdName());
+      // auto id_node = std::dynamic_pointer_cast<IdNode>(expr);
+      // auto id_reg = FindRegister(id_node->getIdName());
+      LvalVisit(expr);
+      auto id_reg = current_func_->GetReturnReg();
       auto operand_reg = std::get<std::shared_ptr<Register>>(operand_rep);
       // auto load_dest = current_func_->CreateRegister(k_ir_int);
       // auto load_stmt = std::static_pointer_cast<Stmt>(std::make_shared<LoadStmt>(load_dest, id_reg));
@@ -1034,8 +1082,10 @@ void IRGenerator::visit(std::shared_ptr<UnaryExprNode> node) {
        * reg1 = i + 1
        * store back
        */
-      auto id_node = std::dynamic_pointer_cast<IdNode>(expr);
-      auto id_reg = FindRegister(id_node->getIdName());
+      // auto id_node = std::dynamic_pointer_cast<IdNode>(expr);
+      // auto id_reg = FindRegister(id_node->getIdName());
+      LvalVisit(expr);
+      auto id_reg = current_func_->GetReturnReg();
       // auto load_dest = current_func_->CreateRegister(k_ir_int);
       // auto load_stmt = std::static_pointer_cast<Stmt>(std::make_shared<LoadStmt>(load_dest, id_reg));
       auto reg1 = current_func_->CreateRegister(k_ir_int);
@@ -1084,22 +1134,25 @@ void IRGenerator::visit(std::shared_ptr<AssignStatNode> node) {
       } else if (auto init_object = std::dynamic_pointer_cast<InitObjectNode>(expr)) {
         //malloc, save the pointer to a reg
         //call ClassFuncDefNode with the reg
-        std::string type_name = node_type->GetTypeName();
-        auto malloc_func = FindFunction("Builtin_malloc");
-        auto pointer_reg = current_func_->CreateRegister(std::make_shared<IRType>(type_name, 1));
-        std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> malloc_params;
-        auto type_size = GetClassType(type_name)->GetClassSize();
-        malloc_params.emplace_back(type_size);
-        std::shared_ptr<Stmt> malloc_call = std::static_pointer_cast<Stmt>(std::make_shared<CallStmt>(malloc_func, pointer_reg, malloc_params));
 
-        std::string class_func_name = type_name + "_" + type_name;
-        auto class_func = FindFunction(class_func_name);
-        // auto return_reg = current_func_->CreateRegister(std::make_shared<IRType>(IRType::BasicType::kVOID));
-        std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> class_func_params;
-        class_func_params.emplace_back(pointer_reg);
-        std::shared_ptr<Stmt> class_func_call = std::static_pointer_cast<Stmt>(std::make_shared<CallStmt>(class_func, class_func_params));
-        current_basic_block_->AddStmt(malloc_call);
-        current_basic_block_->AddStmt(class_func_call);
+        // std::string type_name = node_type->GetTypeName();
+        // auto malloc_func = FindFunction("Builtin_malloc");
+        // auto pointer_reg = current_func_->CreateRegister(std::make_shared<IRType>(type_name, 1));
+        // std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> malloc_params;
+        // auto type_size = GetClassType(type_name)->GetClassSize();
+        // malloc_params.emplace_back(type_size);
+        // std::shared_ptr<Stmt> malloc_call = std::static_pointer_cast<Stmt>(std::make_shared<CallStmt>(malloc_func, pointer_reg, malloc_params));
+        //
+        // std::string class_func_name = type_name + "_" + type_name;
+        // auto class_func = FindFunction(class_func_name);
+        // // auto return_reg = current_func_->CreateRegister(std::make_shared<IRType>(IRType::BasicType::kVOID));
+        // std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> class_func_params;
+        // class_func_params.emplace_back(pointer_reg);
+        // std::shared_ptr<Stmt> class_func_call = std::static_pointer_cast<Stmt>(std::make_shared<CallStmt>(class_func, class_func_params));
+        // current_basic_block_->AddStmt(malloc_call);
+        // current_basic_block_->AddStmt(class_func_call);
+
+        auto pointer_reg = LiteralResolver(init_object);
         std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(
         std::make_shared<StoreStmt>(pointer_reg, id_reg)); // store the array address into the alloca address
         current_basic_block_->AddStmt(store_stmt);
@@ -1129,7 +1182,7 @@ void IRGenerator::visit(std::shared_ptr<AssignStatNode> node) {
     // store
     IndexExprGEP(lhs_index_expr, true);
     //compute rhs, store
-    auto addr_reg = current_func_->GetLastReg();
+    auto addr_reg = current_func_->GetReturnReg();
     auto rhs_expr = node->getRhs();
     // rhs_expr->accept(this);
     // auto rhs_reg = current_func_->GetLastReg();
@@ -1142,8 +1195,9 @@ void IRGenerator::visit(std::shared_ptr<AssignStatNode> node) {
     // find offset
     // gep
     // store
-    DotExprGEP(lhs_dot_expr, true);
-    auto addr_reg = current_func_->GetLastReg();
+    LhsDotExpr(lhs_dot_expr);
+    // lhs_dot_expr->accept(this);
+    auto addr_reg = current_func_->GetReturnReg();
     auto rhs_expr = node->getRhs();
     // rhs_expr->accept(this);
     // auto rhs_reg = current_func_->GetLastReg();
@@ -1221,7 +1275,7 @@ void IRGenerator::InitFuncParam(std::shared_ptr<FuncDefNode> func_def_node) {
   int param_count = 0;
   if (current_func_->IsInClass()) { // store "this" reg
     // std::shared_ptr<IRType> param_type = std::make_shared<IRType>(current_func_->GetBelong(), 1); //'this' is passed as a param
-    std::shared_ptr<IRType> reg_type = std::make_shared<IRType>(current_func_->GetBelong(), 1); // 'this' is stored as a reg
+    std::shared_ptr<IRType> reg_type = std::make_shared<IRType>(current_func_->GetBelong(), 2); // 'this' is stored as a reg
     std::shared_ptr<Register> reg = current_func_->CreateRegister(reg_type);
     std::shared_ptr<Register> param_reg = current_func_->GetParamReg(param_count++);
     std::shared_ptr<Stmt> alloca_stmt = static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(reg));
@@ -1278,20 +1332,18 @@ std::shared_ptr<Register> IRGenerator::CreateString(std::shared_ptr<LiteralNode>
   std::hash<std::string> hasher;
   auto hashed_val = static_cast<unsigned int>(hasher(string_val));
   if (!str_reg_counter.contains(hashed_val)) {
-    str_reg_counter[hashed_val];
+    str_reg_counter[hashed_val].emplace_back(string_val);
   } else {
     for (int i = 0; i < str_reg_counter[hashed_val].size(); i++) {
-      auto reg = global_scope_->FindRegister(".str." + str_reg_counter[hashed_val][i]);
-      if (global_scope_->FindStringReg(string_val) != nullptr) {
-        //load
-        return global_scope_->FindStringReg(string_val);
+      if (str_reg_counter[hashed_val][i] == string_val) {
+        return global_scope_->FindRegister(".str." + std::to_string(hashed_val) + "." + std::to_string(i));
       }
     }
     str_reg_counter[hashed_val].emplace_back(string_val);
   }
-  auto reg_name = ".str." + std::to_string(hashed_val) + "." + std::to_string(str_reg_counter[hashed_val].size());
+  auto reg_name = ".str." + std::to_string(hashed_val) + "." + std::to_string(str_reg_counter[hashed_val].size() - 1);
   auto string_reg = std::make_shared<Register>(reg_name, k_ir_string, true);
-  global_scope_->declare(".str." + string_val, string_reg);
+  global_scope_->declare(reg_name, string_reg);
   auto str_declare_stmt = std::make_shared<GlobalStmt>(reg_name, string_val);
   global_scope_->AddGlobalStmt(str_declare_stmt->commit());
   return string_reg;
@@ -1306,14 +1358,40 @@ std::shared_ptr<Register> IRGenerator::ToRightVal(std::shared_ptr<Register> reg)
 std::shared_ptr<Register> IRGenerator::FindRegister(const std::string& var_name) {
   auto result_reg = current_scope_->FindRegister(var_name);
   if (result_reg == nullptr) {
-    return global_scope_->FindRegister(var_name);
+    result_reg =  global_scope_->FindRegister(var_name);
+    if (result_reg == nullptr) {
+      //search this.var_name
+      auto this_reg = FindRegister("this");
+      auto obj_reg_type = std::make_shared<IRType>(this_reg->GetType(), -1);
+      auto obj_reg = current_func_->CreateRegister(obj_reg_type);
+      auto load_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<LoadStmt>(obj_reg, this_reg));
+      current_basic_block_->AddStmt(load_stmt);
+      auto obj_type = obj_reg->GetType();
+      auto obj_type_name = obj_type->GetTypeName();
+      auto offset = GetElementInStruct(obj_type_name, var_name).second;
+      std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
+      params.push_back(offset);
+      auto gep_dest_reg_type = GetElementInStruct(obj_type_name, var_name).first;
+      auto gep_dest_reg = current_func_->CreateRegister(gep_dest_reg_type);
+      auto gep_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<GEPStmt>(gep_dest_reg, obj_reg, params));
+      current_basic_block_->AddStmt(gep_stmt);
+      return gep_dest_reg;
+    }
+    return result_reg;
   } else {
     return result_reg;
   }
 }
 
 std::shared_ptr<IRFunction> IRGenerator::FindFunction(const std::string& func_name) {
-  return funcs_[func_name];
+  auto ret_func = funcs_[func_name];
+  if (ret_func == nullptr) {
+    auto class_name = current_func_->GetBelong();
+    ret_func = funcs_[class_name + "_" + func_name];
+  }
+  return ret_func;
 }
 
 std::pair<std::shared_ptr<IRType>, int> IRGenerator::GetElementInStruct(std::string type_name, std::string field_name) {
@@ -1579,7 +1657,7 @@ void IRGenerator::IndexExprGEP(std::shared_ptr<IndexExprNode> expr, bool is_lval
   std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
   while (1) {
     if (auto id_node = std::dynamic_pointer_cast<IdNode>(expr->getBase())) {
-      auto base_reg_star = current_scope_->FindRegister(id_node->getIdName());
+      auto base_reg_star = FindRegister(id_node->getIdName());
       auto base_reg = current_func_->CreateRegister(std::make_shared<IRType>(base_reg_star->GetType(), -1));
       auto load_id_stmt = std::static_pointer_cast<Stmt>(
         std::make_shared<LoadStmt>(base_reg, base_reg_star));
@@ -1626,61 +1704,132 @@ void IRGenerator::IndexExprGEP(std::shared_ptr<IndexExprNode> expr, bool is_lval
   }
 }
 
-void IRGenerator::DotExprGEP(std::shared_ptr<DotExprNode> expr, bool is_lval) {
+// void IRGenerator::DotExprGEP(std::shared_ptr<DotExprNode> expr, bool is_lval) {
+//
+//   std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
+//   std::vector<std::shared_ptr<IRType>> element_types;
+//   while (1) {
+//     if (auto id_node = std::dynamic_pointer_cast<DotExprNode>(expr->getLhs())) {
+//       auto base_type = std::make_shared<IRType>(expr->getLhs()->getExprType());
+//       auto dot_id_node = std::dynamic_pointer_cast<IdNode>(expr->getRhs());
+//       auto dot_index = types_[base_type->GetTypeName()]->GetElementIndex(dot_id_node->getIdName());
+//       auto dot_type = types_[base_type->GetTypeName()]->GetElementType(dot_id_node->getIdName());
+//       indices.emplace_back(dot_index);
+//       element_types.emplace_back(dot_type);
+//       expr = std::dynamic_pointer_cast<DotExprNode>(expr->getLhs());
+//     } else {
+//       // auto lhs_rep = LiteralResolver(expr->getLhs());
+//       auto lhs = expr->getLhs();
+//       lhs->accept(this);
+//       auto lhs_reg = current_func_->GetReturnReg();
+//       auto id_type = lhs_reg->GetType();
+//       // auto id_type = FindRegister(id_node->getIdName())->GetType();
+//       // auto base_reg_star = current_scope_->FindRegister(id_node->getIdName());
+//       // auto base_reg = current_func_->CreateRegister(std::make_shared<IRType>(base_reg_star->GetType(), -1));
+//       auto dot_id_node = std::dynamic_pointer_cast<IdNode>(expr->getRhs());
+//       // auto load_id_stmt = std::static_pointer_cast<Stmt>(
+//       //   std::make_shared<LoadStmt>(base_reg, base_reg_star));
+//       // current_basic_block_->AddStmt(load_id_stmt);
+//       //find dot id
+//       auto dot_index = types_[id_type->GetTypeName()]->GetElementIndex(dot_id_node->getIdName());
+//       auto dot_type = types_[id_type->GetTypeName()]->GetElementType(dot_id_node->getIdName());
+//       indices.emplace_back(dot_index);
+//       element_types.emplace_back(dot_type);
+//       // auto dest_reg = current_func_->CreateRegister(base_reg->GetType());
+//       //gep
+//       reverse(indices.begin(), indices.end());
+//
+//       // std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
+//       //       std::make_shared<GEPStmt>(dest_reg, base_reg, indices));
+//       // current_basic_block_->AddStmt(gep_stmt);
+//       for (int i = 0; i < indices.size(); i++) {
+//         const auto& idx = indices[i];
+//         std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
+//         params.emplace_back(0);
+//         params.emplace_back(idx);
+//         const auto& gep_dest_reg = current_func_->CreateRegister(base_reg->GetType());
+//         auto gep_stmt = std::static_pointer_cast<Stmt>(
+//           std::make_shared<GEPStmt>(gep_dest_reg, base_reg, params));
+//         current_basic_block_->AddStmt(gep_stmt);
+//         current_func_->SetReturnReg(gep_dest_reg);
+//         if (i != indices.size() - 1 || !is_lval) {
+//           auto dest_reg = current_func_->CreateRegister(element_types[i]);
+//           auto load_stmt = std::static_pointer_cast<Stmt>(
+//           std::make_shared<LoadStmt>(dest_reg, gep_dest_reg));
+//           current_basic_block_->AddStmt(load_stmt);
+//           base_reg = dest_reg;
+//           current_func_->SetReturnReg(dest_reg);
+//         }
+//       }
+//
+//
+//       break;
+//     }
+//   }
+// }
 
-  std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> indices;
-  std::vector<std::shared_ptr<IRType>> element_types;
-  while (1) {
-    if (auto id_node = std::dynamic_pointer_cast<IdNode>(expr->getLhs())) {
-      auto id_type = FindRegister(id_node->getIdName())->GetType();
-      auto base_reg_star = current_scope_->FindRegister(id_node->getIdName());
-      auto base_reg = current_func_->CreateRegister(std::make_shared<IRType>(base_reg_star->GetType(), -1));
-      auto dot_id_node = std::dynamic_pointer_cast<IdNode>(expr->getRhs());
-      auto load_id_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<LoadStmt>(base_reg, base_reg_star));
-      current_basic_block_->AddStmt(load_id_stmt);
-      //find dot id
-      auto dot_index = types_[id_type->GetTypeName()]->GetElementIndex(dot_id_node->getIdName());
-      auto dot_type = types_[id_type->GetTypeName()]->GetElementType(dot_id_node->getIdName());
-      indices.emplace_back(dot_index);
-      element_types.emplace_back(dot_type);
-      // auto dest_reg = current_func_->CreateRegister(base_reg->GetType());
-      //gep
-      reverse(indices.begin(), indices.end());
+void IRGenerator::LhsDotExpr(std::shared_ptr<DotExprNode> expr) {
+  auto lhs = expr->getLhs();
+  auto rhs = expr->getRhs();
+  // lhs->accept(this);
+  // auto lhs_rep = FetchExprReg(lhs);
+  auto lhs_rep = LiteralResolver(lhs);
+  std::shared_ptr<IRType> lhs_type;
+  if (std::holds_alternative<std::shared_ptr<LiteralNode>>(lhs_rep)) {
+    lhs_type = std::make_shared<IRType>(std::get<std::shared_ptr<LiteralNode>>(lhs_rep)->getLiteralType());
+  } else {
+    lhs_type = std::get<std::shared_ptr<Register>>(lhs_rep)->GetType();
+  }
+  if (auto func_call = std::dynamic_pointer_cast<FuncCallNode>(rhs)) {
 
-      // std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
-      //       std::make_shared<GEPStmt>(dest_reg, base_reg, indices));
-      // current_basic_block_->AddStmt(gep_stmt);
-      for (int i = 0; i < indices.size(); i++) {
-        const auto& idx = indices[i];
-        std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> params;
-        params.emplace_back(idx);
-        const auto& gep_dest_reg = current_func_->CreateRegister(base_reg->GetType());
-        auto gep_stmt = std::static_pointer_cast<Stmt>(
-          std::make_shared<GEPStmt>(gep_dest_reg, base_reg, params));
-        current_basic_block_->AddStmt(gep_stmt);
-        current_func_->SetReturnReg(gep_dest_reg);
-        if (i != indices.size() - 1 || !is_lval) {
-          auto dest_reg = current_func_->CreateRegister(element_types[i]);
-          auto load_stmt = std::static_pointer_cast<Stmt>(
-          std::make_shared<LoadStmt>(dest_reg, gep_dest_reg));
-          current_basic_block_->AddStmt(load_stmt);
-          base_reg = dest_reg;
-          current_func_->SetReturnReg(dest_reg);
-        }
-      }
-
-
-      break;
-    } else {
-      auto base_type = std::make_shared<IRType>(expr->getLhs()->getExprType());
-      auto dot_id_node = std::dynamic_pointer_cast<IdNode>(expr->getRhs());
-      auto dot_index = types_[base_type->GetTypeName()]->GetElementIndex(dot_id_node->getIdName());
-      auto dot_type = types_[base_type->GetTypeName()]->GetElementType(dot_id_node->getIdName());
-      indices.emplace_back(dot_index);
-      element_types.emplace_back(dot_type);
-      expr = std::dynamic_pointer_cast<DotExprNode>(expr->getLhs());
+    std::string func_name;
+    if (lhs_type->GetDim() == 0 || *lhs_type == *k_ir_string) {
+      func_name = lhs_type->GetTypeName() + "_" + func_call->getName();
+    } else if (lhs_type->GetDim() >= 1) {
+      func_name = "Array_" + func_call->getName();
     }
+    std::shared_ptr<IRFunction> func = FindFunction(func_name);
+    auto args = func_call->getArgs();
+    std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> arg_reps;
+    arg_reps.push_back(lhs_rep); // pass lhs as 'this' param
+    for (const auto& arg : args) {
+      // arg->accept(this);
+      // auto arg_rep = FetchExprReg(arg);
+      auto arg_rep = LiteralResolver(arg);
+      arg_reps.push_back(arg_rep);
+    }
+    auto return_type = func->GetReturnType();
+    if (*return_type == *k_ir_void) {
+      auto dest_reg = current_func_->CreateRegister(func->GetReturnType());
+      std::shared_ptr<Stmt> call_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<CallStmt>(func, dest_reg, arg_reps));
+      current_basic_block_->AddStmt(call_stmt);
+      current_func_->SetReturnReg(dest_reg);
+    } else {
+      std::shared_ptr<Stmt> call_stmt = std::static_pointer_cast<Stmt>(
+        std::make_shared<CallStmt>(func, arg_reps));
+      current_basic_block_->AddStmt(call_stmt);
+    }
+
+
+  } else if (auto field = std::dynamic_pointer_cast<IdNode>(rhs)) {
+    /* store address of the class in a reg(Type**)
+     * load on use
+     */
+    std::string var_name = field->getIdName();
+    std::pair<std::shared_ptr<IRType>, int> element = GetElementInStruct(lhs_type->GetTypeName(), var_name);
+    auto dest_reg = current_func_->CreateRegister(element.first);
+    // auto base_reg_type = types_[lhs_type->GetTypeName()]->GetElementType();
+    // auto base_reg = current_func_->CreateRegister(base_reg_type);
+    //gep
+    auto base_reg = std::get<std::shared_ptr<Register>>(lhs_rep);
+    std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> offsets;
+    offsets.push_back(0);
+    offsets.push_back(element.second);
+    std::shared_ptr<Stmt> gep_stmt = std::static_pointer_cast<Stmt>(
+      std::make_shared<GEPStmt>(dest_reg, base_reg, offsets, true));
+    current_basic_block_->AddStmt(gep_stmt);
+    current_func_->SetReturnReg(dest_reg);
   }
 }
 
@@ -1737,14 +1886,14 @@ void IRGenerator::ForwardDeclare(std::shared_ptr<RootNode> root_node) {
         if (auto var_def = std::dynamic_pointer_cast<VarDefNode>(in_class_stat)) {
           //add to type
           has_var = true;
-          std::shared_ptr<IRType> var_type = std::make_shared<IRType>(var_def->getIdNode()->getType());
+          std::shared_ptr<IRType> var_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), var_def->getIdNode()->getType()->getDimension() + 1);
           current_class_type_->AddElement(var_def->getIdNode()->getIdName(), var_type); // declared type in RootNode
         } else if (auto func_def = std::dynamic_pointer_cast<FuncDefNode>(in_class_stat)) {
           std::shared_ptr<IRFunction> func = std::make_shared<IRFunction>(func_def, class_def_node->getIdNode()->getIdName());
-          funcs_[class_def_node->getIdNode()->getIdName() + "_" + func->GetName()] = func;
+          funcs_[func->GetName()] = func;
         } else if (auto class_func_def = std::dynamic_pointer_cast<ClassFuncDefNode>(in_class_stat)) {
           std::shared_ptr<IRFunction> func = std::make_shared<IRFunction>(class_func_def);
-          funcs_[class_def_node->getIdNode()->getIdName() + "_" + func->GetName()] = func;
+          funcs_[func->GetName()] = func;
           has_class_func = true;
         }
       }
@@ -1756,7 +1905,7 @@ void IRGenerator::ForwardDeclare(std::shared_ptr<RootNode> root_node) {
 
       if (!has_class_func) { // if no class func def, automatically generate one.
         auto func_name = class_def_node->getIdNode()->getIdName();
-        auto this_type = std::make_shared<IRType>(func_name, 1);
+        auto this_type = std::make_shared<IRType>(func_name, 2);
         std::vector<std::shared_ptr<IRType>> param_type;
         param_type.push_back(this_type);
         std::shared_ptr<IRFunction> func = std::make_shared<IRFunction>(func_name, param_type, k_ir_void, func_name);
@@ -1768,5 +1917,24 @@ void IRGenerator::ForwardDeclare(std::shared_ptr<RootNode> root_node) {
       current_class_type_ = nullptr;
 
     }
+  }
+}
+
+void IRGenerator::LvalVisit( std::shared_ptr<ExprNode> expr) {
+ if (auto lhs_id = dynamic_pointer_cast<IdNode>(expr)) {
+    auto id_reg = FindRegister(lhs_id->getIdName());
+    auto node_type = id_reg->GetType();
+    //visit expr
+   current_func_->SetReturnReg(id_reg);
+  }
+  //lhs is not necessarily an idnode, can also be array node or object.x
+  else if (auto lhs_index_expr = std::dynamic_pointer_cast<IndexExprNode>(expr)) {
+    IndexExprGEP(lhs_index_expr, true);
+    auto addr_reg = current_func_->GetReturnReg();
+    current_func_->SetReturnReg(addr_reg);
+  } else if (auto lhs_dot_expr = std::dynamic_pointer_cast<DotExprNode>(expr)) {
+    LhsDotExpr(lhs_dot_expr);
+    auto addr_reg = current_func_->GetReturnReg();
+    current_func_->SetReturnReg(addr_reg);
   }
 }

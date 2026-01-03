@@ -55,6 +55,16 @@ public:
     }
   }
 
+  static bool contain_val(std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> var) {
+    if (std::holds_alternative<std::shared_ptr<Register>>(var)) {
+      auto var_reg = std::get<std::shared_ptr<Register>>(var);
+      if (var_reg == nullptr) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 
 
   };

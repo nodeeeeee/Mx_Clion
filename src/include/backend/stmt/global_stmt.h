@@ -74,8 +74,8 @@ public:
     //to-do: initialize the value if rhs is literal(array), and type is int/bool
     if (constant_value_.has_value()) {
       if (*constant_value_.value()->GetConstType() == *k_ir_string) {
-        auto string_size = constant_value_.value()->ToString().size() - 1;
-        return "@" + name_ + " = private unnamed_addr constant [" + std::to_string(string_size) + "x i8] c\"" + constant_value_.value()->ToString().substr(1, string_size - 1) + "\\00\", align 1";
+        auto string_size = constant_value_.value()->ToString().size() + 1;
+        return "@" + name_ + " = private unnamed_addr constant [" + std::to_string(string_size) + "x i8] c\"" + constant_value_.value()->ToString() + "\\00\", align 1";
         // return "@" + name_ + " = global ptr null";
       }
       auto value_tmp = constant_value_.value();

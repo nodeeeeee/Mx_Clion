@@ -51,12 +51,16 @@ public:
     };
   }
 
-  std::string GetGEPType() {
-    if (dim_ > 1) {
-      return "ptr";
-    }
-    if (type_ref_ == nullptr) return "%" + customized_type_;
-    else return type_ref_->toString_();
+  bool is_customized() {
+    return !customized_type_.empty();
+  }
+
+  std::string GetGEPType(bool is_dot) {
+    if (type_ref_ == nullptr && is_dot) return "%class." + customized_type_;
+      if (dim_ >= 1) {
+        return "ptr";
+      } else return type_ref_->toString_();
+
   }
 
   // std::string GetAlign() {
@@ -104,7 +108,7 @@ public:
 private:
   // need singleton to boost up assignment
   BasicType basic_type_;
-  IRTypeProto *type_ref_;
+  IRTypeProto *type_ref_ = nullptr;
   std::string customized_type_;
   int dim_ = 0;
   std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);

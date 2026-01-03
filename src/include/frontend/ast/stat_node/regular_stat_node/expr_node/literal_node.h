@@ -32,7 +32,8 @@ public:
       auto token = string_type->getSymbol();
       literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
       literal_irtype = std::make_shared<IRType>(literal_type);
-      value_ = token->getText();
+      std::string token_val = token->getText();
+      value_ = token_val.substr(1, token_val.size() - 2);
     } else if (auto null_type = literal->NULL_()) {
       auto token = null_type->getSymbol();
       literal_type = std::make_shared<TypeType>(TypeType::PrimitiveType::kNULL);

@@ -29,7 +29,10 @@ IRType::IRType(BasicType basic_type, int dim) : basic_type_(basic_type), dim_(di
 
 IRType::IRType(const std::shared_ptr<TypeType>& type_type){
   dim_ = type_type->getDimension();
-  if (type_type->compareBase(*k_int)) {
+  if (type_type->is_customized()) {
+    customized_type_ = type_type->getTypeName();
+    dim_ = 1;
+  } else if (type_type->compareBase(*k_int)) {
     type_ref_ = &IRIntType::Instance();
     basic_type_ = BasicType::kINT;
   } else if (type_type->compareBase(*k_bool)) {
@@ -45,16 +48,16 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type){
   } else if (type_type->compareBase(*k_null)) {
     type_ref_ = &IRNullType::Instance();
     basic_type_ = BasicType::kNULL; // kNULL can be any pointer type
-  } else if (type_type->is_customized()) {
-    customized_type_ = type_type->getTypeName();
-    dim_ = 1;
   }
   else {
     throw std::runtime_error("invalid TypeType");
   }
 }
 IRType::IRType(const std::shared_ptr<TypeType>& type_type, int dim) : dim_(dim){
-  if (type_type->compareBase(*k_int)) {
+  if (type_type->is_customized()) {
+    customized_type_ = type_type->getTypeName();
+    dim_++;
+  } else if (type_type->compareBase(*k_int)) {
     type_ref_ = &IRIntType::Instance();
     basic_type_ = BasicType::kINT;
   } else if (type_type->compareBase(*k_bool)) {
@@ -71,10 +74,7 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type, int dim) : dim_(dim){
     type_ref_ = &IRNullType::Instance();
     basic_type_ = BasicType::kNULL;
   }
-  else if (type_type->is_customized()) {
-    customized_type_ = type_type->getTypeName();
-    dim_++;
-  }
+
 }
 
 IRType::IRType(const std::shared_ptr<IRType>& base_ir_type, int increment) {
