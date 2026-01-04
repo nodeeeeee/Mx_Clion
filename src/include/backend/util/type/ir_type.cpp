@@ -66,7 +66,7 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type, int dim) : dim_(dim){
   } else if (type_type->compareBase(*k_string)) {
     type_ref_ = &IRStringType::Instance();
     basic_type_ = BasicType::kSTRING;
-    // dim_ = 1;
+    dim_++;
   } else if (type_type->compareBase(*k_void)) {
     type_ref_ = &IRVoidType::Instance();
     basic_type_ = BasicType::kVOID;
@@ -87,7 +87,9 @@ IRType::IRType(const std::shared_ptr<IRType>& base_ir_type, int increment) {
 
 std::shared_ptr<IRType> IRType::DecreaseDimension() {
   if (!customized_type_.empty()) {
-    return std::make_shared<IRType>(customized_type_, dim_ - 1);
+    return std::make_shared<IRType>(customized_type_, dim_ - 2); // since inside IR create, it will automatically add 1 to its dimension
+  } else if (basic_type_ == BasicType::kSTRING) {
+    return std::make_shared<IRType>(basic_type_, dim_ - 2);
   }
   return std::make_shared<IRType>(basic_type_, dim_ - 1);
 }

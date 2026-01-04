@@ -59,6 +59,14 @@ void print(const char *str) {
         } else if (str[i + 1] == '"') {
             putchar('"');
             i++;
+        } else {
+            putchar('0');
+            putchar('0');
+            putchar('0');
+            putchar('0');
+            putchar('0');
+            putchar('0');
+
         }
     }
 }

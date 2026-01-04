@@ -62,8 +62,19 @@ public:
   }
 
   explicit GlobalStmt(std::string name_str, std::string val_str) {
-    std::variant<int, bool, std::string> val = val_str;
-    constant_value_ = std::make_shared<Constant>(val_str);
+    std::string update_backslash_str;
+    str_const_len = val_str.length() + 1;
+    for (int i = 0; i < val_str.length(); i++) {
+      if (val_str[i] == '\\') {
+        update_backslash_str += "\\\\";
+      } else if (val_str[i] == '"') {
+        update_backslash_str += "\\22";
+      } else {
+        update_backslash_str += val_str[i];
+      }
+    }
+    // std::variant<int, bool, std::string> val = update_backslash_str;
+    constant_value_ = std::make_shared<Constant>(update_backslash_str);
     name_ = name_str;
   }
 
@@ -74,8 +85,8 @@ public:
     //to-do: initialize the value if rhs is literal(array), and type is int/bool
     if (constant_value_.has_value()) {
       if (*constant_value_.value()->GetConstType() == *k_ir_string) {
-        auto string_size = constant_value_.value()->ToString().size() + 1;
-        return "@" + name_ + " = private unnamed_addr constant [" + std::to_string(string_size) + "x i8] c\"" + constant_value_.value()->ToString() + "\\00\", align 1";
+        // auto string_size = constant_value_.value()->ToString().size() + 1;
+        return "@" + name_ + " = private unnamed_addr constant [" + std::to_string(str_const_len.value()) + "x i8] c\"" + constant_value_.value()->ToString() + "\\00\", align 1";
         // return "@" + name_ + " = global ptr null";
       }
       auto value_tmp = constant_value_.value();
@@ -91,6 +102,7 @@ private:
   std::string name_;
   std::shared_ptr<Register> register_;
   std::optional<std::shared_ptr<Constant>> constant_value_;
+  std::optional<int> str_const_len;
   const std::shared_ptr<IRType> k_ir_int = std::make_shared<IRType>(IRType::BasicType::kINT);
   const std::shared_ptr<IRType> k_ir_bool = std::make_shared<IRType>(IRType::BasicType::kBOOL);
   const std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(IRType::BasicType::kSTRING);

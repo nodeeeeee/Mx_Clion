@@ -13,6 +13,9 @@ public:
   }
 
   [[nodiscard]]std::string commit() const override{
+    if (*dest_reg_->GetType() == *std::make_shared<IRType>(IRType::BasicType::kVOID)) {
+      return "";
+    }
     return dest_reg_->GetIndex() + " = load " + dest_reg_->GetType()->toString() + ", ptr " + addr_reg_->GetIndex();
   }
 

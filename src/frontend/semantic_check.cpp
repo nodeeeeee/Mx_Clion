@@ -233,7 +233,12 @@ void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
     node->setPrvalue(false);
     node->setExprType(rhs_type);
   } else if (auto func_tmp = std::dynamic_pointer_cast<FuncCallNode>(rhs)) {
-    auto rhs_func = class_scope->findFunc(func_tmp->getName());
+    std::shared_ptr<Function> rhs_func;
+    if (lhs_type->getDimension() > 0) {
+      rhs_func = global_scope->findClass("0Array")->findFunc(func_tmp->getName());
+    } else {
+      rhs_func = class_scope->findFunc(func_tmp->getName());
+    }
     auto rhs_type = rhs_func->getReturnType();
     if (rhs_type == nullptr) {
       throw std::runtime_error("rhs not found");

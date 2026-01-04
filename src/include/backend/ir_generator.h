@@ -106,7 +106,7 @@ public:
   std::pair<std::shared_ptr<IRType>, int> GetElementInStruct(std::string type_name, std::string field_name);
   void InitializeArray(std::shared_ptr<Register> base, std::shared_ptr<ArrayConstNode> array_const);
   std::shared_ptr<ClassType> GetClassType(const std::string& type_name);
-  void IndexExprGEP(std::shared_ptr<IndexExprNode> expr, bool is_lval = false);
+  // void IndexExprGEP(std::shared_ptr<IndexExprNode> expr, bool is_lval = false);
   // void DotExprGEP(std::shared_ptr<DotExprNode> expr, bool is_lval = false);
   void DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<std::shared_ptr<ExprNode>> range_vec, int pos);
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> LiteralResolver(std::shared_ptr<ExprNode> expr);
@@ -115,6 +115,8 @@ public:
   void ForwardDeclare(std::shared_ptr<RootNode> root_node);
   void LhsDotExpr(std::shared_ptr<DotExprNode> expr);
   void LvalVisit(std::shared_ptr<ExprNode> expr);
+  void LhsIndexExpr(std::shared_ptr<IndexExprNode> expr);
+  void LhsThisExpr(std::shared_ptr<ThisExprNode> expr);
 
 private:
   std::vector<std::shared_ptr<VarDefNode>> global_var_def_;
@@ -133,7 +135,7 @@ private:
   std::shared_ptr<TypeType> k_void = std::make_shared<TypeType>(TypeType::PrimitiveType::kVOID);
   std::shared_ptr<IRType> k_ir_int = std::make_shared<IRType>(k_int);
   std::shared_ptr<IRType> k_ir_bool = std::make_shared<IRType>(k_bool);
-  std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(k_string, 1);
+  std::shared_ptr<IRType> k_ir_string = std::make_shared<IRType>(k_string);
   std::shared_ptr<IRType> k_ir_void = std::make_shared<IRType>(k_void);
   std::shared_ptr<IRType> k_ir_void_star = std::make_shared<IRType>(k_void, 1);
   std::map<unsigned int, std::vector<std::string>> str_reg_counter;

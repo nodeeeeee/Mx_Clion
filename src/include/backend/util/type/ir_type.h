@@ -13,7 +13,7 @@ public:
   };
   IRType() = default;
   explicit IRType(BasicType basic_type, int dim = 0);
-  explicit IRType(std::string type_name, int dim = 0) : customized_type_(std::move(type_name)), dim_(dim) {}
+  explicit IRType(std::string type_name, int dim = 0) : customized_type_(std::move(type_name)), dim_(dim + 1) {}
   explicit IRType(const std::shared_ptr<IRType>& base_ir_type, int increment);
   explicit IRType(const std::shared_ptr<TypeType>& type_type);
   explicit IRType(const std::shared_ptr<TypeType>& type_type, int dim);

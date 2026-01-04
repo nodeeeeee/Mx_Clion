@@ -95,6 +95,7 @@ std::any ASTBuilder::visitVarDef(MxParser::VarDefContext* ctx) {
       auto id_node = std::make_shared<IdNode>(type, varId);
       var_defs.push_back(std::make_shared<VarDefNode>(std::move(id_node), Position(ctx)));
     }
+    expr_cnt++;
   }
   return var_defs;
 }

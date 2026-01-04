@@ -11,6 +11,9 @@ public:
   AllocaStmt() = default;
   explicit AllocaStmt(std::shared_ptr<Register> reg) : register_(std::move(reg)) {}
   [[nodiscard]] std::string commit() const override {
+    if (*register_->GetType() == *std::make_shared<IRType>(IRType::BasicType::kVOID, 1)) { // ternary expression, retain a void memory space.
+      return "";
+    }
     return register_->GetIndex() + " = alloca " + register_->GetType()->ElementToString();
   }
 private:

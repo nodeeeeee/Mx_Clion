@@ -28,7 +28,7 @@ public:
         ret += std::make_shared<IRType>(literal->getLiteralType())->toString() + " " + literal->ToString();
       } else if (std::holds_alternative<std::shared_ptr<Register>>(index)) {
         auto reg = std::get<std::shared_ptr<Register>>(index);
-        assert(reg->GetType()->toString() == "i32");
+        // assert(reg->GetType()->toString() == "i32");
         ret += reg->GetType()->toString() + " " + reg->GetIndex();
       } else {
         auto val = std::get<int>(index);
