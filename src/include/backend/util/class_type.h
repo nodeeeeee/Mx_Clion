@@ -12,14 +12,23 @@ public:
   }
 
   int GetElementIndex(const std::string& element_name) {
+    if (!types_.contains(element_name)) {
+      return -1;
+    }
     return types_[element_name].second;
   }
 
   std::shared_ptr<IRType> GetElementType(const std::string& element_name) {
+    if (!types_.contains(element_name)) {
+      return nullptr;
+    }
     return types_[element_name].first;
   }
 
   std::pair<std::shared_ptr<IRType>, int> GetElement(const std::string& element_name) {
+    if (!types_.contains(element_name)) {
+      return std::pair<std::shared_ptr<IRType>, int>(nullptr, -1);
+    }
     return types_[element_name];
   }
 

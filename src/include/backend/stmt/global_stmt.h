@@ -22,24 +22,26 @@ class GlobalStmt : Stmt {
 public:
   explicit GlobalStmt(std::shared_ptr<VarDefNode> node): Stmt() {
     name_ = node->getIdNode()->getIdName();
-    if (node->getIdNode()->getType()->getDimension() != 0) {// it is an array initialization
+    if (node->getIdNode()->getType()->getDimension() != 0 || node->getIdNode()->getType()->is_customized()) {// it is an array initialization
       auto array_type = std::make_shared<IRType> (node->getIdNode()->getType());
       register_ = std::make_shared<Register>(name_, array_type, true);
+      array_msg = "@" + name_ + " = global " + array_type->toString() + " null";
 
-      if (node->getExpr() == nullptr) { // int[] a;
-        array_msg = "@" + name_ + " = global " + array_type->toString() + " null";
-      } else { // have some initialization   int[] a = new int[10];     int[] a = new int[10] {1, 2, 3, 4...}
-        auto init_array = std::dynamic_pointer_cast<InitArrayNode> (node->getExpr());
-        if (init_array->getDefaultArray() == nullptr) { // int[] a = new int[10];
-          // std::string array_type_for_init = init_array->GetTypeForInit();
-          // array_msg =  "@" + name_ + " = global " + array_type_for_init + " zeroinitializer, align 4";
-          array_msg = "@" + name_ + " = global ptr null";
-        } else { // int[] a = new int[10]{1, 2, 3, 4...}
-          std::string array_type_for_init = init_array->GetTypeForInit();
-          std::string array_const = init_array->GetArrayConstForInit();
-          array_msg =  "@" + name_ + " = global " + array_type_for_init + " " + array_const + ", align 4";
-        }
-      }
+      // if (node->getExpr() == nullptr ) { // int[] a;
+      //   array_msg = "@" + name_ + " = global " + array_type->toString() + " null";
+      // } else { // have some initialization   int[] a = new int[10];     int[] a = new int[10] {1, 2, 3, 4...}
+      //   throw std::runtime_error("global array initialization should be done within main func");
+      //   auto init_array = std::dynamic_pointer_cast<InitArrayNode> (node->getExpr());
+      //   if (init_array->getDefaultArray() == nullptr) { // int[] a = new int[10];
+      //     // std::string array_type_for_init = init_array->GetTypeForInit();
+      //     // array_msg =  "@" + name_ + " = global " + array_type_for_init + " zeroinitializer, align 4";
+      //     array_msg = "@" + name_ + " = global ptr null";
+      //   } else { // int[] a = new int[10]{1, 2, 3, 4...}
+      //     std::string array_type_for_init = init_array->GetTypeForInit();
+      //     std::string array_const = init_array->GetArrayConstForInit();
+      //     array_msg =  "@" + name_ + " = global " + array_type_for_init + " " + array_const + ", align 4";
+      //   }
+      // }
     }
     if (node->getIdNode()->getType()->compareBase(*k_int)) {
       register_ = std::make_shared<Register>(name_, k_ir_int, true);

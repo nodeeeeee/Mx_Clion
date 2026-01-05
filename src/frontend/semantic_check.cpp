@@ -206,6 +206,7 @@ void SemanticCheck::visit(std::shared_ptr<DotExprNode> node) {
       if (auto class_def = dynamic_pointer_cast<ClassDefNode>(tmp_scope->getScopeOwner())) {
         lhs_id = class_def->getIdNode();
         lhs_class = lhs_id->getIdName();
+        lhs_type = std::make_shared<TypeType>(lhs_class);
         break;
       }
       if (tmp_scope->getParent() == nullptr) {
@@ -625,8 +626,7 @@ std::shared_ptr<TypeType> SemanticCheck::checkType(std::shared_ptr<ExprNode> exp
     expr->setPrvalue(false);
   } else if (auto const_array_expr = std::dynamic_pointer_cast<ArrayConstNode>(expr)) {
     expr_type = const_array_expr->getArrayType();
-  }
-  else {
+  } else {
     expr_type = expr->getExprType();
   }
   return expr_type;

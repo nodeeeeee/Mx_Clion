@@ -52,6 +52,7 @@ public:
   }
 
   explicit IRFunction(const std::shared_ptr<ClassFuncDefNode>& class_func_node) {
+    belong_ = class_func_node->getIdNode()->getIdName();
     in_class_ = true;
     is_main_ = false;
     func_name_ = class_func_node->getIdNode()->getIdName() + "_" + class_func_node->getIdNode()->getIdName();

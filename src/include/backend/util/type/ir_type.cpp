@@ -31,7 +31,7 @@ IRType::IRType(const std::shared_ptr<TypeType>& type_type){
   dim_ = type_type->getDimension();
   if (type_type->is_customized()) {
     customized_type_ = type_type->getTypeName();
-    dim_ = 1;
+    dim_ = type_type->getDimension() + 1;
   } else if (type_type->compareBase(*k_int)) {
     type_ref_ = &IRIntType::Instance();
     basic_type_ = BasicType::kINT;

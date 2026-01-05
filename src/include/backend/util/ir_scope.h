@@ -30,7 +30,6 @@ public:
   explicit IRScope(std::nullptr_t null);
 
   std::shared_ptr<Register> FindRegister(const std::string& var_name) {
-    while (true) {
       if (regs_.contains(var_name)) {
         return regs_[var_name];
       } else {
@@ -41,7 +40,6 @@ public:
           return this->parent_->FindRegister(var_name);
         }
       }
-    }
     // try {
     //   return index_[var_name];
     // } catch (const std::exception &e) {

@@ -12,6 +12,7 @@ void *calloc(size_t num, size_t size);
 //char *strcat(char *dest, const char *src);
 
 
+int strcmp(const char *str1, const char *str2);
 
 size_t strlen(const char *str);
 

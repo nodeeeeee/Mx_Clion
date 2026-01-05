@@ -58,7 +58,8 @@ public:
     funcs_["Builtin_strcat"] = strcat_function;
     auto malloc_function = std::make_shared<IRFunction>("Builtin_malloc", std::vector<std::shared_ptr<IRType>>{k_ir_int}, k_ir_void_star, true);
     funcs_["Builtin_malloc"] = malloc_function;
-
+    auto strcmp_function = std::make_shared<IRFunction>("strcmp", std::vector<std::shared_ptr<IRType>>{}, k_ir_int, true);
+    funcs_["Builtin_strcmp"] = strcmp_function;
 
     visit(root_node);
   }
@@ -117,6 +118,8 @@ public:
   void LvalVisit(std::shared_ptr<ExprNode> expr);
   void LhsIndexExpr(std::shared_ptr<IndexExprNode> expr);
   void LhsThisExpr(std::shared_ptr<ThisExprNode> expr);
+  void LhsParenExpr(std::shared_ptr<ParenExprNode> expr);
+  bool ImmediateInitialize(std::shared_ptr<ExprNode> expr);
 
 private:
   std::vector<std::shared_ptr<VarDefNode>> global_var_def_;
