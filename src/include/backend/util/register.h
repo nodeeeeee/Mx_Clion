@@ -25,6 +25,7 @@ public:
   }
   // std::string GetOutputRep() {return is_global_ ? "%" + name_.value() : GetIndex();}
 
+  [[nodiscard]] int GetIndexNum() const {return index_.value();}
 
 private:
   bool is_global_ = false;

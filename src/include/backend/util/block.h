@@ -3,6 +3,7 @@
 #include <utility>
 #include <vector>
 
+#include "backend/asm_instruction/asm_instruction.h"
 #include "backend/stmt/stmt.h"
 #include "backend/stmt/br_stmt/br_unconditional_stmt.h"
 #include "backend/stmt/br_stmt/ret_stmt.h"
@@ -18,15 +19,9 @@ public:
     stmts_.push_back(stmt);
   }
 
-  // void CreateAlloca() {
-  //   //todo
-  // }
-  // void CreateLoad() {
-  //   //TODO
-  // }
-  // void CreateStore() {
-  //   //TODO
-  // }
+  std::vector<std::shared_ptr<Stmt>>& GetStmts() {
+    return stmts_;
+  }
 
   static std::shared_ptr<Block> CreateBlock(const std::string& block_name, bool is_for_block = false) {
   return make_shared<Block>(block_name);
@@ -46,7 +41,18 @@ public:
     }
     return str;
   }
+
+  void AddInstruction(std::shared_ptr<AsmInstruction> instruction) {
+    instructions_.push_back(instruction);
+  }
+
+  std::vector<std::shared_ptr<AsmInstruction>>& GetInstructions() {
+    return instructions_;
+  }
+
+
 private:
   std::vector<std::shared_ptr<Stmt>> stmts_;
   std::string block_name_;
+  std::vector<std::shared_ptr<AsmInstruction>> instructions_;
 };

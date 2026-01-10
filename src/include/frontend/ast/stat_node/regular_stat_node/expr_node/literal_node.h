@@ -79,6 +79,16 @@ public:
     }
   }
 
+  int GetAsmValue() {
+    if (std::holds_alternative<int>(value_)) {
+      return std::get<int>(value_);
+    } else if (std::holds_alternative<bool>(value_)) {
+      return (int)std::get<bool>(value_);
+    } else {
+      throw std::runtime_error("types not int/bool is not allowed in GetAsmValue");
+    }
+  }
+
 private:
   std::shared_ptr<TypeType> literal_type;
   std::shared_ptr<IRType> literal_irtype;

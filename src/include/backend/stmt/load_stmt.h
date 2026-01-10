@@ -19,6 +19,14 @@ public:
     return dest_reg_->GetIndex() + " = load " + dest_reg_->GetType()->toString() + ", ptr " + addr_reg_->GetIndex();
   }
 
+  [[nodiscard]] std::shared_ptr<Register> GetDestReg() {
+    return dest_reg_;
+  }
+
+  [[nodiscard]] std::shared_ptr<Register> GetAddrReg() {
+    return addr_reg_;
+  }
+
 private:
   std::shared_ptr<Register> dest_reg_;
   std::shared_ptr<Register> addr_reg_;

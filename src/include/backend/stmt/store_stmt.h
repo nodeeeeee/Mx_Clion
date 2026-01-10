@@ -25,6 +25,14 @@ public:
     // }
     return "store " + VariantRep::variant_rep(value_) + ", " + addr_->GetIndexWithType();
   }
+
+  [[nodiscard]] std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> GetValue() {
+    return value_;
+  }
+
+  [[nodiscard]] std::shared_ptr<Register> GetAddr() {
+    return addr_;
+  }
 private:
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> value_;
   std::shared_ptr<Register> addr_;

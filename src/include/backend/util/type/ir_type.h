@@ -57,9 +57,9 @@ public:
 
   std::string GetGEPType(bool is_dot) {
     if (type_ref_ == nullptr && is_dot) return "%class." + customized_type_;
-      if (dim_ >= 1) {
-        return "ptr";
-      } else return type_ref_->toString_();
+    if (dim_ >= 1) {
+      return "ptr";
+    } else return type_ref_->toString_();
 
   }
 

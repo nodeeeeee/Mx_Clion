@@ -32,6 +32,18 @@ public:
     str += ")";
     return str;
   }
+
+  [[nodiscard]] std::shared_ptr<IRFunction> GetFunc() {
+    return func_;
+  }
+
+  [[nodiscard]] std::shared_ptr<Register> GetDestRegister() {
+    return dest_reg_;
+  }
+
+  [[nodiscard]] std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> GetParams() {
+    return params_;
+  }
 private:
   std::shared_ptr<IRFunction> func_;
   std::shared_ptr<Register> dest_reg_;

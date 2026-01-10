@@ -48,6 +48,22 @@ public:
     return dest_->GetIndex() + " = icmp " + op_str + " " + VariantRep::variant_rep(lhs_) + ", " + VariantRep::variant_val_only(rhs_);
   }
 
+  [[nodiscard]] IcmpOp GetOp() {
+    return op_;
+  }
+
+  [[nodiscard]] std::shared_ptr<Register> GetDestReg() {
+    return dest_;
+  }
+
+  [[nodiscard]] std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> GetLhs() {
+    return lhs_;
+  }
+
+  [[nodiscard]] std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> GetRhs() {
+    return rhs_;
+  }
+
 private:
   IcmpOp op_;
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> lhs_;

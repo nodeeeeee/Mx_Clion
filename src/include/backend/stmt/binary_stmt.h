@@ -61,6 +61,22 @@ public:
     return dest_->GetIndex() + " = " + op_str + " " + VariantRep::variant_rep(lhs_) + ", " + VariantRep::variant_val_only(rhs_);
   }
 
+  std::shared_ptr<Register> GetDest() {
+    return dest_;
+  }
+
+  std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> GetLhs() {
+    return lhs_;
+  }
+
+  std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> GetRhs() {
+    return rhs_;
+  }
+
+  BinaryOp GetOp() {
+    return op_;
+  }
+
 private:
   BinaryOp op_;
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> lhs_;

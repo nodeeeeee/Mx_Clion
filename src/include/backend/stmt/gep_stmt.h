@@ -37,6 +37,16 @@ public:
     }
     return ret;
   }
+
+  [[nodiscard]]std::shared_ptr<Register> GetDestPtr() {
+    return dest_ptr_;
+  }
+  [[nodiscard]]std::shared_ptr<Register> GetBasePtr() {
+    return base_ptr_;
+  }
+  [[nodiscard]]std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> GetIndices() {
+    return indices_;
+  }
 private:
   std::shared_ptr<Register> dest_ptr_;
   std::shared_ptr<Register> base_ptr_;  // pointee-type can be retrieved from base_ptr

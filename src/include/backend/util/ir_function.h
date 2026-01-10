@@ -166,6 +166,22 @@ public:
     return param_registers_[i];
   }
 
+  std::vector<std::shared_ptr<Register>> ASMGetParamReg() {
+    return param_registers_;
+  }
+
+  std::vector<std::shared_ptr<IRType>> ASMGetParamTypes() {
+    return param_types_;
+  }
+
+  std::vector<std::shared_ptr<Block>> ASMGetBlocks() {
+    return blocks_;
+  }
+
+  bool ASMIsMain() {
+    return is_main_;
+  }
+
   [[nodiscard]] std::string commit() {
     std::string str;
     if (!is_builtin()) {

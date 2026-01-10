@@ -64,6 +64,16 @@ add_executable(Mx_Clion src/parser/antlr4/main.cpp
         src/include/backend/ir_generator.h
         src/backend/ir_generator.cpp
         src/include/backend/util/type/ir_null_type.h
+        src/include/backend/asm_generator.h
+        src/include/backend/util/asm_function.h
+        src/backend/asm_generator.cpp
+        src/include/backend/util/virtual_register.h
+        src/include/backend/util/physical_register.h
+        src/include/backend/asm_instruction/asm_instruction.h
+        src/include/backend/asm_instruction/mem.h
+        src/include/backend/asm_instruction/arithmetic.h
+        src/include/backend/util/asm_rep.h
+        src/include/backend/asm_instruction/control_flow.h
 )
 
 target_link_libraries(Mx_Clion antlr4-runtime)
