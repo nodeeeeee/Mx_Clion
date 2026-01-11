@@ -26,7 +26,7 @@ int HandlePureImmd(BinaryStmt::BinaryOp op, int rs, int rt);
 
 
 void AsmGenerator::Build() {
-  ClassTypeTranslator();
+  // ClassTypeTranslator();
   GlobalStmtTranslator();
   std::string func_str;
   for (const auto& func : ir_funcs_) {
@@ -62,9 +62,9 @@ void AsmGenerator::GlobalStmtTranslator() {
   }
 }
 
-void AsmGenerator::ClassTypeTranslator() {
-
-}
+// void AsmGenerator::ClassTypeTranslator() {
+//
+// }
 
 void AsmGenerator::ScanFunction(std::shared_ptr<IRFunction> ir_func) {
   /** generate a ASMFunction and store into ASMGenerator
@@ -80,12 +80,12 @@ void AsmGenerator::BuildFunction(std::shared_ptr<ASMFunction> asm_func) {
   //
   int max_arg = FuncCallMaxArg(asm_func);
   curr_reg_frame_ = std::make_shared<RegFrame>();
-  if (max_arg != -1) {
-    //store ra
-    auto store_ra = std::make_shared<StoreInstruction>(ra, sp, 0);
-    curr_reg_frame_->UpdateOffset(4);
-    asm_instructions_.emplace_back(store_ra);
-  }
+  // if (max_arg != -1) {
+  //   //store ra
+  //   auto store_ra = std::make_shared<StoreInstruction>(ra, sp, 0);
+  //   curr_reg_frame_->UpdateOffset(4);
+  //   asm_instructions_.emplace_back(store_ra);
+  // }
   for (auto& basic_block : asm_func->GetBlocks()) {
     curr_block_ = basic_block;
     BuildBlock(basic_block);
@@ -95,11 +95,21 @@ void AsmGenerator::BuildFunction(std::shared_ptr<ASMFunction> asm_func) {
   if (max_arg != -1) {
     std::cout << "sw ra, " + std::to_string(frame_size - 4) + "(sp)" << std::endl;
     std::cout << "sw s0, " + std::to_string(frame_size - 8) + "(sp)" << std::endl;
+    curr_reg_frame_->UpdateOffset(8);
+
   } else {
     std::cout << "sw s0, " + std::to_string(frame_size - 4) + "(sp)" << std::endl;
+    curr_reg_frame_->UpdateOffset(4);
   }
   std::cout << "addi s0, sp, " + std::to_string(frame_size) << std::endl;
-  for (auto basic_block : asm_func->GetBlocks()) {
+  //store first 8 params
+  auto params = asm_func->GetParamTypes();
+  for (int i = 0; i < std::min((int)params.size(), 8); i++) {
+    curr_reg_frame_->CreateRegister((int)params.size() + i, params[i]);
+    std::cout << "sw a" + std::to_string(i) + ", " + "-" + std::to_string(curr_reg_frame_->GetOffset()) << std::endl;
+  }
+
+  for (const auto& basic_block : asm_func->GetBlocks()) {
     std::cout << basic_block->getBlockName() << ": \n";
     std::cout << basic_block->GenerateAsmCode();
   }

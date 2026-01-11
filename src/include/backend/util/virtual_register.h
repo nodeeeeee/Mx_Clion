@@ -30,7 +30,7 @@ class RegFrame {
   RegFrame() = default;
   void CreateRegister(const std::shared_ptr<Register>& reg) {
     int reg_len;
-    if (reg->GetType() == k_ir_bool) {
+    if (*reg->GetType() == *k_ir_bool) {
       reg_len = 1;
     } else {
       reg_len = 4;
@@ -39,6 +39,18 @@ class RegFrame {
     int reg_num = reg->GetIndexNum();
     regs_.emplace(reg_num, virt_reg);
     offset_ += virt_reg->GetLength();
+  }
+
+  void CreateRegister(int reg_idx, const std::shared_ptr<IRType>& reg_type) {
+    int reg_len;
+    if (*reg_type == *k_ir_int) {
+      reg_len = 4;
+    } else {
+      reg_len = 1;
+    }
+    auto virt_reg = std::make_shared<VirtualRegister>(reg_len, offset_);
+    regs_.emplace(reg_idx, virt_reg);
+    offset_ += reg_len;
   }
 
   void CreateRegister(const std::shared_ptr<Register>& reg, int offset) {
