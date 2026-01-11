@@ -52,4 +52,7 @@ private:
   std::shared_ptr<RegFrame> curr_reg_frame_;
   std::vector<std::shared_ptr<AsmInstruction>> asm_instructions_;
   std::shared_ptr<Block> curr_block_;
+  std::vector<std::shared_ptr<AsmInstruction>> rodata_;
+  std::vector<std::shared_ptr<AsmInstruction>> data_;
+  std::vector<std::shared_ptr<AsmInstruction>> bss_;
 };

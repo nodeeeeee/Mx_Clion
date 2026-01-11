@@ -15,6 +15,8 @@
 #include "frontend/ast/type/string_type.h"
 #include <string_view>
 
+#include "backend/asm_instruction/global_instruction.h"
+
 
 class Constant;
 
@@ -95,6 +97,29 @@ public:
       return "@" + name_ + " = global " + register_->GetType()->toString() + " " + value_tmp->ToString();
     } else {
       return "@" + name_ + " = global " + register_->GetType()->toString() + " " + register_->GetType()->DefaultValue();
+    }
+  }
+
+  [[nodiscard]] std::shared_ptr<AsmInstruction> ToInstruction() const {
+    if (!array_msg.empty()) {
+      // uninitialized array
+      auto bss_instruction = std::make_shared<BssInstruction>(name_, 2);
+      return bss_instruction;
+    }
+    if (constant_value_.has_value()) {
+      if (*constant_value_.value()->GetConstType() == *k_ir_string) {
+        auto string_declare = std::make_shared<RodataInstruction>(name_, 0, constant_value_.value()->ToString());
+        return string_declare;
+      } else {
+        int init_val = constant_value_.value()->ToInt();
+        std::vector<int> init_vals;
+        init_vals.push_back(init_val);
+        auto initialized_int_decalre = std::make_shared<DataInstruction>(name_, 2, init_vals);
+        return initialized_int_decalre;
+      }
+    } else {
+      auto uninitialized_int_declare = std::make_shared<BssInstruction>(name_, 2);
+      return uninitialized_int_declare;
     }
   }
 

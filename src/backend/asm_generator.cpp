@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "backend/asm_instruction/arithmetic.h"
+#include "backend/asm_instruction/control_flow.h"
 #include "backend/asm_instruction/mem.h"
 #include "backend/stmt/alloca_stmt.h"
 #include "backend/stmt/gep_stmt.h"
@@ -37,7 +38,28 @@ void AsmGenerator::Build() {
 }
 
 void AsmGenerator::GlobalStmtTranslator() {
-
+  for (auto stmt : global_stmts_) {
+    auto curr_instruction = stmt->ToInstruction();
+    if (auto bss_instruction = std::dynamic_pointer_cast<BssInstruction>(curr_instruction)) {
+      bss_.emplace_back(bss_instruction);
+    } else if (auto rodata_instruction = std::dynamic_pointer_cast<RodataInstruction>(curr_instruction)) {
+      rodata_.emplace_back(rodata_instruction);
+    } else if (auto data_instruction = std::dynamic_pointer_cast<DataInstruction>(curr_instruction)) {
+      data_.emplace_back(data_instruction);
+    }
+  }
+  std::cout << "\t.section .rodata\n\t.align 2" << std::endl;
+  for (auto rodata : rodata_) {
+    std::cout << rodata->commit() << std::endl;
+  }
+  std::cout << "\t.section .data\n\t.align 2" << std::endl;
+  for (auto data : data_) {
+    std::cout << data->commit() << std::endl;
+  }
+  std::cout << "\t.section .bss\n\t.align 0" << std::endl;
+  for (auto bss : bss_) {
+    std::cout << bss->commit() << std::endl;
+  }
 }
 
 void AsmGenerator::ClassTypeTranslator() {
@@ -69,6 +91,28 @@ void AsmGenerator::BuildFunction(std::shared_ptr<ASMFunction> asm_func) {
     BuildBlock(basic_block);
   }
   int frame_size = curr_reg_frame_->GetOffset() + max_arg * 4;
+  std::cout << "addi sp, sp, -" + std::to_string(frame_size) << std::endl;
+  if (max_arg != -1) {
+    std::cout << "sw ra, " + std::to_string(frame_size - 4) + "(sp)" << std::endl;
+    std::cout << "sw s0, " + std::to_string(frame_size - 8) + "(sp)" << std::endl;
+  } else {
+    std::cout << "sw s0, " + std::to_string(frame_size - 4) + "(sp)" << std::endl;
+  }
+  std::cout << "addi s0, sp, " + std::to_string(frame_size) << std::endl;
+  for (auto basic_block : asm_func->GetBlocks()) {
+    std::cout << basic_block->getBlockName() << ": \n";
+    std::cout << basic_block->GenerateAsmCode();
+  }
+  if (max_arg != -1) {
+    std::cout << "lw ra, " + std::to_string(frame_size - 4) + "(sp)" << std::endl;
+    std::cout << "lw s0, " + std::to_string(frame_size - 8) + "(sp)" << std::endl;
+  } else {
+    std::cout << "lw s0, " + std::to_string(frame_size - 4) + "(sp)" << std::endl;
+  }
+  std::cout << "addi sp, sp, " + std::to_string(frame_size) << std::endl;
+  std::cout << "ret" << std::endl;
+
+
 }
 
 void AsmGenerator::BuildBlock(std::shared_ptr<Block> block) {
@@ -91,9 +135,9 @@ void AsmGenerator::BuildBlock(std::shared_ptr<Block> block) {
       } else if (std::holds_alternative<std::shared_ptr<Register>>(rs)) {
         LoadRegister(rs, t(0));
         int rt_rep = std::make_shared<AsmRep>(rt)->GetRepVal();
-        if (op != BinaryStmt::BinaryOp::kDIV && op != BinaryStmt::BinaryOp::kMOD && op != BinaryStmt::BinaryOp::kMUL && op != BinaryStmt::BinaryOp::kSUB) {
+        if (op != BinaryStmt::BinaryOp::kDIV && op != BinaryStmt::BinaryOp::kMOD && op != BinaryStmt::BinaryOp::kMUL && op != BinaryStmt::BinaryOp::kSUB && rt_rep <= 2047 && rt_rep >= -2048) {
           curr_block_->AddInstruction(std::make_shared<ITypeInstruction>(StmtOpToIInstOp(op), t(2), t(0), rt_rep));
-        } else if (op == BinaryStmt::BinaryOp::kSUB) {
+        } else if (op == BinaryStmt::BinaryOp::kSUB && rt_rep <= 2047 && rt_rep >= -2048) {
           curr_block_->AddInstruction(std::make_shared<ITypeInstruction>(ITypeInstruction::Op::kADDI, t(2), t(0), -rt_rep));
         } else {
           curr_block_->AddInstruction(std::make_shared<LoadImmediate>(LoadImmediate::Op::kLI, t(1), rt_rep));
@@ -288,8 +332,27 @@ void AsmGenerator::BuildBlock(std::shared_ptr<Block> block) {
       LoadRegister(store_stmt->GetAddr(), t(2));
       curr_block_->AddInstruction(std::make_shared<StoreInstruction>(t(0), t(2), 0));
     } else if (auto br_conditional_stmt = std::dynamic_pointer_cast<BrConditionalStmt>(stmt)) {
-
+      //beq
+      //next line: j .?
+      //next line: j .?
+      auto true_label = br_conditional_stmt->GetTrueLabel();
+      auto false_label = br_conditional_stmt->GetFalseLabel();
+      auto cond_reg = br_conditional_stmt->GetBrReg();
+      if (std::holds_alternative<std::shared_ptr<Register>>(cond_reg)) {
+        LoadRegister(cond_reg, t(0));
+      } else {
+        auto cond_val = std::make_shared<AsmRep>(cond_reg)->GetRepVal();
+        curr_block_->AddInstruction(std::make_shared<LoadImmediate>(LoadImmediate::Op::kLI, t(0), cond_val));
+      }
+      curr_block_->AddInstruction(std::make_shared<BranchInstruction>(BranchInstruction::Op::kBEQ, t(0), zero, 4));
+      curr_block_->AddInstruction(std::make_shared<JInstruction>(true_label));
+      curr_block_->AddInstruction(std::make_shared<JInstruction>(false_label));
+    } else if (auto br_unconditional_stmt = std::dynamic_pointer_cast<BrUnconditionalStmt>(stmt)) {
+      curr_block_->AddInstruction(std::make_shared<JInstruction>(br_unconditional_stmt->GetLabel()));
     }
+    // else if (auto ret_stmt = std::dynamic_pointer_cast<ReturnStmt>(stmt)) {
+    //   curr_block_->AddInstruction(std::make_shared<RetInstruction>());
+    // }
   }
 }
 

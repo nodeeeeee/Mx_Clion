@@ -45,6 +45,16 @@ public:
     }
   }
 
+  [[nodiscard]] int ToInt() const {
+    if (*type_ == *TypeGetter::get_type(IRType::kINT)) {
+      return std::get<int>(value_);
+    } else if (*type_ == *TypeGetter::get_type(IRType::kBOOL)) {
+      return (int)std::get<bool>(value_);
+    } else {
+      throw std::runtime_error("Unsupported type");
+    }
+  }
+
   [[nodiscard]] std::shared_ptr<IRType> GetConstType() const {
     return type_;
   }

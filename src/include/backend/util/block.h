@@ -50,6 +50,14 @@ public:
     return instructions_;
   }
 
+  std::string GenerateAsmCode() {
+    std::string ret;
+    for (auto instruction : instructions_) {
+      ret += instruction->commit() + "\n";
+    }
+    return ret;
+  }
+
 
 private:
   std::vector<std::shared_ptr<Stmt>> stmts_;

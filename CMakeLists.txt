@@ -74,6 +74,7 @@ add_executable(Mx_Clion src/parser/antlr4/main.cpp
         src/include/backend/asm_instruction/arithmetic.h
         src/include/backend/util/asm_rep.h
         src/include/backend/asm_instruction/control_flow.h
+        src/include/backend/asm_instruction/global_instruction.h
 )
 
 target_link_libraries(Mx_Clion antlr4-runtime)
