@@ -7,6 +7,8 @@
 # as the tempdir.
 # Example:
 #     scripts/test.bash 'bin/mxc -S' testcases/codegen/t1.mx bin/builtin.s
+
+# testcases/codegen/scripts/test_asm.bash 'cmake-build-testall/Mx_Clion -S' testcases/codegen/t1.mx src/lib/builtin.s
 # The script will
 # 1. Get an temporary directory
 # 2. Execute <compiler> < <testcase> > "$TEMPDIR/output.s"
@@ -47,7 +49,7 @@ source $(dirname $0)/utils.bash
 # Note: If you just follow the steps in the README, you need to put the last
 # line (export PATH="/usr/local/opt/bin:$PATH") in your .bashrc or .zshrc
 # (depending on which shell you are using).
-test_bin ravel
+test_bin reimu
 
 # 1. Make temp directory
 if [ $# -eq 4 ]; then
@@ -126,7 +128,7 @@ fi
 EXPECTED_EXIT_CODE=$(grep "ExitCode:" $TESTCASE | awk '{print $2}')
 
 # 4. Execute the code with ravel
-ravel --input-file="$TEMPDIR/test.in" --output-file="$TEMPDIR/test.out" "$TEMPDIR/output.s" $BUILTIN > "$TEMPDIR/ravel_output.txt"
+reimu -i="$TEMPDIR/test.in" -o="$TEMPDIR/test.out" -f="$TEMPDIR/output.s","$BUILTIN" > "$TEMPDIR/ravel_output.txt"
 if [ $? -ne 0 ]; then
     cat << EOF >&2
 Error: Ravel exits with a non-zero value.

@@ -31,11 +31,14 @@ public:
   [[nodiscard]] std::string commit() {
     std::string str;
     str += block_name_ + ": \n";
-    for (auto& stmt : stmts_) {
+    for (int i = 0; i < stmts_.size(); i++) {
+      auto stmt = stmts_[i];
       str += stmt->commit() + "\n";
       if (auto ret_stmt = std::dynamic_pointer_cast<ReturnStmt>(stmt)) {
+        stmts_.erase(stmts_.begin() + i + 1, stmts_.end());
         return str;
       } else if (auto br_uncond_stmt = std::dynamic_pointer_cast<BrUnconditionalStmt>(stmt)) {
+        stmts_.erase(stmts_.begin() + i + 1, stmts_.end());
         return str;
       }
     }

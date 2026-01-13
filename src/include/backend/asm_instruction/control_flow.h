@@ -15,7 +15,7 @@ public:
   };
   BranchInstruction(Op op, PhysicalRegister rs, PhysicalRegister rt, std::variant<int, std::string> target_pos) : op_(op), rs_(rs), rt_(rt), target_pos_(std::move(target_pos)) {
   }
-  std::string commit() {
+  std::string commit() override {
     std::string ret;
     switch (op_) {
       case kBEQ:
@@ -41,7 +41,7 @@ public:
     if (std::holds_alternative<int>(target_pos_)) {
       ret += std::to_string(std::get<int>(target_pos_));
     } else {
-      ret += "L." + std::get<std::string>(target_pos_);
+      ret += std::get<std::string>(target_pos_);
     }
     return ret;
   }
@@ -54,9 +54,9 @@ private:
 
 class JInstruction : public AsmInstruction {
 public:
-  JInstruction(std::string label) : label_(label) {}
-  std::string commit() {
-    return "j ." + label_;
+  JInstruction(std::string label) : label_(std::move(label)) {}
+  std::string commit() override {
+    return "j " + label_;
   }
 private:
   std::string label_;
@@ -65,7 +65,34 @@ private:
 class RetInstruction : public AsmInstruction {
   public:
   RetInstruction() = default;
-  std::string commit() {
+  std::string commit() override {
     return "ret";
   }
+};
+
+class CallInstruction : public AsmInstruction {
+  public:
+  CallInstruction(std::string func_name) : func_name_(std::move(func_name)) {
+  }
+  std::string commit() override {
+    return "call " + func_name_;
+  }
+private:
+  std::string func_name_;
+};
+
+class HelperBranchLabel : public AsmInstruction {
+  public:
+  HelperBranchLabel() : AsmInstruction() {
+    label_num_ = label_count_++;
+  }
+  std::string commit() override {
+    return ".L" + std::to_string(label_num_) + ":";
+  }
+  static int GetLabelCount() {
+    return label_count_;
+  }
+private:
+  int label_num_;
+  inline static int label_count_ = 0;
 };

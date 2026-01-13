@@ -7,6 +7,8 @@
 # as the tempdir.
 # Example:
 #     scripts/test.bash 'bin/mxc -emit-llvm' testcases/codegen/t1.mx bin/builtin.ll
+
+# testcases/codegen/scripts/test_llvm_ir.bash 'cmake-build-testall/Mx_Clion -emit-llvm' testcases/codegen/t3.mx src/lib/builtin.ll
 # The script will
 # 1. Get an temporary directory
 # 2. Execute <compiler> < <testcase> > "$TEMPDIR/output.ll"

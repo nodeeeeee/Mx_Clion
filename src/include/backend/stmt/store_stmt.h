@@ -1,6 +1,5 @@
-#include <utility>
-
 #pragma once
+#include <utility>
 
 class StoreStmt : public Stmt {
 public:

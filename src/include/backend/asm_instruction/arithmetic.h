@@ -52,7 +52,7 @@ public:
         ret += "sltu";
         break;
     }
-    ret += " " + rd_.GetName() + " " + rs_.GetName() + " " + rt_.GetName();
+    ret += " " + rd_.GetName() + ", " + rs_.GetName() + ", " + rt_.GetName();
     return ret;
   }
 private:
@@ -68,7 +68,7 @@ public:
     kADDI, kXORI, kORI, kANDI, kSLLI, kSRLI, kSLTI, kSLTIU
   };
   ITypeInstruction(Op op, PhysicalRegister rd, PhysicalRegister rs, int rt) : op_(op), rd_(rd), rs_(rs), rt_(rt) {}
-  std::string commit() {
+  std::string commit() override {
     std::string ret;
     switch (op_) {
       case kADDI:
@@ -96,7 +96,7 @@ public:
         ret += "sltiu";
         break;
     }
-    ret += " " + rd_.GetName() + " " + rs_.GetName() + " " + std::to_string(rt_);
+    ret += " " + rd_.GetName() + ", " + rs_.GetName() + ", " + std::to_string(rt_);
     return ret;
   }
 private:
@@ -113,14 +113,14 @@ class LoadImmediate : public AsmInstruction {
   };
   LoadImmediate(Op op, PhysicalRegister rd, int immd) : op_(op), rd_(rd), immd_(immd) {
   }
-  std::string commit() {
+  std::string commit() override {
     std::string ret;
     switch (op_) {
       case kLI:
         ret += "li";
         break;
     }
-    ret += " " + rd_.GetName() + " " + std::to_string(immd_);
+    ret += " " + rd_.GetName() + ", " + std::to_string(immd_);
     return ret;
   }
 private:
@@ -135,7 +135,7 @@ class CmpInstruction : public AsmInstruction {
     kSEQZ, kSNEZ, kSLTZ, kSGTZ
   };
   CmpInstruction(Op op, PhysicalRegister rd, PhysicalRegister rs) : op_(op), rd_(rd), rs_(rs) {}
-  std::string commit() {
+  std::string commit() override {
     std::string ret;
     switch (op_) {
       case kSEQZ:
@@ -151,7 +151,7 @@ class CmpInstruction : public AsmInstruction {
         ret += "sgtz";
         break;
     }
-    ret += " " + rd_.GetName() + " " + rs_.GetName();
+    ret += " " + rd_.GetName() + ", " + rs_.GetName();
     return ret;
   }
 private:

@@ -9,6 +9,7 @@
 #include "frontend/ast/visit_control.h"
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/init_array_node.h"
 #include "frontend/ast/type/type_type.h"
+#include "stmt/global_stmt.h"
 #include "util/class_type.h"
 #include "util/ir_function.h"
 #include "util/scope.h"
@@ -120,6 +121,19 @@ public:
   void LhsThisExpr(std::shared_ptr<ThisExprNode> expr);
   void LhsParenExpr(std::shared_ptr<ParenExprNode> expr);
   bool ImmediateInitialize(std::shared_ptr<ExprNode> expr);
+
+  std::map<std::string, std::shared_ptr<IRFunction>>& GetFunctions() {
+    return funcs_;
+  }
+
+  std::vector<std::shared_ptr<GlobalStmt>> GetGlobalStmts() {
+    return global_scope_->GetGlobalStmts();
+  }
+
+  std::map<std::string, std::shared_ptr<ClassType>> GetClassTypes() {
+    return types_;
+  }
+
 
 private:
   std::vector<std::shared_ptr<VarDefNode>> global_var_def_;

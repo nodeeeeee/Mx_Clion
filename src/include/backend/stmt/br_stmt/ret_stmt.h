@@ -45,6 +45,10 @@ public:
     // return "ret " + VariantRep::variant_rep(ret_val_);
   }
 
+  [[nodiscard]] std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> GetRetVal() {
+    return ret_val_;
+  }
+
 private:
   bool is_void = false;
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> ret_val_;

@@ -16,6 +16,9 @@ public:
     }
     return register_->GetIndex() + " = alloca " + register_->GetType()->ElementToString();
   }
+  [[nodiscard]] std::shared_ptr<Register> GetReg() const {
+    return register_;
+  }
 private:
   std::shared_ptr<Register> register_;
 };

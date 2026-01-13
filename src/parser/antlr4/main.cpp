@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <thread>      // std::this_thread::sleep_for
 
+#include "backend/asm_generator.h"
 #include "backend/ir_generator.h"
 // #include <chrono>      // std::chrono::milliseconds
 
@@ -75,7 +76,7 @@ int main(int argc, const char* argv[]) {
 
 #ifndef testall
   std::ifstream stream;
-  stream.open("testcases/sema/formatted-string-package/formatted-string3.mx");
+  stream.open("testcases/codegen/t1.mx");
   ANTLRInputStream input(stream);
 #endif
   MxErrorListener error_listener;
@@ -108,5 +109,6 @@ int main(int argc, const char* argv[]) {
   std::cout << "解析完成\n";
 #endif
   IRGenerator ir_rep(ast_tree);
+  AsmGenerator asm_rep(ir_rep.GetFunctions(), ir_rep.GetGlobalStmts(), ir_rep.GetClassTypes());
   return 0;
 }

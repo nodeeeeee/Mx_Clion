@@ -8,7 +8,7 @@
 
 class VirtualRegister {
 public:
-  VirtualRegister(int len, int offset) : len_(len), offset_(offset) {
+  VirtualRegister(int len, int offset) : len_(len), offset_(offset + 4) {
   }
 
   [[nodiscard]] int GetLength() const {
@@ -31,7 +31,8 @@ class RegFrame {
   void CreateRegister(const std::shared_ptr<Register>& reg) {
     int reg_len;
     if (*reg->GetType() == *k_ir_bool) {
-      reg_len = 1;
+      // reg_len = 1;
+      reg_len = 4;
     } else {
       reg_len = 4;
     }
@@ -46,9 +47,11 @@ class RegFrame {
     if (*reg_type == *k_ir_int) {
       reg_len = 4;
     } else {
-      reg_len = 1;
+      // reg_len = 1;
+      reg_len = 4;
     }
     auto virt_reg = std::make_shared<VirtualRegister>(reg_len, offset_);
+    assert(reg_len = 4);
     regs_.emplace(reg_idx, virt_reg);
     offset_ += reg_len;
   }
@@ -56,8 +59,9 @@ class RegFrame {
   void CreateRegister(const std::shared_ptr<Register>& reg, int offset) {
     assert(offset < 0);
     int reg_len;
-    if (reg->GetType() == k_ir_bool) {
-      reg_len = 1;
+    if (*reg->GetType() == *k_ir_bool) {
+      reg_len = 4;
+      // reg_len = 1;
     } else {
       reg_len = 4;
     }

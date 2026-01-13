@@ -84,6 +84,8 @@ public:
       return std::get<int>(value_);
     } else if (std::holds_alternative<bool>(value_)) {
       return (int)std::get<bool>(value_);
+    } else if (is_null) {
+      return 0;
     } else {
       throw std::runtime_error("types not int/bool is not allowed in GetAsmValue");
     }

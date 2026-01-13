@@ -42,9 +42,21 @@ public:
     return is_main_;
   }
   std::string GetBelong() {
-    assert(belong_.has_value());
-    return belong_.value();
+    if (belong_.has_value()) {
+      return belong_.value();
+    }
+    // assert(belong_.has_value());
+    return "";
   }
+
+  [[nodiscard]] int GetMaxArg() {
+    return max_arg_;
+  }
+
+  void UpdateMaxArg(int max_arg) {
+    max_arg_ = max_arg;
+  }
+
 private:
   std::string func_name_;
   // normal function: func_name
@@ -57,4 +69,6 @@ private:
   std::optional<std::string> belong_;
   bool in_class_ = false; // if in class, it will automatically be assigned a first parameter as ptr
   bool builtin_ = false;
+  int max_arg_;
+
 };

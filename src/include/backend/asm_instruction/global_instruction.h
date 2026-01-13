@@ -8,6 +8,11 @@
 #include <vector>
 
 #include "asm_instruction.h"
+//
+// class GlobalInstruction : public std::enable_shared_from_this<GlobalInstruction>{
+//   public:
+//   GlobalInstruction() = default;
+// };
 
 class RodataInstruction : public AsmInstruction {
 public:
@@ -20,7 +25,7 @@ public:
   [[nodiscard]] int GetAlign() const {
     return align_;
   }
-  [[nodiscard]] std::string GetInit() const {
+  [[nodiscard]] std::string commit() override {
     return name_ + ": \n\t" + ".asciz \"" + str_const_ + "\"";
   }
 private:
@@ -40,7 +45,7 @@ public:
   [[nodiscard]] int GetAlign() const {
     return align_;
   }
-  [[nodiscard]] std::string GetInit() const {
+  [[nodiscard]] std::string commit() override {
     std::string result = name_ + ": \n\t" + ".word ";
     bool is_first = true;
     for (auto val : init_vals_) {
@@ -69,7 +74,7 @@ public:
   [[nodiscard]] int GetAlign() const {
     return align_;
   }
-  [[nodiscard]] std::string GetInit() const {
+  [[nodiscard]] std::string commit() override {
     return name_ + ": \n\t" +  ".zero 4";
   }
 private:

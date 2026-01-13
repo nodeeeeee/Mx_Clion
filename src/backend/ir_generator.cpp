@@ -56,7 +56,7 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
       // if (!ImmediateInitialize(var_def->getExpr())) {
       //   global_var_def_.emplace_back(var_def);
       // }
-      global_scope_->AddGlobalStmt(std::make_shared<GlobalStmt>(var_def)->commit());
+      global_scope_->AddGlobalStmt(std::make_shared<GlobalStmt>(var_def));
 
     } else if (auto func_def = std::dynamic_pointer_cast<FuncDefNode>(def_node)) {
       auto func = FindFunction(func_def->getIdNode()->getIdName());
@@ -79,10 +79,12 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
       class_def->accept(this);
     }
   }
+
+#ifndef testall
   for (auto& type : types_) {
     printf("%s\n", type.second->commit().c_str());
   }
-  printf("%s", global_scope_->GetGlobalStmt().c_str()); // \n included in the method
+  printf("%s", global_scope_->commit().c_str()); // \n included in the method
   for (auto& func : funcs_) { // first declare
     auto func_obj = func.second;
     if (func_obj->is_builtin()) {
@@ -95,6 +97,8 @@ void IRGenerator::visit(std::shared_ptr<RootNode> root_node) {
       printf("%s\n", func_obj->commit().c_str());
     }
   }
+#endif
+
 }
 
 void IRGenerator::visit(std::shared_ptr<FuncDefNode> node) {
@@ -1495,7 +1499,7 @@ std::shared_ptr<Register> IRGenerator::CreateString(std::shared_ptr<LiteralNode>
   auto string_reg = std::make_shared<Register>(reg_name, k_ir_string, true);
   global_scope_->declare(reg_name, string_reg);
   auto str_declare_stmt = std::make_shared<GlobalStmt>(reg_name, string_val);
-  global_scope_->AddGlobalStmt(str_declare_stmt->commit());
+  global_scope_->AddGlobalStmt(str_declare_stmt);
   return string_reg;
 }
 

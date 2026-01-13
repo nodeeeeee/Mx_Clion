@@ -158,8 +158,11 @@ public:
   }
 
   [[nodiscard]] std::string GetBelong() const {
-    assert(belong_.has_value());
-    return belong_.value();
+    if (belong_.has_value()) {
+      return belong_.value();
+    } else {
+      return "";
+    }
   }
 
   std::shared_ptr<Register> GetParamReg(int i) {

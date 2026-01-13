@@ -13,9 +13,7 @@
 
 class IRScope : public std::enable_shared_from_this<IRScope> {
 public:
-  IRScope() : parent_(nullptr) {
-
-  }
+  IRScope() = default;
 
   explicit IRScope(std::shared_ptr<IRScope> parent, const std::string loop_start, const std::string loop_end) : parent_(std::move(parent)) {
     if (!loop_start.empty()) {
@@ -87,20 +85,28 @@ private:
 
 };
 
-class IRGlobalScope : public IRScope {
+class IRGlobalScope : public IRScope{
 public:
   explicit IRGlobalScope() = default;
-  void AddGlobalStmt(std::string stmt) {
+  void AddGlobalStmt(std::shared_ptr<GlobalStmt> stmt) {
     global_stmts.push_back(std::move(stmt));
   }
-  std::string GetGlobalStmt() {
+  std::vector<std::shared_ptr<GlobalStmt>>& GetGlobalStmts() {
+    // std::string str;
+    // for (auto& stmt : global_stmts) {
+    //   str += stmt + "\n";
+    // }
+    // return str;
+    return global_stmts;
+  }
+  std::string commit() {
     std::string str;
     for (auto& stmt : global_stmts) {
-      str += stmt + "\n";
+      str += stmt->commit() + "\n";
     }
     return str;
   }
 
 private:
-  std::vector<std::string> global_stmts;
+  std::vector<std::shared_ptr<GlobalStmt>> global_stmts;
 };

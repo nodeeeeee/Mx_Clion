@@ -10,5 +10,5 @@ class AsmInstruction {
   AsmInstruction() = default;
 
   virtual ~AsmInstruction() = default;
-  virtual std::string commit();
+  virtual std::string commit() = 0;
 };
