@@ -16,7 +16,15 @@
 
 class RodataInstruction : public AsmInstruction {
 public:
-  RodataInstruction(std::string name, int align, std::string str_const) : name_(std::move(name)), align_(align), str_const_(std::move(str_const)) {
+  RodataInstruction(std::string name, int align, std::string str_const) : name_(std::move(name)), align_(align) {
+    for (int i = 0; i < str_const.size(); i++) {
+      if (str_const[i] == '\\' && str_const[i + 1] == '2' && str_const[i + 2] == '2') {
+        str_const_ += "\\\"";
+        i += 2;
+      } else {
+        str_const_ += str_const[i];
+      }
+    }
     assert(align == 0);
   };
   [[nodiscard]] std::string GetName() const {
@@ -26,7 +34,8 @@ public:
     return align_;
   }
   [[nodiscard]] std::string commit() override {
-    return name_ + ": \n\t" + ".asciz \"" + str_const_ + "\"";
+    // std::string ret;
+    return name_ + ": \n\t" + ".asciz \"" + str_const_+ "\"";
   }
 private:
   std::string name_;

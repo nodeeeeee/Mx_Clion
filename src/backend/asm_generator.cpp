@@ -111,7 +111,7 @@ void AsmGenerator::BuildFunction(std::shared_ptr<ASMFunction> asm_func) {
   int frame_size = curr_reg_frame_->GetOffset() + max_arg * 4;
   frame_size = (int)std::ceil((double)frame_size / 16) * 16;
   bool out_of_bound = false;
-  if (frame_size > 2047 || frame_size <= -2048) {
+  if (frame_size > 2047 || frame_size < -2048) {
     out_of_bound = true;
     std::cout << "li t0, " + std::to_string(frame_size) << std::endl;
   }
@@ -122,7 +122,6 @@ void AsmGenerator::BuildFunction(std::shared_ptr<ASMFunction> asm_func) {
       std::cout << "add t1, t1, sp" << std::endl;
       std::cout << "sw ra, 0(t1)" << std::endl;
       std::cout << "addi t1, t1, -4" << std::endl;
-      std::cout << "add t1, t1, sp" << std::endl;
       std::cout << "sw s0, 0(t1)" << std::endl;
       // curr_reg_frame_->UpdateOffset(8);
     } else {
@@ -278,7 +277,7 @@ void AsmGenerator::BuildBlock(std::shared_ptr<Block> block) {
         }
       } else {
         for (int i = 0; i < 8; i++) {
-          if (std::get<int>(args[i]) || std::get<bool>(args[i]) || std::get<std::shared_ptr<LiteralNode>> (args[i])) {
+          if (std::holds_alternative<int>(args[i]) || std::holds_alternative<bool>(args[i]) || std::holds_alternative<std::shared_ptr<LiteralNode>> (args[i])) {
             auto asm_arg = std::make_shared<AsmRep>(args[i])->GetRepVal();
             curr_block_->AddInstruction(std::make_shared<LoadImmediate>(LoadImmediate::Op::kLI, a(i), asm_arg));
           } else {
@@ -496,9 +495,9 @@ void AsmGenerator::BuildBlock(std::shared_ptr<Block> block) {
       auto return_rep = ret_stmt->GetRetVal();
       if (std::holds_alternative<std::shared_ptr<Register>>(return_rep)) {
         auto return_reg = std::get<std::shared_ptr<Register>>(return_rep);
-        auto virtual_reg = curr_reg_frame_->FindVirtualRegister(return_reg);
-        // LoadRegister(std::get<std::shared_ptr<Register>>(return_rep), a(0));
-        curr_block_->AddInstruction(std::make_shared<LoadInstruction>(a(0), s(0), -virtual_reg->GetOffset()));
+        // auto virtual_reg = curr_reg_frame_->FindVirtualRegister(return_reg);
+        LoadRegister(return_reg, a(0));
+        // curr_block_->AddInstruction(std::make_shared<LoadInstruction>(a(0), s(0), -virtual_reg->GetOffset()));
       } else {
         int ret_val = std::make_shared<AsmRep>(return_rep)->GetRepVal();
         curr_block_->AddInstruction(std::make_shared<LoadImmediate>(LoadImmediate::Op::kLI, a(0), ret_val));
