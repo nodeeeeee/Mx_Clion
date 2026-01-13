@@ -1,5 +1,0 @@
-/home/zhangkai/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/zhangkai/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -G Ninja -S /home/zhangkai/Documents/计划/暑假/compiler/Mx_Clion -B /home/zhangkai/Documents/计划/暑假/compiler/Mx_Clion/cmake-build-debug
--- >>> OJ_MODE is OFF
--- Configuring done (0.0s)
--- Generating done (0.0s)
--- Build files have been written to: /home/zhangkai/Documents/计划/暑假/compiler/Mx_Clion/cmake-build-debug
