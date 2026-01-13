@@ -1,0 +1,124 @@
+//
+// Created by zhang-kai on 6/13/25.
+//
+#include "type_type.h"
+
+#include "bool_type.h"
+#include "int_type.h"
+#include "no_type.h"
+#include "null_type.h"
+#include "string_type.h"
+#include "void_type.h"
+
+TypeType::TypeType (MxParser::TypeContext *ctx) {
+
+  if (ctx->INT()) {
+    type_ref = &IntType::Instance();
+    primitive_type_ = PrimitiveType::kINT;
+  } else if (ctx -> BOOLEAN()) {
+    type_ref = &BoolType::Instance();
+    primitive_type_ = PrimitiveType::kBOOL;
+  } else if (ctx -> STR()) {
+    type_ref = &StringType::Instance();
+    primitive_type_ = PrimitiveType::kSTRING;
+  } else if (ctx -> VOID()) {
+    type_ref = &VoidType::Instance();
+    primitive_type_ = PrimitiveType::kVOID;
+  } else if (auto id_terminal = ctx-> ID()) {
+    customized_type = id_terminal ->getSymbol()->getText();
+  } else if (auto array_type = ctx->type()) {
+    dimension = countBracket(ctx, &type_ref, &customized_type);
+  }
+}
+TypeType::TypeType(PrimitiveType primitive_type, int dimension) : dimension(dimension), primitive_type_(primitive_type) {
+  if (primitive_type == PrimitiveType::kBOOL) {
+    type_ref = &BoolType::Instance();
+    primitive_type_ = primitive_type;
+  } else if (primitive_type == PrimitiveType::kINT) {
+    type_ref = &IntType::Instance();
+    primitive_type_ = primitive_type;
+  } else if (primitive_type == PrimitiveType::kVOID) {
+    type_ref = &VoidType::Instance();
+    primitive_type_ = primitive_type;
+  } else if (primitive_type == PrimitiveType::kSTRING) {
+    type_ref = &StringType::Instance();
+    primitive_type_ = primitive_type;
+  } else if (primitive_type == PrimitiveType::kNULL) {
+    type_ref = &NullType::Instance();
+    primitive_type_ = primitive_type;
+  }
+}
+
+
+TypeType::TypeType(SpecialCode special_code) {
+  if (special_code == IntType) { // for 'int main'
+    type_ref = &IntType::Instance();
+    primitive_type_ = PrimitiveType::kINT;
+  } else if (special_code == NoType) {
+    type_ref = &NoType::Instance();
+  }
+}
+
+TypeType::TypeType(std::shared_ptr<TypeType> base, int increment) {
+  type_ref = base->type_ref;
+  primitive_type_ = base->primitive_type_;
+  customized_type = base->customized_type;
+  dimension = base->dimension + increment;
+}
+
+TypeType::TypeType (std::string customized_type) : customized_type(std::move(customized_type)) {
+  type_ref = nullptr;
+  dimension = 0;
+}
+
+// std::shared_ptr<TypeType> TypeType::assignType(PrimitiveType primitive_type) {
+//   if (primitive_type == PrimitiveType::kBOOL) {
+//     return
+//   }
+// }
+//
+// std::shared_ptr<TypeType> TypeType::assignType(SpecialType special_type) {
+//
+// }
+//
+int TypeType::countBracket(MxParser::TypeContext *ctx, TypeType** type_ref_ptr, std::string *customized_ptr) {
+  if (ctx->LEFT_SQUARE_BRACKET()) {
+    return countBracket(ctx->type(), type_ref_ptr, customized_ptr) + 1;
+  } else {
+    if (ctx->INT()) {
+      *type_ref_ptr = &IntType::Instance();
+      primitive_type_ = PrimitiveType::kINT;
+    } else if (ctx -> BOOLEAN()) {
+      *type_ref_ptr = &BoolType::Instance();
+      primitive_type_ = PrimitiveType::kBOOL;
+    } else if (ctx -> STR()) {
+      *type_ref_ptr = &StringType::Instance();
+      primitive_type_ = PrimitiveType::kSTRING;
+    } else if (ctx -> VOID()) {
+      *type_ref_ptr = &VoidType::Instance();
+      primitive_type_ = PrimitiveType::kVOID;
+    } else if (auto id_terminal = ctx-> ID()) {
+      *customized_ptr = id_terminal ->getSymbol()->getText();
+    }
+    return 0;
+  }
+}
+
+std::string TypeType::getTypeName() {
+  if (is_customized()) {
+    return customized_type;
+  }
+  else {
+    if (type_ref == &StringType::Instance()) {
+      if (dimension == 0) {return "String";}
+      else {return "0Array";}
+    } else if (type_ref == &IntType::Instance() && dimension != 0) {
+      return "0Array";
+    } else if (type_ref == &BoolType::Instance() && dimension != 0) {
+      return "0Array";
+    }
+    else {
+      throw std::runtime_error("Pre-built functions are only available for String or Array");
+    }
+  }
+}

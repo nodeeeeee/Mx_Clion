@@ -1,0 +1,119 @@
+#pragma once
+#include <memory>
+#include <utility>
+#include <cassert>
+#include "ir_type_proto.h"
+#include "frontend/ast/type/type_type.h"
+#include "frontend/ast/type/type_type.h"
+
+class IRType {
+public:
+  enum BasicType {
+    kINT, kBOOL, kSTRING, kVOID, kNULL
+  };
+  IRType() = default;
+  explicit IRType(BasicType basic_type, int dim = 0);
+  explicit IRType(std::string type_name, int dim = 0) : customized_type_(std::move(type_name)), dim_(dim + 1) {}
+  explicit IRType(const std::shared_ptr<IRType>& base_ir_type, int increment);
+  explicit IRType(const std::shared_ptr<TypeType>& type_type);
+  explicit IRType(const std::shared_ptr<TypeType>& type_type, int dim);
+
+
+  std::string toString() {
+    // assert(type_ref_ != nullptr && "type_ref is nullptr");
+    if (dim_ == 0) {
+      if (!customized_type_.empty()) {
+        return "%class." + customized_type_;
+      }
+      return type_ref_->toString_();
+    } else {
+      return "ptr";
+    }
+    // std::string ret = type_ref_->toString_();
+    // ret.reserve(ret.size() + dim_);
+    // ret.append(dim_, '*');
+    // return ret;
+  }
+  std::string ElementToString() { // only used in alloca
+    assert(dim_ > 0);
+    if (dim_ == 1) {
+      if (!customized_type_.empty()) {
+        return "%class." + customized_type_;
+      }
+      return type_ref_->toString_();
+    }
+    else {
+      // std::string ret = type_ref_->toString_();
+      // ret.reserve(ret.size() + dim_ - 1);
+      // ret.append(dim_ - 1, '*');
+      // return ret;
+      return "ptr";
+    };
+  }
+
+  bool is_customized() {
+    return !customized_type_.empty();
+  }
+
+  std::string GetGEPType(bool is_dot) {
+    if (type_ref_ == nullptr && is_dot) return "%class." + customized_type_;
+    if (dim_ >= 1) {
+      return "ptr";
+    } else return type_ref_->toString_();
+
+  }
+
+  // std::string GetAlign() {
+  //   if (dim_ >= 1) {
+  //     return "8";
+  //   }
+  //   if (dim_ == 0) return type_ref_->GetAlign_();
+  //   else return "4";
+  // }
+  std::string DefaultValue() {
+    if (dim_ == 0) return type_ref_->DefaultValue_();
+    else if (basic_type_ == kNULL) {
+      return type_ref_->DefaultValue_();
+    }
+    else return "null";
+  }
+
+  bool operator==(IRType const &other) const {
+    if (this->type_ref_ != nullptr) {
+      return this->type_ref_ == other.type_ref_ && this->dim_ == other.dim_;
+    } else {
+      return this->customized_type_ == other.customized_type_ && this->dim_ == other.dim_;
+    }
+  }
+
+  [[nodiscard]] int GetDim() const {
+    return dim_;
+  }
+
+  std::shared_ptr<IRType> DecreaseDimension();
+
+  std::string GetTypeName() {
+    if (!customized_type_.empty()) {
+      return customized_type_;
+    } else {
+      switch (basic_type_) {
+        case kINT: return "Int";
+        case kBOOL: return "Bool";
+        case kSTRING: return "String";
+        default: throw std::runtime_error("Unsupported type");
+      }
+    }
+  }
+
+private:
+  // need singleton to boost up assignment
+  BasicType basic_type_;
+  IRTypeProto *type_ref_ = nullptr;
+  std::string customized_type_;
+  int dim_ = 0;
+  std::shared_ptr<TypeType> k_int = std::make_shared<TypeType>(TypeType::PrimitiveType::kINT);
+  std::shared_ptr<TypeType> k_bool = std::make_shared<TypeType>(TypeType::PrimitiveType::kBOOL);
+  std::shared_ptr<TypeType> k_string = std::make_shared<TypeType>(TypeType::PrimitiveType::kSTRING);
+  std::shared_ptr<TypeType> k_void = std::make_shared<TypeType>(TypeType::PrimitiveType::kVOID);
+  std::shared_ptr<TypeType> k_null = std::make_shared<TypeType>(TypeType::PrimitiveType::kNULL);
+};
