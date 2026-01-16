@@ -11,7 +11,7 @@ public:
     param_types_ = ir_func->ASMGetParamTypes();
     param_registers_ = ir_func->ASMGetParamReg();
     return_type_ = ir_func->GetReturnType();
-    blocks_ = ir_func->ASMGetBlocks();
+    blocks_ = ir_func->GetBlocks();
     is_main_ = ir_func->ASMIsMain();
     belong_ = ir_func->GetBelong();
     in_class_ = ir_func->IsInClass();

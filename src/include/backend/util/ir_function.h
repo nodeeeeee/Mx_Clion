@@ -177,7 +177,7 @@ public:
     return param_types_;
   }
 
-  std::vector<std::shared_ptr<Block>> ASMGetBlocks() {
+  std::vector<std::shared_ptr<Block>> GetBlocks() {
     return blocks_;
   }
 

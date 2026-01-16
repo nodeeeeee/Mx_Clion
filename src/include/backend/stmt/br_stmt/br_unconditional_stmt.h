@@ -21,6 +21,13 @@ public:
   [[nodiscard]] std::string GetLabel() const {
     return label_;
   }
+  std::set<std::shared_ptr<Register>> GetUse() {
+    return {};
+  }
+  std::set<std::shared_ptr<Register>> GetDef() {
+    return {};
+  }
+
 private:
   // std::variant <int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> br_reg_;
   std::string label_;

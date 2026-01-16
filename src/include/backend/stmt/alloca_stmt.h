@@ -19,6 +19,13 @@ public:
   [[nodiscard]] std::shared_ptr<Register> GetReg() const {
     return register_;
   }
+
+  std::set<std::shared_ptr<Register>> GetUse() {
+    return {};
+  }
+  std::set<std::shared_ptr<Register>> GetDef() {
+    return {register_};
+  }
 private:
   std::shared_ptr<Register> register_;
 };

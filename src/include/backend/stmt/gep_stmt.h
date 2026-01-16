@@ -47,6 +47,23 @@ public:
   [[nodiscard]]std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> GetIndices() {
     return indices_;
   }
+
+  std::set<std::shared_ptr<Register>> GetUse() {
+    std::set<std::shared_ptr<Register>> use_reg;
+    use_reg.emplace(base_ptr_);
+    for (auto index : indices_) {
+      if (std::holds_alternative<std::shared_ptr<Register>>(index)) {
+        use_reg.emplace(std::get<std::shared_ptr<Register>>(index));
+      }
+    }
+    return use_reg;
+  }
+
+  std::set<std::shared_ptr<Register>> GetDef() {
+    std::set<std::shared_ptr<Register>> def_reg;
+    def_reg.emplace(base_ptr_);
+    return def_reg;
+  }
 private:
   std::shared_ptr<Register> dest_ptr_;
   std::shared_ptr<Register> base_ptr_;  // pointee-type can be retrieved from base_ptr

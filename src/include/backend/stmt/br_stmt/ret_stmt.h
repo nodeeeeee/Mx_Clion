@@ -49,6 +49,17 @@ public:
     return ret_val_;
   }
 
+  std::set<std::shared_ptr<Register>> GetUse() {
+    std::set<std::shared_ptr<Register>> use_reg;
+    if (std::holds_alternative<std::shared_ptr<Register>>(ret_val_)) {
+      use_reg.emplace(std::get<std::shared_ptr<Register>>(ret_val_));
+    }
+    return use_reg;
+  }
+  std::set<std::shared_ptr<Register>> GetDef() {
+    return {};
+  }
+
 private:
   bool is_void = false;
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> ret_val_;

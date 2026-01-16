@@ -44,6 +44,13 @@ public:
   [[nodiscard]] std::vector<std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>>> GetParams() {
     return params_;
   }
+
+  std::set<std::shared_ptr<Register>> GetUse() {
+    return {};
+  }
+  std::set<std::shared_ptr<Register>> GetDef() {
+    return {dest_reg_};
+  }
 private:
   std::shared_ptr<IRFunction> func_;
   std::shared_ptr<Register> dest_reg_;

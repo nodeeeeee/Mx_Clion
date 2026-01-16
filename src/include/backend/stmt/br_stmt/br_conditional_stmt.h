@@ -30,6 +30,17 @@ public:
   [[nodiscard]] std::variant <int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> GetBrReg() const {
     return br_reg_;
   }
+
+  std::set<std::shared_ptr<Register>> GetUse() {
+    std::set<std::shared_ptr<Register>> use_reg;
+    if (std::holds_alternative<std::shared_ptr<Register>>(br_reg_)) {
+      use_reg.emplace(std::get<std::shared_ptr<Register>>(br_reg_));
+    }
+    return use_reg;
+  }
+  std::set<std::shared_ptr<Register>> GetDef() {
+    return {};
+  }
 private:
   std::variant <int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> br_reg_;
   std::string true_label_;

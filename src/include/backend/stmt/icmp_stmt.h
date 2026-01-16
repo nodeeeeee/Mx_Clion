@@ -63,7 +63,21 @@ public:
   [[nodiscard]] std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> GetRhs() {
     return rhs_;
   }
+  std::set<std::shared_ptr<Register>> GetUse() {
+    std::set<std::shared_ptr<Register>> use_reg;
+    if (std::holds_alternative<std::shared_ptr<Register>>(lhs_)) {
+      use_reg.emplace(std::get<std::shared_ptr<Register>>(lhs_));
+    }
+    if (std::holds_alternative<std::shared_ptr<Register>>(rhs_)) {
+      use_reg.emplace(std::get<std::shared_ptr<Register>>(rhs_));
+    }
+    return use_reg;
+  }
 
+  std::set<std::shared_ptr<Register>> GetDef() {
+    std::set<std::shared_ptr<Register>> def_reg;
+    return {dest_};
+  }
 private:
   IcmpOp op_;
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> lhs_;
