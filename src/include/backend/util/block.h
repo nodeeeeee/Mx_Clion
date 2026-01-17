@@ -61,9 +61,55 @@ public:
     return ret;
   }
 
+  void AddCFGSuccessor(std::shared_ptr<Block> suc_block) {
+    successors_.push_back(suc_block);
+  }
+
+  std::vector<std::shared_ptr<Block>>& GetSuccessors() {
+    return successors_;
+  }
+
+  void AddCFGPredecessor(std::shared_ptr<Block> prede_block) {
+    predecessors_.push_back(prede_block);
+  }
+  std::vector<std::shared_ptr<Block>>& GetPredecessors() {
+    return predecessors_;
+  }
+
+  void SetIn(std::set<std::shared_ptr<Register>>& in) {
+    in_ = in;
+  }
+  std::set<std::shared_ptr<Register>>& GetIn() {
+    return in_;
+  }
+
+  void SetOut(std::set<std::shared_ptr<Register>>& out) {
+    out_ = out;
+  }
+  std::set<std::shared_ptr<Register>>& GetOut() {
+    return out_;
+  }
+  void SetUse(std::set<std::shared_ptr<Register>>& use) {
+    use_ = use;
+  }
+  std::set<std::shared_ptr<Register>>& GetUse() {
+    return use_;
+  }
+  void SetDef(std::set<std::shared_ptr<Register>>& def) {
+    def_ = def;
+  }
+  std::set<std::shared_ptr<Register>>& GetDef() {
+    return def_;
+  }
 
 private:
   std::vector<std::shared_ptr<Stmt>> stmts_;
   std::string block_name_;
   std::vector<std::shared_ptr<AsmInstruction>> instructions_;
+  std::vector<std::shared_ptr<Block>> successors_;
+  std::vector<std::shared_ptr<Block>> predecessors_;
+  std::set<std::shared_ptr<Register>> in_;
+  std::set<std::shared_ptr<Register>> out_;
+  std::set<std::shared_ptr<Register>> use_;
+  std::set<std::shared_ptr<Register>> def_;
 };

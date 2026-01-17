@@ -46,6 +46,7 @@ public:
     return {};
   }
 
+
 private:
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> value_;
   std::shared_ptr<Register> addr_;

@@ -121,6 +121,7 @@ public:
   std::shared_ptr<Block> CreateBlock(std::string block_name) {
       auto new_block = Block::CreateBlock(block_name);
       blocks_.push_back(new_block);
+      block_dict_[block_name] = new_block;
       return new_block;
 
   }
@@ -220,7 +221,9 @@ public:
     return str;
   }
 
-
+  std::shared_ptr<Block> FindBlock(const std::string& block_name) {
+    return block_dict_.find(block_name)->second;
+  }
 
 
 
@@ -233,6 +236,7 @@ private:
   std::vector<std::shared_ptr<Register>> param_registers_; // to store param registers in advance
   std::shared_ptr<IRType> return_type_;
   std::vector<std::shared_ptr<Block>> blocks_;// the first one is entry block
+  std::map<std::string, std::shared_ptr<Block>> block_dict_;
   bool is_main_;
   std::shared_ptr<IRScope> func_scope_;
   int index_counter_ = 0;

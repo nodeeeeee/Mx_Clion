@@ -78,6 +78,7 @@ public:
     std::set<std::shared_ptr<Register>> def_reg;
     return {dest_};
   }
+
 private:
   IcmpOp op_;
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> lhs_;

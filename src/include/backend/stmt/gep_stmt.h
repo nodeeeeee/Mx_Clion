@@ -64,6 +64,8 @@ public:
     def_reg.emplace(base_ptr_);
     return def_reg;
   }
+
+
 private:
   std::shared_ptr<Register> dest_ptr_;
   std::shared_ptr<Register> base_ptr_;  // pointee-type can be retrieved from base_ptr

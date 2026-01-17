@@ -12,7 +12,22 @@ public:
   Stmt() = default;
   virtual ~Stmt() = default;
   virtual std::string commit() const = 0;
-  virtual std::set<std::shared_ptr<Register>> GetUse = 0;
-  virtual std::set<std::shared_ptr<Register>> GetDef = 0;
+  virtual std::set<std::shared_ptr<Register>> GetUse() = 0;
+  virtual std::set<std::shared_ptr<Register>> GetDef() = 0;
+  std::set<std::shared_ptr<Register>> GetIn() {
+    return in_;
+  }
+  std::set<std::shared_ptr<Register>> GetOut() {
+    return out_;
+  }
+  void SetIn(std::set<std::shared_ptr<Register>> in) {
+    in_ = in;
+  }
+  void SetOut(std::set<std::shared_ptr<Register>> out) {
+    out_ = out;
+  }
 
+private:
+  std::set<std::shared_ptr<Register>> in_;
+  std::set<std::shared_ptr<Register>> out_;
 };

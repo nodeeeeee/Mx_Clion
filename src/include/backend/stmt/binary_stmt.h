@@ -93,9 +93,12 @@ public:
     return {dest_};
   }
 
+
+
 private:
   BinaryOp op_;
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> lhs_;
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> rhs_;
   std::shared_ptr<Register> dest_;
+
 };

@@ -26,6 +26,8 @@ public:
   std::set<std::shared_ptr<Register>> GetDef() {
     return {register_};
   }
+
 private:
   std::shared_ptr<Register> register_;
+
 };
