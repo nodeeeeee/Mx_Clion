@@ -111,6 +111,13 @@ void IRGenerator::visit(std::shared_ptr<FuncDefNode> node) {
   //   current_func_->SetIndex(node->getVarDefs().size());
   // }
   InitFuncParam(node);
+  for (const auto &var_def : node->getInBlockVarDef()) {
+    auto var_def_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), var_def->getIdNode()->getType()->getDimension() + 1);
+    std::shared_ptr<Register> var_reg = current_func_->CreateRegister(var_def_type);
+    std::shared_ptr<Stmt> alloca_stmt = std::static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(var_reg));
+    current_basic_block_->AddStmt(alloca_stmt);
+    var_def->SetPreAllocatedReg(var_reg);
+  }
   func_block->accept(this);
   bool has_return = false;
   for (auto& stat_node : func_block->getStatNodes()) {
@@ -143,6 +150,14 @@ void IRGenerator::visit(std::shared_ptr<MainFuncNode> node) {
   for (auto &global_var_def : global_var_def_) {
     GlobalVarDefInit(global_var_def);
   }
+  for (const auto &var_def : node->getInBlockVarDef()) {
+    auto var_def_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), var_def->getIdNode()->getType()->getDimension() + 1);
+    std::shared_ptr<Register> var_reg = current_func_->CreateRegister(var_def_type);
+    std::shared_ptr<Stmt> alloca_stmt = std::static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(var_reg));
+    current_basic_block_->AddStmt(alloca_stmt);
+    var_def->SetPreAllocatedReg(var_reg);
+  }
+
   main_block->accept(this);
   bool has_return = false;
   for (auto& stat_node : main_block->getStatNodes()) {
@@ -224,15 +239,17 @@ void IRGenerator::visit(std::shared_ptr<ClassFuncDefNode> node) {
 
 void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
   std::shared_ptr<IRType> node_type;
-  // if (node->getIdNode()->getType()->is_customized()) {
-  //   node_type = std::make_shared<IRType>(node->getIdNode()->getType(), node->getIdNode()->getType()->getDimension() + 2);
-  // } else {
-    node_type = std::make_shared<IRType>(node->getIdNode()->getType(), node->getIdNode()->getType()->getDimension() + 1);
-  // }
-  std::shared_ptr<Register> var_reg = current_func_->CreateRegister(node_type);
-  std::shared_ptr<Stmt> alloca_stmt = std::static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(var_reg));
-  current_basic_block_->AddStmt(alloca_stmt);
+  node_type = std::make_shared<IRType>(node->getIdNode()->getType(), node->getIdNode()->getType()->getDimension() + 1);
+  // std::shared_ptr<Register> var_reg = current_func_->CreateRegister(node_type);
+  // std::shared_ptr<Stmt> alloca_stmt = std::static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(var_reg));
+  // current_basic_block_->AddStmt(alloca_stmt);
+  // current_scope_->declare(node->getIdNode()->getIdName(), var_reg);
+
+
+  auto var_reg = node->GetPreAllocatedReg();
   current_scope_->declare(node->getIdNode()->getIdName(), var_reg);
+
+
   //visit expr
   auto expr = node->getExpr();
   if (expr != nullptr) {
@@ -2159,3 +2176,5 @@ bool IRGenerator::ImmediateInitialize(std::shared_ptr<ExprNode> expr) {
     return false;
   }
 }
+
+

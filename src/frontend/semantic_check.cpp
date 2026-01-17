@@ -20,9 +20,11 @@ void SemanticCheck::visit(std::shared_ptr<RootNode> node) {
 }
 
 void SemanticCheck::visit(std::shared_ptr<MainFuncNode> node) {
+  curr_main_func = node;
   createScope(node);
   node->getBody()->accept(this);
   exitScope();
+  curr_main_func = nullptr;
 }
 
 void SemanticCheck::visit(std::shared_ptr<BlockNode> node) {
@@ -47,6 +49,7 @@ void SemanticCheck::visit(std::shared_ptr<FuncDefNode> node) {
   }
   auto block_node = node->getFuncBlock();
   auto var_defs = node->getVarDefs();
+  curr_func = node;
   createScope(node);
   for (const auto& varDef : var_defs) {
     current_scope->declare(varDef);
@@ -56,6 +59,7 @@ void SemanticCheck::visit(std::shared_ptr<FuncDefNode> node) {
     throw std::runtime_error("this function has no return statement");
   }
   exitScope();
+  curr_func = nullptr;
 }
 
 void SemanticCheck::visit(std::shared_ptr<ClassDefNode> node) {
@@ -96,6 +100,11 @@ void SemanticCheck::visit(std::shared_ptr<ClassFuncDefNode> node) {
 }
 
 void SemanticCheck::visit(std::shared_ptr<VarDefNode> node) {
+  if (curr_func != nullptr) {
+    curr_func->AddInBlockVarDef(node);
+  } else if (curr_main_func != nullptr) {
+    curr_main_func->AddInBlockVarDef(node);
+  }
   auto lhs = std::shared_ptr<TypeType>(node->getIdNode()->getType());
   if (*lhs == *k_void || lhs->compareBase(*k_void)) {
     throw std::runtime_error("variable cannot be void type");

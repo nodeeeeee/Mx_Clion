@@ -123,6 +123,13 @@ public:
     }
   }
 
+  std::set<std::shared_ptr<Register>> GetUse() {
+    return {};
+  }
+
+  std::set<std::shared_ptr<Register>> GetDef() {
+    return {};
+  }
 
 private:
   std::string array_msg;

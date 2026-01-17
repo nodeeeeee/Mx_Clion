@@ -16,7 +16,13 @@ public:
         DefType::kFunc, position) {}
     const std::shared_ptr<BlockNode> getBody() const { return body; }
     void accept(VisitControl *visitor) override {visitor->visit(shared_from_this());}
+    void AddInBlockVarDef(std::shared_ptr<VarDefNode> var_def) {
+        in_block_var_defs.push_back(var_def);
+    }
+
+    std::vector<std::shared_ptr<VarDefNode>>& getInBlockVarDef() { return in_block_var_defs; }
 private:
     std::shared_ptr<BlockNode> body;
+    std::vector<std::shared_ptr<VarDefNode>> in_block_var_defs;
 
 };

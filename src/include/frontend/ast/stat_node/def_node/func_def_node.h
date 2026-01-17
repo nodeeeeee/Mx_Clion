@@ -26,7 +26,14 @@ public:
   }
   void accept(VisitControl* visitor) { visitor->visit(shared_from_this()); }
 
+  void AddInBlockVarDef(std::shared_ptr<VarDefNode> var_def) {
+    in_block_var_defs.push_back(var_def);
+  }
+
+  std::vector<std::shared_ptr<VarDefNode>>& getInBlockVarDef() { return in_block_var_defs; }
+
 private:
-  std::vector<std::shared_ptr<VarDefNode>> var_defs;
+  std::vector<std::shared_ptr<VarDefNode>> var_defs; // for params
   std::shared_ptr<BlockNode> func_block;
+  std::vector<std::shared_ptr<VarDefNode>> in_block_var_defs;
 };

@@ -16,6 +16,8 @@ public:
   std::shared_ptr<RootNode> root_node;
   std::shared_ptr<Scope> global_scope = std::make_shared<GlobalScope>(root_node);
   std::shared_ptr<Scope> current_scope = global_scope;
+  std::shared_ptr<FuncDefNode> curr_func = nullptr;
+  std::shared_ptr<MainFuncNode> curr_main_func = nullptr;
   void visit(std::shared_ptr<RootNode> node) final;
   void visit(std::shared_ptr<ClassFuncDefNode> node) final;
   void visit(std::shared_ptr<ClassDefNode> node) final;
