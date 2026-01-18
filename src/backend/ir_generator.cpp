@@ -110,7 +110,7 @@ void IRGenerator::visit(std::shared_ptr<FuncDefNode> node) {
   // } else {
   //   current_func_->SetIndex(node->getVarDefs().size());
   // }
-  InitFuncParam(node);
+  auto store_stmts = InitFuncParam(node);
   for (const auto &alloca_node : node->GetInBlockAllocas()) {
     if (const auto& var_def = std::dynamic_pointer_cast<VarDefNode>(alloca_node.second)) {
       for (int i = 0; i < alloca_node.first; i++) {
@@ -129,9 +129,28 @@ void IRGenerator::visit(std::shared_ptr<FuncDefNode> node) {
       }
     } else if (const auto& ternary_node = std::dynamic_pointer_cast<TernaryExprNode>(alloca_node.second)) {
       for (int i = 0; i < alloca_node.first; i++) {
-
+        auto result_type = ternary_node->getThenExprNode()->getExprType();
+        std::shared_ptr<Register> result_reg;
+        result_reg = current_func_->CreateRegister(std::make_shared<IRType>(result_type, result_type->getDimension() + 1)); // a ptr
+        auto alloca_stmt = std::static_pointer_cast<Stmt>(
+          std::make_shared<AllocaStmt>(result_reg));
+        current_basic_block_->AddStmt(alloca_stmt);
+        ternary_node->AddPreAllocatedReg(result_reg);
+      }
+    } else if (const auto& init_array_node = std::dynamic_pointer_cast<InitArrayNode>(alloca_node.second)) {
+      for (int i = 0; i < alloca_node.first; i++) {
+        auto counter_reg_type = std::make_shared<IRType>(k_ir_int, 1);
+        auto counter_reg = current_func_->CreateRegister(counter_reg_type);
+        auto alloca_counter_reg_stmt = std::static_pointer_cast<Stmt>(
+          std::make_shared<AllocaStmt>(counter_reg));
+        current_basic_block_->AddStmt(alloca_counter_reg_stmt);
+        init_array_node->AddPreAllocatedReg(counter_reg);
       }
     }
+  }
+  for (auto stmt : store_stmts) {
+    auto store_stmt = std::static_pointer_cast<StoreStmt>(stmt);
+    current_basic_block_->AddStmt(store_stmt);
   }
   func_block->accept(this);
   bool has_return = false;
@@ -165,12 +184,41 @@ void IRGenerator::visit(std::shared_ptr<MainFuncNode> node) {
   for (auto &global_var_def : global_var_def_) {
     GlobalVarDefInit(global_var_def);
   }
-  for (const auto &var_def : node->getInBlockVarDef()) {
-    auto var_def_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), var_def->getIdNode()->getType()->getDimension() + 1);
-    std::shared_ptr<Register> var_reg = current_func_->CreateRegister(var_def_type);
-    std::shared_ptr<Stmt> alloca_stmt = std::static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(var_reg));
-    current_basic_block_->AddStmt(alloca_stmt);
-    var_def->SetPreAllocatedReg(var_reg);
+for (const auto &alloca_node : node->GetInBlockAllocas()) {
+    if (const auto& var_def = std::dynamic_pointer_cast<VarDefNode>(alloca_node.second)) {
+      for (int i = 0; i < alloca_node.first; i++) {
+        auto var_def_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), var_def->getIdNode()->getType()->getDimension() + 1);
+        std::shared_ptr<Register> var_reg = current_func_->CreateRegister(var_def_type);
+        std::shared_ptr<Stmt> alloca_stmt = std::static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(var_reg));
+        current_basic_block_->AddStmt(alloca_stmt);
+        var_def->AddPreAllocatedReg(var_reg);
+      }
+    } else if (const auto& binary_node = std::dynamic_pointer_cast<BinaryExprNode>(alloca_node.second)) {
+      for (int i = 0; i < alloca_node.first; i++) {
+        auto res_reg = current_func_->CreateRegister(std::make_shared<IRType>(k_ir_bool, 1));
+        auto alloca_res = std::make_shared<AllocaStmt>(res_reg);
+        current_basic_block_->AddStmt(alloca_res);
+        binary_node->AddPreAllocatedReg(res_reg);
+      }
+    } else if (const auto& ternary_node = std::dynamic_pointer_cast<TernaryExprNode>(alloca_node.second)) {
+      for (int i = 0; i < alloca_node.first; i++) {
+        auto result_type = ternary_node->getThenExprNode()->getExprType();
+        std::shared_ptr<Register> result_reg;
+        result_reg = current_func_->CreateRegister(std::make_shared<IRType>(result_type, result_type->getDimension() + 1)); // a ptr
+        auto alloca_stmt = std::static_pointer_cast<Stmt>(
+          std::make_shared<AllocaStmt>(result_reg));
+        current_basic_block_->AddStmt(alloca_stmt);
+        ternary_node->AddPreAllocatedReg(result_reg);
+      }
+    } else if (const auto& init_array_node = std::dynamic_pointer_cast<InitArrayNode>(alloca_node.second)) {
+      for (int i = 0; i < alloca_node.first; i++) {
+        auto counter_reg_type = std::make_shared<IRType>(k_ir_int, 1);
+        auto counter_reg = current_func_->CreateRegister(counter_reg_type);
+        auto alloca_counter_reg_stmt = std::static_pointer_cast<Stmt>(
+          std::make_shared<AllocaStmt>(counter_reg));
+        current_basic_block_->AddStmt(alloca_counter_reg_stmt);
+      }
+    }
   }
 
   main_block->accept(this);
@@ -261,7 +309,7 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
   // current_scope_->declare(node->getIdNode()->getIdName(), var_reg);
 
 
-  auto var_reg = node->GetAllocatedReg();
+  auto var_reg = node->GetPreAllocatedReg();
   current_scope_->declare(node->getIdNode()->getIdName(), var_reg);
 
 
@@ -364,9 +412,11 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
      *
      * end:
      */
-    auto res_reg = current_func_->CreateRegister(std::make_shared<IRType>(k_ir_bool, 1));
-    auto alloca_res = std::make_shared<AllocaStmt>(res_reg);
-    current_basic_block_->AddStmt(alloca_res);
+    // auto res_reg = current_func_->CreateRegister(std::make_shared<IRType>(k_ir_bool, 1));
+    // auto alloca_res = std::make_shared<AllocaStmt>(res_reg);
+    // current_basic_block_->AddStmt(alloca_res);
+    auto res_reg = node->GetPreAllocatedReg();
+
     // lhs->accept(this);
     // auto a_result = current_func_->GetReturnReg();
     auto a_result = LiteralResolver(lhs);
@@ -415,9 +465,10 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
       * end:
       * next take last reg
       */
-    auto res_reg = current_func_->CreateRegister(std::make_shared<IRType>(k_ir_bool, 1));
-    auto alloca_res = std::make_shared<AllocaStmt>(res_reg);
-    current_basic_block_->AddStmt(alloca_res);
+    // auto res_reg = current_func_->CreateRegister(std::make_shared<IRType>(k_ir_bool, 1));
+    // auto alloca_res = std::make_shared<AllocaStmt>(res_reg);
+    // current_basic_block_->AddStmt(alloca_res);
+    auto res_reg = node->GetPreAllocatedReg();
     auto a_result = LiteralResolver(lhs);
     auto b_block_name = current_func_->CreateBlockName("a_false", false);
     auto a_true_block_name = current_func_->CreateBlockName("a_true", false);
@@ -763,10 +814,11 @@ void IRGenerator::visit(std::shared_ptr<TernaryExprNode> node) {
   auto result_type = node->getThenExprNode()->getExprType();
   std::shared_ptr<Register> result_reg;
   if (!result_type->compareBase(*k_void) || result_type->getDimension() != 0) {
-    result_reg = current_func_->CreateRegister(std::make_shared<IRType>(result_type, result_type->getDimension() + 1)); // a ptr
-    auto alloca_stmt = std::static_pointer_cast<Stmt>(
-      std::make_shared<AllocaStmt>(result_reg));
-    current_basic_block_->AddStmt(alloca_stmt);
+    // result_reg = current_func_->CreateRegister(std::make_shared<IRType>(result_type, result_type->getDimension() + 1)); // a ptr
+    // auto alloca_stmt = std::static_pointer_cast<Stmt>(
+    //   std::make_shared<AllocaStmt>(result_reg));
+    // current_basic_block_->AddStmt(alloca_stmt);
+    result_reg = node->GetPreAllocatedReg();
   }
 
   auto br_then_name = current_func_->CreateBlockName("a_then", false);
@@ -1458,9 +1510,10 @@ void IRGenerator::visit(std::shared_ptr<IfStatNode> node) {
   }
 }
 
-void IRGenerator::InitFuncParam(std::shared_ptr<FuncDefNode> func_def_node) {
+std::vector<std::shared_ptr<Stmt>> IRGenerator::InitFuncParam(std::shared_ptr<FuncDefNode> func_def_node) {
   //store all params to corresponding address
   int param_count = 0;
+  std::vector<std::shared_ptr<Stmt>> store_stmts;
   if (current_func_->IsInClass()) { // store "this" reg
     // std::shared_ptr<IRType> param_type = std::make_shared<IRType>(current_func_->GetBelong(), 1); //'this' is passed as a param
     std::shared_ptr<IRType> reg_type = std::make_shared<IRType>(current_func_->GetBelong(), 1); // 'this' is stored as a reg
@@ -1469,7 +1522,8 @@ void IRGenerator::InitFuncParam(std::shared_ptr<FuncDefNode> func_def_node) {
     std::shared_ptr<Stmt> alloca_stmt = static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(reg));
     std::shared_ptr<Stmt> store_stmt = std::static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(param_reg, reg));
     current_basic_block_->AddStmt(alloca_stmt);
-    current_basic_block_->AddStmt(store_stmt);
+    store_stmts.emplace_back(store_stmt);
+    // current_basic_block_->AddStmt(store_stmt);
     current_scope_->declare("this", reg); //name the self pointer "this"
   }
   for (auto param : func_def_node->getVarDefs()) {
@@ -1480,10 +1534,12 @@ void IRGenerator::InitFuncParam(std::shared_ptr<FuncDefNode> func_def_node) {
     std::shared_ptr<Stmt> alloca_stmt = static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(reg));
     std::shared_ptr<Stmt> store_stmt = static_pointer_cast<Stmt>(std::make_shared<StoreStmt>(param_reg, reg));
     current_basic_block_->AddStmt(alloca_stmt);
-    current_basic_block_->AddStmt(store_stmt);
+    // current_basic_block_->AddStmt(store_stmt);
+    store_stmts.emplace_back(store_stmt);
     current_scope_->declare(param->getIdNode()->getIdName(), reg);
     //whenever there is an alloca, we need to add it to scope
   }
+  return store_stmts;
 }
 
 
@@ -1793,10 +1849,11 @@ void IRGenerator::DeclareArray(std::shared_ptr<InitArrayNode> node, std::vector<
       auto range_loop_body_block_name = current_func_->CreateBlockName("init_array_body" + std::to_string(pos), false);
       auto end_block_name = current_func_->CreateBlockName("init_array_end" + std::to_string(pos), false);
       auto counter_reg_type = std::make_shared<IRType>(k_ir_int, 1);
-      auto counter_reg = current_func_->CreateRegister(counter_reg_type);
-      auto alloca_counter_reg_stmt = std::static_pointer_cast<Stmt>(
-        std::make_shared<AllocaStmt>(counter_reg));
-      current_basic_block_->AddStmt(alloca_counter_reg_stmt);
+      // auto counter_reg = current_func_->CreateRegister(counter_reg_type);
+      // auto alloca_counter_reg_stmt = std::static_pointer_cast<Stmt>(
+      //   std::make_shared<AllocaStmt>(counter_reg));
+      // current_basic_block_->AddStmt(alloca_counter_reg_stmt);
+      auto counter_reg = node->GetPreAllocatedReg();
       auto store_stmt = std::static_pointer_cast<Stmt>(
         std::make_shared<StoreStmt>(0, counter_reg));
       current_basic_block_->AddStmt(store_stmt);

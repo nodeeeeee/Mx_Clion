@@ -27,11 +27,12 @@ public:
         pre_allocated_reg.emplace_back(reg);
     }
 
-    std::vector<std::shared_ptr<Register>> GetPreAllocatedRegs() {
-        return pre_allocated_reg;
+    std::shared_ptr<Register> GetPreAllocatedReg() {
+        return pre_allocated_reg[pre_alloc_reg_counter++];
     }
 
 private:
     std::shared_ptr<ExprNode> expr_node;
     std::vector<std::shared_ptr<Register>> pre_allocated_reg;
+    int pre_alloc_reg_counter = 0;
 };

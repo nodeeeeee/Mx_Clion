@@ -10,6 +10,7 @@
 #include "frontend/ast/stat_node/regular_stat_node/expr_node/init_array_node.h"
 #include "frontend/ast/type/type_type.h"
 #include "stmt/global_stmt.h"
+#include "stmt/store_stmt.h"
 #include "util/class_type.h"
 #include "util/ir_function.h"
 #include "util/scope.h"
@@ -99,7 +100,7 @@ public:
   void visit(std::shared_ptr<RegularStatNode> node) override {}
   void visit(std::shared_ptr<ExprNode> node) override {}
 
-  void InitFuncParam(std::shared_ptr<FuncDefNode> node);
+  std::vector<std::shared_ptr<Stmt>> InitFuncParam(std::shared_ptr<FuncDefNode> node);
   std::variant<int, bool, std::shared_ptr<LiteralNode>, std::shared_ptr<Register>> FetchExprReg(std::shared_ptr<ExprNode> expr);
   std::shared_ptr<Register> CreateString(std::shared_ptr<LiteralNode> string_literal);
   std::shared_ptr<Register> ToRightVal(std::shared_ptr<Register> reg);

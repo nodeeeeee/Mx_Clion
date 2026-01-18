@@ -6,14 +6,12 @@
 #include "expr_node.h"
 #include "literal_node.h"
 
+class Register;
 class TypeType;
 class TypeNode;
 
 class InitArrayNode : public ExprNode, public std::enable_shared_from_this<InitArrayNode> {
-private:
-    std::vector<std::shared_ptr<ExprNode>> range_node;
-    std::shared_ptr<TypeType> type;
-    std::shared_ptr<ArrayConstNode> default_array = nullptr;
+
 public:
     InitArrayNode() = delete;
     InitArrayNode(std::shared_ptr<TypeType> type, std::vector<std::shared_ptr<ExprNode>> range_node, Position position)
@@ -46,4 +44,21 @@ public:
         ret += "]";
         return ret;
     }
+
+    void AddPreAllocatedReg(std::shared_ptr<Register> reg) {
+        pre_allocated_reg.emplace_back(reg);
+    }
+
+    std::shared_ptr<Register> GetPreAllocatedReg() {
+        assert(pre_allocated_reg.size() > pre_alloc_reg_counter);
+        return pre_allocated_reg[pre_alloc_reg_counter++];
+    }
+
+private:
+    std::vector<std::shared_ptr<ExprNode>> range_node;
+    std::shared_ptr<TypeType> type;
+    std::shared_ptr<ArrayConstNode> default_array = nullptr;
+    std::vector<std::shared_ptr<Register>> pre_allocated_reg;
+    int pre_alloc_reg_counter = 0;
+
 };
