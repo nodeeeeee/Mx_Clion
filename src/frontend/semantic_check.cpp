@@ -101,9 +101,9 @@ void SemanticCheck::visit(std::shared_ptr<ClassFuncDefNode> node) {
 
 void SemanticCheck::visit(std::shared_ptr<VarDefNode> node) {
   if (curr_func != nullptr) {
-    curr_func->AddInBlockVarDef(node);
+    curr_func->AddInBlockAllocas(node, 1);
   } else if (curr_main_func != nullptr) {
-    curr_main_func->AddInBlockVarDef(node);
+    curr_main_func->AddInBlockAllocas(node, 1);
   }
   auto lhs = std::shared_ptr<TypeType>(node->getIdNode()->getType());
   if (*lhs == *k_void || lhs->compareBase(*k_void)) {
@@ -189,6 +189,11 @@ void SemanticCheck::visit(std::shared_ptr<BinaryExprNode> node) {
     }
     case BinaryExprNode::BinaryOp::kAND_AND:
     case BinaryExprNode::BinaryOp::kOR_OR: {
+      if (curr_func != nullptr) {
+        curr_func->AddInBlockAllocas(node, 1);
+      } else  if (curr_main_func != nullptr) {
+        curr_main_func->AddInBlockAllocas(node, 1);
+      }
       if (*lhs_type != *k_bool) {
         throw(std::runtime_error("the operator only applies to booleans"));
       }
@@ -330,7 +335,13 @@ void SemanticCheck::visit(std::shared_ptr<InitArrayNode> node) {
   }
   auto ranges = node->getRangeNode();
   //ranges can be nullptr or expr
+  int var_count = 0;
   for (auto range : ranges) {
+    if (const auto literal_range = std::dynamic_pointer_cast<LiteralNode>(range)) {
+
+    } else {
+      var_count++;
+    }
     if (range != nullptr) {
       range->accept(this);
       if (*checkType(range) != *k_int) {
@@ -338,6 +349,15 @@ void SemanticCheck::visit(std::shared_ptr<InitArrayNode> node) {
       }
     }
   }
+
+
+  if (curr_func != nullptr) {
+    curr_func->AddInBlockAllocas(node, var_count);
+  } else  if (curr_main_func != nullptr) {
+    curr_main_func->AddInBlockAllocas(node, var_count);
+  }
+
+
   node->setExprType(std::make_shared<TypeType>(node->getType(), dim));
   auto default_array = node->getDefaultArray();
   if (default_array != nullptr) {
@@ -428,6 +448,13 @@ void SemanticCheck::visit(std::shared_ptr<TernaryExprNode> node) {
   }
 
   node->setExprType(checkType(then_expr));
+  if (!node->getExprType()->compareBase(*k_void) || node->getExprType()->getDimension() != 0) {
+    if (curr_func != nullptr) {
+      curr_func->AddInBlockAllocas(node, 1);
+    } else  if (curr_main_func != nullptr) {
+      curr_main_func->AddInBlockAllocas(node, 1);
+    }
+  }
 }
 
 

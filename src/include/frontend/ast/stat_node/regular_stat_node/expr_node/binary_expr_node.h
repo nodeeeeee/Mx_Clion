@@ -18,10 +18,19 @@ public:
     std::shared_ptr<ExprNode> getRhs() {return rhs;}
     // const ... = Div();
     BinaryOp getOp() {return op;}
+
+    void AddPreAllocatedReg(std::shared_ptr<Register> reg) {
+        pre_allocated_reg.emplace_back(reg);
+    }
+
+    std::vector<std::shared_ptr<Register>> GetPreAllocatedRegs() {
+        return pre_allocated_reg;
+    }
 private:
     BinaryOp op;
     std::shared_ptr<ExprNode> lhs;
     std::shared_ptr<ExprNode> rhs;
+    std::vector<std::shared_ptr<Register>> pre_allocated_reg;
 };
 
 //开enum

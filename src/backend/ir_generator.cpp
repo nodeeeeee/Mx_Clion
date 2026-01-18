@@ -111,12 +111,27 @@ void IRGenerator::visit(std::shared_ptr<FuncDefNode> node) {
   //   current_func_->SetIndex(node->getVarDefs().size());
   // }
   InitFuncParam(node);
-  for (const auto &var_def : node->getInBlockVarDef()) {
-    auto var_def_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), var_def->getIdNode()->getType()->getDimension() + 1);
-    std::shared_ptr<Register> var_reg = current_func_->CreateRegister(var_def_type);
-    std::shared_ptr<Stmt> alloca_stmt = std::static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(var_reg));
-    current_basic_block_->AddStmt(alloca_stmt);
-    var_def->SetPreAllocatedReg(var_reg);
+  for (const auto &alloca_node : node->GetInBlockAllocas()) {
+    if (const auto& var_def = std::dynamic_pointer_cast<VarDefNode>(alloca_node.second)) {
+      for (int i = 0; i < alloca_node.first; i++) {
+        auto var_def_type = std::make_shared<IRType>(var_def->getIdNode()->getType(), var_def->getIdNode()->getType()->getDimension() + 1);
+        std::shared_ptr<Register> var_reg = current_func_->CreateRegister(var_def_type);
+        std::shared_ptr<Stmt> alloca_stmt = std::static_pointer_cast<Stmt>(std::make_shared<AllocaStmt>(var_reg));
+        current_basic_block_->AddStmt(alloca_stmt);
+        var_def->AddPreAllocatedReg(var_reg);
+      }
+    } else if (const auto& binary_node = std::dynamic_pointer_cast<BinaryExprNode>(alloca_node.second)) {
+      for (int i = 0; i < alloca_node.first; i++) {
+        auto res_reg = current_func_->CreateRegister(std::make_shared<IRType>(k_ir_bool, 1));
+        auto alloca_res = std::make_shared<AllocaStmt>(res_reg);
+        current_basic_block_->AddStmt(alloca_res);
+        binary_node->AddPreAllocatedReg(res_reg);
+      }
+    } else if (const auto& ternary_node = std::dynamic_pointer_cast<TernaryExprNode>(alloca_node.second)) {
+      for (int i = 0; i < alloca_node.first; i++) {
+
+      }
+    }
   }
   func_block->accept(this);
   bool has_return = false;
@@ -246,7 +261,7 @@ void IRGenerator::visit(std::shared_ptr<VarDefNode> node) {
   // current_scope_->declare(node->getIdNode()->getIdName(), var_reg);
 
 
-  auto var_reg = node->GetPreAllocatedReg();
+  auto var_reg = node->GetAllocatedReg();
   current_scope_->declare(node->getIdNode()->getIdName(), var_reg);
 
 
@@ -345,6 +360,8 @@ void IRGenerator::visit(std::shared_ptr<BinaryExprNode> node) {
      * false:
      * result = false
      * br end
+     * true:
+     *
      * end:
      */
     auto res_reg = current_func_->CreateRegister(std::make_shared<IRType>(k_ir_bool, 1));

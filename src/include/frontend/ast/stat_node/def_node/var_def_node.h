@@ -23,15 +23,15 @@ public:
     [[nodiscard]] const std::shared_ptr<ExprNode>& getExpr() const { return expr_node; }
     void accept(VisitControl *visitor) {visitor->visit(shared_from_this());}
 
-    void SetPreAllocatedReg(std::shared_ptr<Register> reg) {
-        pre_allocated_reg = reg;
+    void AddPreAllocatedReg(std::shared_ptr<Register> reg) {
+        pre_allocated_reg.emplace_back(reg);
     }
 
-    std::shared_ptr<Register> GetPreAllocatedReg() {
+    std::vector<std::shared_ptr<Register>> GetPreAllocatedRegs() {
         return pre_allocated_reg;
     }
 
 private:
     std::shared_ptr<ExprNode> expr_node;
-    std::shared_ptr<Register> pre_allocated_reg;
+    std::vector<std::shared_ptr<Register>> pre_allocated_reg;
 };
